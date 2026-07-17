@@ -1,0 +1,19 @@
+<main>
+  @if (loading()) {
+    <p>Carregando usuário...</p>
+  } @else if (currentUser(); as user) {
+    <h1>Autenticação funcionando!</h1>
+
+    <p>
+      Bem-vindo, {{ user.name }}.
+    </p>
+
+    <p>
+      {{ user.email }} — {{ user.role }}
+    </p>
+
+    <button type="button" (click)="logout()">
+      Sair
+    </button>
+  }
+</main>
