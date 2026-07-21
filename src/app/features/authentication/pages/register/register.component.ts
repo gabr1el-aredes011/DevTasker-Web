@@ -13,7 +13,10 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  Router,
+  RouterLink,
+} from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -40,7 +43,7 @@ const passwordsMatchValidator: ValidatorFn = (
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -130,8 +133,19 @@ export class RegisterComponent {
     )
     .subscribe({
       next: () => {
-        void this.router.navigateByUrl('/login');
+  const normalizedEmail =
+    formValue.email.trim().toLowerCase();
+
+  void this.router.navigate(
+    ['/login'],
+    {
+      queryParams: {
+        registered: 'true',
+        email: normalizedEmail,
       },
+    },
+  );
+},
 
       error: (error: unknown) => {
         this.apiError.set(

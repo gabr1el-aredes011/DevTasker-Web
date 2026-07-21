@@ -34,15 +34,23 @@ export class LoginComponent {
 
   readonly submitting = signal(false);
   readonly apiError = signal<string | null>(null);
+  readonly registrationMessage =
+  this.route.snapshot.queryParamMap.get(
+    'registered',
+  ) === 'true'
+    ? 'Conta criada com sucesso. Faça seu primeiro login.'
+    : null;
 
   readonly form = this.formBuilder.nonNullable.group({
     email: [
-      '',
-      [
-        Validators.required,
-        Validators.email,
-      ],
-    ],
+  this.route.snapshot.queryParamMap.get(
+    'email',
+  ) ?? '',
+  [
+    Validators.required,
+    Validators.email,
+  ],
+],
     password: [
       '',
       [

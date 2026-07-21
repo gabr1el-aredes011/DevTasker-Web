@@ -11,11 +11,19 @@
       Organize tarefas. Entregue mais. Evolua sempre.
     </p>
 
-    <form
-      [formGroup]="form"
-      (ngSubmit)="submit()"
-      novalidate
+   <form
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  novalidate
+>
+  @if (registrationMessage) {
+    <div
+      class="success-message"
+      role="status"
     >
+      {{ registrationMessage }}
+    </div>
+  }
       <div class="field">
         <label for="email">E-mail</label>
 
