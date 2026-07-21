@@ -1,39 +1,98 @@
 <main class="login-page">
-  <section class="login-card">
-    <div class="brand">
-      <span class="brand__dev">Dev</span>
-      <span class="brand__tasker">Tasker</span>
-    </div>
+  <div class="background-grid" aria-hidden="true"></div>
+  <div class="background-glow" aria-hidden="true"></div>
 
-    <h1>Acesse sua conta</h1>
+  <section
+    class="login-card"
+    aria-labelledby="login-title"
+  >
+    <header class="login-header">
+      <a
+        class="brand"
+        routerLink="/login"
+        aria-label="DevTasker - Página de login"
+      >
+        <span
+          class="brand__icon"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M5 12.5 9.2 17 19 7"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
 
-    <p class="subtitle">
-      Organize tarefas. Entregue mais. Evolua sempre.
-    </p>
+            <path
+              d="M19 12v6a2 2 0 0 1-2 2H6
+                 a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
 
-   <form
-  [formGroup]="form"
-  (ngSubmit)="submit()"
-  novalidate
->
-  @if (registrationMessage) {
-    <div
-      class="success-message"
-      role="status"
+        <span class="brand__name">
+          Dev<strong>Tasker</strong>
+        </span>
+      </a>
+
+      <h1 id="login-title">
+        Bem-vindo de volta
+      </h1>
+
+      <p>
+        Acesse seu workspace e continue organizando suas
+        entregas.
+      </p>
+    </header>
+
+    <form
+      class="login-form"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
     >
-      {{ registrationMessage }}
-    </div>
-  }
-      <div class="field">
-        <label for="email">E-mail</label>
+      @if (registrationMessage) {
+        <div
+          class="feedback-message feedback-message--success"
+          role="status"
+        >
+          {{ registrationMessage }}
+        </div>
+      }
 
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          autocomplete="email"
-          placeholder="seu@email.com"
-        />
+      <div class="form-field">
+        <label for="email">
+          E-mail
+        </label>
+
+        <div class="input-wrapper">
+          <span
+            class="input-icon"
+            aria-hidden="true"
+          >
+            @
+          </span>
+
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="voce@exemplo.com"
+            [attr.aria-invalid]="
+              form.controls.email.touched &&
+              form.controls.email.invalid
+            "
+          />
+        </div>
 
         @if (
           form.controls.email.touched &&
@@ -46,24 +105,46 @@
           form.controls.email.touched &&
           form.controls.email.hasError('email')
         ) {
-          <small>Informe um e-mail válido.</small>
+          <small>Informe um endereço de e-mail válido.</small>
         }
       </div>
 
-      <div class="field">
-        <label for="password">Senha</label>
+      <div class="form-field">
+        <label for="password">
+          Senha
+        </label>
 
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          autocomplete="current-password"
-          placeholder="Sua senha"
-        />
+        <div class="input-wrapper">
+          <span
+            class="input-icon"
+            aria-hidden="true"
+          >
+            •
+          </span>
+
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Digite sua senha"
+            [attr.aria-invalid]="
+              form.controls.password.touched &&
+              form.controls.password.invalid
+            "
+          />
+        </div>
 
         @if (
           form.controls.password.touched &&
-          form.controls.password.invalid
+          form.controls.password.hasError('required')
+        ) {
+          <small>A senha é obrigatória.</small>
+        }
+
+        @if (
+          form.controls.password.touched &&
+          form.controls.password.hasError('minlength')
         ) {
           <small>
             A senha deve possuir ao menos 8 caracteres.
@@ -72,21 +153,49 @@
       </div>
 
       @if (apiError()) {
-        <div class="api-error" role="alert">
+        <div
+          class="feedback-message feedback-message--error"
+          role="alert"
+        >
           {{ apiError() }}
         </div>
       }
 
       <button
+        class="submit-button"
         type="submit"
         [disabled]="submitting()"
       >
         @if (submitting()) {
-          Entrando...
+          <span
+            class="loading-indicator"
+            aria-hidden="true"
+          ></span>
+
+          Acessando workspace...
         } @else {
-          Entrar
+          Acessar o DevTasker
         }
       </button>
+
+      <div class="separator" aria-hidden="true">
+        <span></span>
+        <p>ou</p>
+        <span></span>
+      </div>
+
+      <p class="register-link">
+        Ainda não possui uma conta?
+
+        <a routerLink="/cadastro">
+          Cadastre-se
+        </a>
+      </p>
     </form>
+
+    <footer class="login-footer">
+      <span aria-hidden="true">&lt;/&gt;</span>
+      Código. Planejamento. Execução. Sucesso.
+    </footer>
   </section>
 </main>
