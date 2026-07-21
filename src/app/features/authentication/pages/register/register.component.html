@@ -1,0 +1,163 @@
+<main class="register-page">
+  <section
+    class="register-card"
+    aria-labelledby="register-title"
+  >
+    <header>
+      <p class="brand">
+        Dev<span>Tasker</span>
+      </p>
+
+      <h1 id="register-title">
+        Criar nova conta
+      </h1>
+
+      <p class="subtitle">
+        Crie seu workspace e organize seus projetos.
+      </p>
+    </header>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <div class="field">
+        <label for="name">Nome completo</label>
+
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          autocomplete="name"
+          placeholder="Seu nome completo"
+        />
+
+        @if (
+          form.controls.name.touched &&
+          form.controls.name.hasError('required')
+        ) {
+          <small>O nome é obrigatório.</small>
+        }
+
+        @if (
+          form.controls.name.touched &&
+          (
+            form.controls.name.hasError('minlength') ||
+            form.controls.name.hasError('maxlength')
+          )
+        ) {
+          <small>
+            O nome deve possuir entre 3 e 100 caracteres.
+          </small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="email">E-mail</label>
+
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="voce@exemplo.com"
+        />
+
+        @if (
+          form.controls.email.touched &&
+          form.controls.email.hasError('required')
+        ) {
+          <small>O e-mail é obrigatório.</small>
+        }
+
+        @if (
+          form.controls.email.touched &&
+          form.controls.email.hasError('email')
+        ) {
+          <small>Informe um e-mail válido.</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Senha</label>
+
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          placeholder="Mínimo de 8 caracteres"
+        />
+
+        @if (
+          form.controls.password.touched &&
+          form.controls.password.hasError('required')
+        ) {
+          <small>A senha é obrigatória.</small>
+        }
+
+        @if (
+          form.controls.password.touched &&
+          (
+            form.controls.password.hasError('minlength') ||
+            form.controls.password.hasError('maxlength')
+          )
+        ) {
+          <small>
+            A senha deve possuir entre 8 e 72 caracteres.
+          </small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="confirm-password">
+          Confirmar senha
+        </label>
+
+        <input
+          id="confirm-password"
+          type="password"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+          placeholder="Digite a senha novamente"
+        />
+
+        @if (
+          form.controls.confirmPassword.touched &&
+          form.controls.confirmPassword.hasError('required')
+        ) {
+          <small>Confirme sua senha.</small>
+        }
+
+        @if (
+          form.controls.confirmPassword.touched &&
+          form.hasError('passwordMismatch')
+        ) {
+          <small>As senhas não coincidem.</small>
+        }
+      </div>
+
+      @if (apiError()) {
+        <div class="api-error" role="alert">
+          {{ apiError() }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        [disabled]="submitting()"
+      >
+        @if (submitting()) {
+          Criando conta...
+        } @else {
+          Cadastrar
+        }
+      </button>
+    </form>
+
+    <a class="login-link" href="/login">
+      Já possui uma conta? Entrar
+    </a>
+  </section>
+</main>

@@ -7,6 +7,8 @@ import {
   CurrentUserResponse,
   LoginRequest,
   LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
 } from './auth.models';
 import { TokenStorageService } from './token-storage.service';
 
@@ -44,6 +46,15 @@ export class AuthService {
         }),
       );
   }
+
+  register(
+  request: RegisterRequest,
+): Observable<RegisterResponse> {
+  return this.http.post<RegisterResponse>(
+    `${environment.apiUrl}/auth/register`,
+    request,
+  );
+}
 
   loadCurrentUser(): Observable<CurrentUserResponse> {
     return this.http

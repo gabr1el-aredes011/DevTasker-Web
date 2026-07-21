@@ -15,6 +15,20 @@ export interface LoginResponse {
   role: UserRole;
 }
 
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
 export interface CurrentUserResponse {
   id: number;
   name: string;

@@ -1,0 +1,124 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.register-page {
+  display: grid;
+  min-height: 100vh;
+  padding: 2rem;
+  place-items: center;
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(0, 255, 65, 0.12),
+      transparent 35%
+    ),
+    #050909;
+  color: #f5f7f7;
+}
+
+.register-card {
+  width: min(100%, 460px);
+  padding: 2rem;
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  border-radius: 1.25rem;
+  background: rgba(11, 19, 19, 0.94);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.brand {
+  margin: 0 0 1.5rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+
+  span {
+    color: #00ff41;
+  }
+}
+
+h1 {
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0.75rem 0 0;
+  color: #9eaaaa;
+  line-height: 1.5;
+}
+
+form,
+.field {
+  display: grid;
+}
+
+form {
+  gap: 1.25rem;
+}
+
+.field {
+  gap: 0.55rem;
+}
+
+label {
+  font-weight: 650;
+}
+
+input {
+  min-height: 3rem;
+  padding: 0 1rem;
+  border: 1px solid #334141;
+  border-radius: 0.65rem;
+  outline: none;
+  background: #081010;
+  color: inherit;
+
+  &:focus {
+    border-color: #00ff41;
+    box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.1);
+  }
+}
+
+small,
+.api-error {
+  color: #ff7474;
+}
+
+.api-error {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 116, 116, 0.3);
+  border-radius: 0.65rem;
+  background: rgba(255, 116, 116, 0.08);
+}
+
+button {
+  min-height: 3rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: #00e83d;
+  color: #021005;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.login-link {
+  display: block;
+  margin-top: 1.5rem;
+  color: #00ff41;
+  text-align: center;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
