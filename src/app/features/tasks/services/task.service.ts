@@ -17,6 +17,14 @@ import {
 export class TaskService {
   private readonly http = inject(HttpClient);
 
+findById(
+  taskId: number,
+): Observable<TaskResponse> {
+  return this.http.get<TaskResponse>(
+    `${environment.apiUrl}/tasks/${taskId}`,
+  );
+}
+
   create(
     columnId: number,
     request: CreateTaskRequest,

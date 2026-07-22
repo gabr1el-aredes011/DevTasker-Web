@@ -7,6 +7,7 @@ import {
 import {
   CreateTaskRequest,
   TaskPriority,
+  TaskResponse,
 } from '../../../tasks/models/task.models';
 import {
   ChangeDetectionStrategy,
@@ -46,7 +47,7 @@ export class KanbanComponent implements OnInit {
   private readonly kanbanService = inject(KanbanService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
- private readonly taskService = inject(TaskService);
+  private readonly taskService = inject(TaskService);
 
   readonly currentUser = this.authService.currentUser;
 
@@ -84,43 +85,56 @@ export class KanbanComponent implements OnInit {
   readonly creatingTask = signal(false);
 
   readonly createTaskError =
-  signal<string | null>(null);
+    signal<string | null>(null);
+
+  readonly taskDetailsOpen = signal(false);
+
+  readonly selectedTaskId =
+    signal<number | null>(null);
+
+  readonly selectedTask =
+    signal<TaskResponse | null>(null);
+
+  readonly loadingTaskDetails = signal(false);
+
+  readonly taskDetailsError =
+    signal<string | null>(null);
 
   readonly priorities: readonly TaskPriority[] = [
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'URGENT',
-];
+    'LOW',
+    'MEDIUM',
+    'HIGH',
+    'URGENT',
+  ];
 
   readonly createTaskForm =
-  this.formBuilder.nonNullable.group({
-    columnId: [
-      0,
-      [
-        Validators.required,
-        Validators.min(1),
+    this.formBuilder.nonNullable.group({
+      columnId: [
+        0,
+        [
+          Validators.required,
+          Validators.min(1),
+        ],
       ],
-    ],
 
-    title: [
-      '',
-      [
-        Validators.required,
+      title: [
+        '',
+        [
+          Validators.required,
+        ],
       ],
-    ],
 
-    description: [''],
+      description: [''],
 
-    priority: [
-      'MEDIUM' as TaskPriority,
-      [
-        Validators.required,
+      priority: [
+        'MEDIUM' as TaskPriority,
+        [
+          Validators.required,
+        ],
       ],
-    ],
 
-    dueDate: [''],
-  });
+      dueDate: [''],
+    });
 
   ngOnInit(): void {
     this.loadPageData();
@@ -148,6 +162,10 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
+
+    this.taskFormOpen.set(false);
+    this.createTaskError.set(null);
+    this.resetTaskDetails();
   }
 
   retryBoards(): void {
@@ -167,6 +185,10 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
+
+    this.taskFormOpen.set(false);
+    this.createTaskError.set(null);
+    this.resetTaskDetails();
   }
 
   retryKanban(): void {
@@ -177,128 +199,179 @@ export class KanbanComponent implements OnInit {
     }
   }
   openCreateTaskForm(): void {
-  const board = this.kanban();
-  const firstColumn = board?.columns[0];
+    const board = this.kanban();
+    const firstColumn = board?.columns[0];
 
-  if (!firstColumn) {
-    return;
-  }
+    if (!firstColumn) {
+      return;
+    }
 
-  this.createTaskError.set(null);
+    this.closeTaskDetails();
 
-  this.createTaskForm.reset({
-    columnId: firstColumn.id,
-    title: '',
-    description: '',
-    priority: 'MEDIUM',
-    dueDate: '',
-  });
+    this.createTaskError.set(null);
 
-  this.taskFormOpen.set(true);
-}
-
-closeCreateTaskForm(): void {
-  if (this.creatingTask()) {
-    return;
-  }
-
-  this.taskFormOpen.set(false);
-  this.createTaskError.set(null);
-}
-
-submitCreateTask(): void {
-  if (this.createTaskForm.invalid) {
-    this.createTaskForm.markAllAsTouched();
-    return;
-  }
-
-  const selectedBoard = this.selectedBoard();
-
-  if (!selectedBoard) {
-    this.createTaskError.set(
-      'Nenhum quadro foi selecionado.',
-    );
-
-    return;
-  }
-
-  const formValue =
-    this.createTaskForm.getRawValue();
-
-  const normalizedTitle =
-    formValue.title.trim();
-
-  if (!normalizedTitle) {
-    this.createTaskForm.controls.title.setErrors({
-      required: true,
+    this.createTaskForm.reset({
+      columnId: firstColumn.id,
+      title: '',
+      description: '',
+      priority: 'MEDIUM',
+      dueDate: '',
     });
 
-    this.createTaskForm.controls.title.markAsTouched();
-
-    return;
+    this.taskFormOpen.set(true);
   }
 
-  const request: CreateTaskRequest = {
-    title: normalizedTitle,
+  closeCreateTaskForm(): void {
+    if (this.creatingTask()) {
+      return;
+    }
 
-    description:
-      formValue.description.trim() || null,
+    this.taskFormOpen.set(false);
+    this.createTaskError.set(null);
+  }
 
-    priority: formValue.priority,
+  submitCreateTask(): void {
+    if (this.createTaskForm.invalid) {
+      this.createTaskForm.markAllAsTouched();
+      return;
+    }
 
-    dueDate:
-      formValue.dueDate || null,
-  };
+    const selectedBoard = this.selectedBoard();
 
-  this.creatingTask.set(true);
-  this.createTaskError.set(null);
+    if (!selectedBoard) {
+      this.createTaskError.set(
+        'Nenhum quadro foi selecionado.',
+      );
 
-  this.taskService
-    .create(
-      formValue.columnId,
-      request,
-    )
-    .pipe(
-      finalize(() => {
-        this.creatingTask.set(false);
-      }),
-    )
-    .subscribe({
-      next: () => {
-        this.taskFormOpen.set(false);
-        this.loadKanban(selectedBoard.id);
-      },
+      return;
+    }
 
-      error: (error: unknown) => {
-        this.createTaskError.set(
-          this.extractTaskCreationError(error),
-        );
+    const formValue =
+      this.createTaskForm.getRawValue();
+
+    const normalizedTitle =
+      formValue.title.trim();
+
+    if (!normalizedTitle) {
+      this.createTaskForm.controls.title.setErrors({
+        required: true,
+      });
+
+      this.createTaskForm.controls.title.markAsTouched();
+
+      return;
+    }
+
+    const request: CreateTaskRequest = {
+      title: normalizedTitle,
+
+      description:
+        formValue.description.trim() || null,
+
+      priority: formValue.priority,
+
+      dueDate:
+        formValue.dueDate || null,
+    };
+
+    this.creatingTask.set(true);
+    this.createTaskError.set(null);
+
+    this.taskService
+      .create(
+        formValue.columnId,
+        request,
+      )
+      .pipe(
+        finalize(() => {
+          this.creatingTask.set(false);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.taskFormOpen.set(false);
+          this.loadKanban(selectedBoard.id);
+        },
+
+        error: (error: unknown) => {
+          this.createTaskError.set(
+            this.extractTaskCreationError(error),
+          );
+        }
+      });
+  }
+
+  private extractTaskCreationError(
+    error: unknown,
+  ): string {
+    if (error instanceof HttpErrorResponse) {
+      const response =
+        error.error as Partial<ApiError>;
+
+      const firstFieldError = Object.values(
+        response.fields ?? {},
+      )[0];
+
+      if (firstFieldError) {
+        return firstFieldError;
       }
-  });
-}
 
-private extractTaskCreationError(
-  error: unknown,
-): string {
-  if (error instanceof HttpErrorResponse) {
-    const response =
-      error.error as Partial<ApiError>;
-
-    const firstFieldError = Object.values(
-      response.fields ?? {},
-    )[0];
-
-    if (firstFieldError) {
-      return firstFieldError;
+      if (response.message) {
+        return response.message;
+      }
     }
 
-    if (response.message) {
-      return response.message;
+    return 'Não foi possível criar a tarefa. Tente novamente.';
+  }
+
+  openTaskDetails(taskId: number): void {
+    this.taskFormOpen.set(false);
+    this.createTaskError.set(null);
+
+    this.taskDetailsOpen.set(true);
+    this.selectedTaskId.set(taskId);
+    this.selectedTask.set(null);
+    this.taskDetailsError.set(null);
+    this.loadingTaskDetails.set(true);
+
+    this.taskService
+      .findById(taskId)
+      .pipe(
+        finalize(() => {
+          this.loadingTaskDetails.set(false);
+        }),
+      )
+      .subscribe({
+        next: (task) => {
+          this.selectedTask.set(task);
+        },
+
+        error: () => {
+          this.taskDetailsError.set(
+            'Não foi possível carregar os detalhes da tarefa.',
+          );
+        },
+      });
+  }
+
+  retryTaskDetails(): void {
+    const taskId = this.selectedTaskId();
+
+    if (taskId !== null) {
+      this.openTaskDetails(taskId);
     }
   }
 
-  return 'Não foi possível criar a tarefa. Tente novamente.';
-}
+  closeTaskDetails(): void {
+    if (this.loadingTaskDetails()) {
+      return;
+    }
+
+    this.taskDetailsOpen.set(false);
+    this.selectedTaskId.set(null);
+    this.selectedTask.set(null);
+    this.taskDetailsError.set(null);
+  }
 
   logout(): void {
     this.authService.logout();
@@ -390,4 +463,12 @@ private extractTaskCreationError(
         },
       });
   }
+
+  private resetTaskDetails(): void {
+    this.taskDetailsOpen.set(false);
+    this.selectedTaskId.set(null);
+    this.selectedTask.set(null);
+    this.taskDetailsError.set(null);
+  }
+
 }
