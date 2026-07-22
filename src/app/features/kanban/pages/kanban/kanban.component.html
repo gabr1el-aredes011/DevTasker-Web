@@ -27,10 +27,7 @@
     </button>
   </header>
 
-  <section
-    class="workspace-content"
-    aria-labelledby="projects-title"
-  >
+  <section class="workspace-content">
     @if (loading()) {
       <div
         class="state-card"
@@ -77,6 +74,134 @@
           </p>
         </div>
       </div>
+    } @else if (selectedProject(); as project) {
+      <div class="boards-view">
+        <button
+          class="back-button"
+          type="button"
+          (click)="backToProjects()"
+        >
+          <span aria-hidden="true">←</span>
+          Voltar aos projetos
+        </button>
+
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">
+              Projeto selecionado
+            </p>
+
+            <h2>
+              {{ project.name }}
+            </h2>
+
+            <p class="section-description">
+              Escolha o quadro que deseja visualizar.
+            </p>
+          </div>
+
+          @if (!loadingBoards() && !boardsLoadError()) {
+            <span class="project-count">
+              {{ boards().length }}
+
+              @if (boards().length === 1) {
+                quadro
+              } @else {
+                quadros
+              }
+            </span>
+          }
+        </div>
+
+        @if (loadingBoards()) {
+          <div
+            class="state-card"
+            role="status"
+          >
+            <span
+              class="loading-indicator"
+              aria-hidden="true"
+            ></span>
+
+            <div>
+              <h2>Carregando quadros</h2>
+
+              <p>
+                Buscando os quadros de
+                {{ project.name }}.
+              </p>
+            </div>
+          </div>
+        } @else if (boardsLoadError()) {
+          <div
+            class="state-card state-card--error"
+            role="alert"
+          >
+            <div>
+              <h2>Erro ao carregar os quadros</h2>
+
+              <p>{{ boardsLoadError() }}</p>
+            </div>
+
+            <button
+              type="button"
+              (click)="retryBoards()"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        } @else if (boards().length === 0) {
+          <div class="state-card">
+            <div>
+              <h2>Nenhum quadro encontrado</h2>
+
+              <p>
+                Este projeto ainda não possui quadros.
+              </p>
+            </div>
+          </div>
+        } @else {
+          <div class="board-grid">
+            @for (
+              board of boards();
+              track board.id
+            ) {
+              <article class="board-card">
+                <header class="board-card__header">
+                  <span class="board-icon" aria-hidden="true">
+                    ▦
+                  </span>
+
+                  <span class="project-id">
+                    #{{ board.id }}
+                  </span>
+                </header>
+
+                <h3>{{ board.name }}</h3>
+
+                <p>
+                  Quadro pertencente ao projeto
+                  {{ project.name }}.
+                </p>
+
+                <footer>
+                  <span>
+                    Projeto #{{ board.projectId }}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled
+                    title="O carregamento do Kanban será implementado na próxima etapa"
+                  >
+                    Abrir quadro
+                  </button>
+                </footer>
+              </article>
+            }
+          </div>
+        }
+      </div>
     } @else {
       <div class="section-header">
         <div>
@@ -91,6 +216,7 @@
 
         <span class="project-count">
           {{ projects().length }}
+
           @if (projects().length === 1) {
             projeto
           } @else {
@@ -128,8 +254,7 @@
 
               <button
                 type="button"
-                disabled
-                title="A seleção do projeto será implementada na próxima etapa"
+                (click)="selectProject(project)"
               >
                 Abrir projeto
               </button>

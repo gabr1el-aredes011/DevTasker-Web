@@ -12,7 +12,10 @@ import {
 } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
-import { ProjectSummary } from '../../../projects/models/project.models';
+import {
+  BoardSummary,
+  ProjectSummary,
+} from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
 
 @Component({
@@ -33,9 +36,20 @@ export class KanbanComponent implements OnInit {
   readonly projects =
     signal<readonly ProjectSummary[]>([]);
 
+  readonly selectedProject =
+    signal<ProjectSummary | null>(null);
+
+  readonly boards =
+    signal<readonly BoardSummary[]>([]);
+
   readonly loading = signal(true);
 
   readonly loadError =
+    signal<string | null>(null);
+
+  readonly loadingBoards = signal(false);
+
+  readonly boardsLoadError =
     signal<string | null>(null);
 
   ngOnInit(): void {
@@ -46,6 +60,25 @@ export class KanbanComponent implements OnInit {
     this.loadPageData();
   }
 
+  selectProject(project: ProjectSummary): void {
+    this.selectedProject.set(project);
+    this.loadBoards(project.id);
+  }
+
+  backToProjects(): void {
+    this.selectedProject.set(null);
+    this.boards.set([]);
+    this.boardsLoadError.set(null);
+  }
+
+  retryBoards(): void {
+    const project = this.selectedProject();
+
+    if (project) {
+      this.loadBoards(project.id);
+    }
+  }
+
   logout(): void {
     this.authService.logout();
     void this.router.navigateByUrl('/login');
@@ -54,7 +87,11 @@ export class KanbanComponent implements OnInit {
   private loadPageData(): void {
     this.loading.set(true);
     this.loadError.set(null);
+
     this.projects.set([]);
+    this.selectedProject.set(null);
+    this.boards.set([]);
+    this.boardsLoadError.set(null);
 
     forkJoin({
       user: this.authService.loadCurrentUser(),
@@ -73,6 +110,31 @@ export class KanbanComponent implements OnInit {
         error: () => {
           this.loadError.set(
             'Não foi possível carregar seus projetos. Tente novamente.',
+          );
+        },
+      });
+  }
+
+  private loadBoards(projectId: number): void {
+    this.loadingBoards.set(true);
+    this.boardsLoadError.set(null);
+    this.boards.set([]);
+
+    this.projectService
+      .findBoardsByProjectId(projectId)
+      .pipe(
+        finalize(() => {
+          this.loadingBoards.set(false);
+        }),
+      )
+      .subscribe({
+        next: (boards) => {
+          this.boards.set(boards);
+        },
+
+        error: () => {
+          this.boardsLoadError.set(
+            'Não foi possível carregar os quadros deste projeto.',
           );
         },
       });
