@@ -537,6 +537,141 @@
   font-family: monospace;
   font-size: 0.65rem;
 }
+ 
+.new-task-button {
+  min-height: 2.7rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: #2fff69;
+  color: #021005;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.task-form-panel {
+  padding: 1.25rem;
+  border: 1px solid rgba(47, 255, 105, 0.24);
+  border-radius: 1rem;
+  background: rgba(8, 20, 18, 0.96);
+}
+
+.task-form-header {
+  display: flex;
+  margin-bottom: 1.25rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h3 {
+    margin: 0.35rem 0 0;
+  }
+
+  > button {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid rgba(129, 173, 154, 0.2);
+    border-radius: 0.55rem;
+    background: transparent;
+    color: #aab9b2;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+}
+
+.task-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.task-form-row {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.task-form-field {
+  display: grid;
+  gap: 0.5rem;
+
+  label {
+    color: #cbd8d1;
+    font-size: 0.78rem;
+    font-weight: 750;
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba(129, 173, 154, 0.22);
+    border-radius: 0.65rem;
+    outline: none;
+    background: #07110f;
+    color: #edf5f1;
+
+    &:focus {
+      border-color: rgba(47, 255, 105, 0.65);
+      box-shadow:
+        0 0 0 3px rgba(47, 255, 105, 0.08);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  small {
+    color: #ff8f8f;
+    font-size: 0.75rem;
+  }
+}
+
+.task-form-error {
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(255, 100, 100, 0.28);
+  border-radius: 0.65rem;
+  background: rgba(255, 70, 70, 0.08);
+  color: #ffaaaa;
+}
+
+.task-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  button {
+    min-height: 2.7rem;
+    padding: 0 1rem;
+    border-radius: 0.65rem;
+    font-weight: 750;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+  }
+}
+
+.secondary-button {
+  border: 1px solid rgba(129, 173, 154, 0.22);
+  background: transparent;
+  color: #aab9b2;
+}
+
+.primary-button {
+  border: 0;
+  background: #2fff69;
+  color: #021005;
+}
 
 @media (max-width: 620px) {
   .workspace-header,
@@ -569,5 +704,18 @@
   button {
     width: 100%;
   }
+  
+  .task-form-row {
+  grid-template-columns: 1fr;
+}
+
+.task-form-actions {
+  flex-direction: column-reverse;
+
+  button {
+    width: 100%;
+  }
+}
+
 }
 }

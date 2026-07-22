@@ -88,6 +88,15 @@
 
           <div class="section-header">
             <div>
+              <button
+              class="new-task-button"
+              type="button"
+              [disabled]="loadingKanban() || !kanban()"
+              (click)="openCreateTaskForm()"
+              >
+              + Nova tarefa
+              </button>
+
               <p class="eyebrow">
                 Quadro selecionado
               </p>
@@ -100,7 +109,161 @@
               </p>
             </div>
           </div>
+         @if (taskFormOpen()) {
+  <section
+    class="task-form-panel"
+    aria-labelledby="create-task-title"
+  >
+    <header class="task-form-header">
+      <div>
+        <p class="eyebrow">
+          Nova tarefa
+        </p>
 
+        <h3 id="create-task-title">
+          Adicionar tarefa ao quadro
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Fechar formulário"
+        [disabled]="creatingTask()"
+        (click)="closeCreateTaskForm()"
+      >
+        ×
+      </button>
+    </header>
+
+    <form
+      class="task-form"
+      [formGroup]="createTaskForm"
+      (ngSubmit)="submitCreateTask()"
+      novalidate
+    >
+      <div class="task-form-field">
+        <label for="task-title">
+          Título
+        </label>
+
+        <input
+          id="task-title"
+          type="text"
+          formControlName="title"
+          placeholder="Ex.: Implementar página de perfil"
+        />
+
+        @if (
+          createTaskForm.controls.title.touched &&
+          createTaskForm.controls.title.hasError('required')
+        ) {
+          <small>O título é obrigatório.</small>
+        }
+      </div>
+
+      <div class="task-form-field">
+        <label for="task-description">
+          Descrição
+        </label>
+
+        <textarea
+          id="task-description"
+          formControlName="description"
+          rows="4"
+          placeholder="Descreva o objetivo da tarefa"
+        ></textarea>
+      </div>
+
+      <div class="task-form-row">
+        <div class="task-form-field">
+          <label for="task-column">
+            Coluna
+          </label>
+
+          <select
+            id="task-column"
+            formControlName="columnId"
+          >
+            @if (kanban(); as currentBoard) {
+              @for (
+                column of currentBoard.columns;
+                track column.id
+              ) {
+                <option [ngValue]="column.id">
+                  {{ column.name }}
+                </option>
+              }
+            }
+          </select>
+        </div>
+
+        <div class="task-form-field">
+          <label for="task-priority">
+            Prioridade
+          </label>
+
+          <select
+            id="task-priority"
+            formControlName="priority"
+          >
+            @for (
+              priority of priorities;
+              track priority
+            ) {
+              <option [ngValue]="priority">
+                {{ priority }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="task-form-field">
+          <label for="task-due-date">
+            Data de vencimento
+          </label>
+
+          <input
+            id="task-due-date"
+            type="date"
+            formControlName="dueDate"
+          />
+        </div>
+      </div>
+
+      @if (createTaskError()) {
+        <div
+          class="task-form-error"
+          role="alert"
+        >
+          {{ createTaskError() }}
+        </div>
+      }
+
+      <footer class="task-form-actions">
+        <button
+          class="secondary-button"
+          type="button"
+          [disabled]="creatingTask()"
+          (click)="closeCreateTaskForm()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          class="primary-button"
+          type="submit"
+          [disabled]="creatingTask()"
+        >
+          @if (creatingTask()) {
+            Criando tarefa...
+          } @else {
+            Criar tarefa
+          }
+        </button>
+      </footer>
+    </form>
+  </section>
+}
           @if (loadingKanban()) {
             <div
               class="state-card"
