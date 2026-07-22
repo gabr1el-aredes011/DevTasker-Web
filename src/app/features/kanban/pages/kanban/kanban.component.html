@@ -1,19 +1,142 @@
-<main>
-  @if (loading()) {
-    <p>Carregando usuário...</p>
-  } @else if (currentUser(); as user) {
-    <h1>Autenticação funcionando!</h1>
+<main class="workspace-page">
+  <header class="workspace-header">
+    <div>
+      <p class="eyebrow">
+        DevTasker Workspace
+      </p>
 
-    <p>
-      Bem-vindo, {{ user.name }}.
-    </p>
+      @if (currentUser(); as user) {
+        <h1>
+          Bem-vindo, {{ user.name }}
+        </h1>
 
-    <p>
-      {{ user.email }} — {{ user.role }}
-    </p>
+        <p class="user-information">
+          {{ user.email }} · {{ user.role }}
+        </p>
+      } @else {
+        <h1>Carregando workspace...</h1>
+      }
+    </div>
 
-    <button type="button" (click)="logout()">
+    <button
+      class="logout-button"
+      type="button"
+      (click)="logout()"
+    >
       Sair
     </button>
-  }
+  </header>
+
+  <section
+    class="workspace-content"
+    aria-labelledby="projects-title"
+  >
+    @if (loading()) {
+      <div
+        class="state-card"
+        role="status"
+      >
+        <span
+          class="loading-indicator"
+          aria-hidden="true"
+        ></span>
+
+        <div>
+          <h2>Carregando seus projetos</h2>
+
+          <p>
+            Estamos preparando seu workspace.
+          </p>
+        </div>
+      </div>
+    } @else if (loadError()) {
+      <div
+        class="state-card state-card--error"
+        role="alert"
+      >
+        <div>
+          <h2>Não foi possível carregar</h2>
+
+          <p>{{ loadError() }}</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="retry()"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    } @else if (projects().length === 0) {
+      <div class="state-card">
+        <div>
+          <h2>Nenhum projeto encontrado</h2>
+
+          <p>
+            Seu usuário ainda não participa de nenhum projeto.
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">
+            Organização
+          </p>
+
+          <h2 id="projects-title">
+            Seus projetos
+          </h2>
+        </div>
+
+        <span class="project-count">
+          {{ projects().length }}
+          @if (projects().length === 1) {
+            projeto
+          } @else {
+            projetos
+          }
+        </span>
+      </div>
+
+      <div class="project-grid">
+        @for (
+          project of projects();
+          track project.id
+        ) {
+          <article class="project-card">
+            <header class="project-card__header">
+              <span class="project-role">
+                {{ project.membershipRole }}
+              </span>
+
+              <span class="project-id">
+                #{{ project.id }}
+              </span>
+            </header>
+
+            <h3>{{ project.name }}</h3>
+
+            <p>
+              {{ project.description }}
+            </p>
+
+            <footer>
+              <span>
+                Projeto DevTasker
+              </span>
+
+              <button
+                type="button"
+                disabled
+                title="A seleção do projeto será implementada na próxima etapa"
+              >
+                Abrir projeto
+              </button>
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </section>
 </main>
