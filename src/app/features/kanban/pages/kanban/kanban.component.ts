@@ -12,6 +12,8 @@ import {
 } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { KanbanBoard } from '../../models/kanban.models';
+import { KanbanService } from '../../services/kanban.service';
 import {
   BoardSummary,
   ProjectSummary,
@@ -29,6 +31,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 export class KanbanComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly projectService = inject(ProjectService);
+  private readonly kanbanService = inject(KanbanService);
   private readonly router = inject(Router);
 
   readonly currentUser = this.authService.currentUser;
@@ -42,6 +45,12 @@ export class KanbanComponent implements OnInit {
   readonly boards =
     signal<readonly BoardSummary[]>([]);
 
+  readonly selectedBoard =
+    signal<BoardSummary | null>(null);
+
+  readonly kanban =
+    signal<KanbanBoard | null>(null);
+
   readonly loading = signal(true);
 
   readonly loadError =
@@ -50,6 +59,11 @@ export class KanbanComponent implements OnInit {
   readonly loadingBoards = signal(false);
 
   readonly boardsLoadError =
+    signal<string | null>(null);
+
+  readonly loadingKanban = signal(false);
+
+  readonly kanbanLoadError =
     signal<string | null>(null);
 
   ngOnInit(): void {
@@ -62,6 +76,11 @@ export class KanbanComponent implements OnInit {
 
   selectProject(project: ProjectSummary): void {
     this.selectedProject.set(project);
+
+    this.selectedBoard.set(null);
+    this.kanban.set(null);
+    this.kanbanLoadError.set(null);
+
     this.loadBoards(project.id);
   }
 
@@ -69,6 +88,10 @@ export class KanbanComponent implements OnInit {
     this.selectedProject.set(null);
     this.boards.set([]);
     this.boardsLoadError.set(null);
+
+    this.selectedBoard.set(null);
+    this.kanban.set(null);
+    this.kanbanLoadError.set(null);
   }
 
   retryBoards(): void {
@@ -76,6 +99,25 @@ export class KanbanComponent implements OnInit {
 
     if (project) {
       this.loadBoards(project.id);
+    }
+  }
+
+  selectBoard(board: BoardSummary): void {
+    this.selectedBoard.set(board);
+    this.loadKanban(board.id);
+  }
+
+  backToBoards(): void {
+    this.selectedBoard.set(null);
+    this.kanban.set(null);
+    this.kanbanLoadError.set(null);
+  }
+
+  retryKanban(): void {
+    const board = this.selectedBoard();
+
+    if (board) {
+      this.loadKanban(board.id);
     }
   }
 
@@ -90,8 +132,13 @@ export class KanbanComponent implements OnInit {
 
     this.projects.set([]);
     this.selectedProject.set(null);
+
     this.boards.set([]);
     this.boardsLoadError.set(null);
+
+    this.selectedBoard.set(null);
+    this.kanban.set(null);
+    this.kanbanLoadError.set(null);
 
     forkJoin({
       user: this.authService.loadCurrentUser(),
@@ -135,6 +182,31 @@ export class KanbanComponent implements OnInit {
         error: () => {
           this.boardsLoadError.set(
             'Não foi possível carregar os quadros deste projeto.',
+          );
+        },
+      });
+  }
+
+  private loadKanban(boardId: number): void {
+    this.loadingKanban.set(true);
+    this.kanbanLoadError.set(null);
+    this.kanban.set(null);
+
+    this.kanbanService
+      .findByBoardId(boardId)
+      .pipe(
+        finalize(() => {
+          this.loadingKanban.set(false);
+        }),
+      )
+      .subscribe({
+        next: (kanban) => {
+          this.kanban.set(kanban);
+        },
+
+        error: () => {
+          this.kanbanLoadError.set(
+            'Não foi possível carregar o Kanban deste quadro.',
           );
         },
       });

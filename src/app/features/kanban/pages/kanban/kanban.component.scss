@@ -320,17 +320,25 @@
     }
 
     button {
-      min-height: 2.4rem;
-      padding: 0 0.85rem;
-      border: 1px solid rgba(129, 173, 154, 0.14);
-      border-radius: 0.6rem;
-      background: rgba(129, 173, 154, 0.05);
-      color: #66776f;
+  min-height: 2.4rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(47, 255, 105, 0.24);
+  border-radius: 0.6rem;
+  background: rgba(47, 255, 105, 0.08);
+  color: #65f790;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
 
-      &:disabled {
-        cursor: not-allowed;
-      }
-    }
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(47, 255, 105, 0.48);
+    background: rgba(47, 255, 105, 0.13);
+  }
+}
   }
 }
 
@@ -350,6 +358,184 @@
   background: rgba(47, 255, 105, 0.07);
   color: #65f790;
   font-size: 1.1rem;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(275px, 1fr));
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+}
+
+.kanban-column {
+  min-height: 480px;
+  padding: 1rem;
+  border: 1px solid rgba(129, 173, 154, 0.16);
+  border-radius: 1rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15, 29, 27, 0.92),
+      rgba(5, 13, 12, 0.96)
+    );
+}
+
+.kanban-column__header {
+  display: flex;
+  min-height: 3.5rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  span {
+    display: block;
+    margin-top: 0.3rem;
+    color: #607269;
+    font-family: monospace;
+    font-size: 0.68rem;
+  }
+
+  strong {
+    display: grid;
+    min-width: 1.9rem;
+    height: 1.9rem;
+    place-items: center;
+    border: 1px solid rgba(47, 255, 105, 0.2);
+    border-radius: 999px;
+    background: rgba(47, 255, 105, 0.07);
+    color: #65f790;
+    font-size: 0.75rem;
+  }
+}
+
+.kanban-column[data-category="BACKLOG"] {
+  border-top-color: rgba(161, 177, 169, 0.5);
+}
+
+.kanban-column[data-category="TODO"] {
+  border-top-color: rgba(77, 166, 255, 0.55);
+}
+
+.kanban-column[data-category="DOING"] {
+  border-top-color: rgba(255, 200, 77, 0.55);
+}
+
+.kanban-column[data-category="REVIEW"] {
+  border-top-color: rgba(178, 119, 255, 0.55);
+}
+
+.kanban-column[data-category="DONE"] {
+  border-top-color: rgba(47, 255, 105, 0.55);
+}
+
+.task-list {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+}
+
+.empty-column {
+  display: grid;
+  min-height: 110px;
+  padding: 1rem;
+  place-items: center;
+  border: 1px dashed rgba(129, 173, 154, 0.16);
+  border-radius: 0.75rem;
+  color: #65766e;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+  }
+}
+
+.task-card {
+  padding: 1rem;
+  border: 1px solid rgba(129, 173, 154, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(13, 26, 24, 0.94);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(47, 255, 105, 0.3);
+  }
+
+  h4 {
+    margin: 0.9rem 0 1rem;
+    color: #edf5f1;
+    font-size: 0.96rem;
+    line-height: 1.45;
+  }
+}
+
+.task-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.task-priority {
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(255, 200, 77, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 200, 77, 0.07);
+  color: #f4cf70;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.task-id {
+  color: #607168;
+  font-family: monospace;
+  font-size: 0.7rem;
+}
+
+.task-metadata {
+  display: grid;
+  margin: 0;
+  gap: 0.65rem;
+
+  div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  dt {
+    color: #65776e;
+    font-size: 0.7rem;
+  }
+
+  dd {
+    margin: 0;
+    color: #aab9b2;
+    font-size: 0.72rem;
+    text-align: right;
+  }
+}
+
+.task-card__footer {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(129, 173, 154, 0.1);
+  color: #586a61;
+  font-family: monospace;
+  font-size: 0.65rem;
 }
 
 @media (max-width: 620px) {

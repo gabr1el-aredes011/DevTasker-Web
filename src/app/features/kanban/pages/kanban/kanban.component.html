@@ -76,130 +76,290 @@
       </div>
     } @else if (selectedProject(); as project) {
       <div class="boards-view">
-        <button
-          class="back-button"
-          type="button"
-          (click)="backToProjects()"
-        >
-          <span aria-hidden="true">←</span>
-          Voltar aos projetos
-        </button>
-
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">
-              Projeto selecionado
-            </p>
-
-            <h2>
-              {{ project.name }}
-            </h2>
-
-            <p class="section-description">
-              Escolha o quadro que deseja visualizar.
-            </p>
-          </div>
-
-          @if (!loadingBoards() && !boardsLoadError()) {
-            <span class="project-count">
-              {{ boards().length }}
-
-              @if (boards().length === 1) {
-                quadro
-              } @else {
-                quadros
-              }
-            </span>
-          }
-        </div>
-
-        @if (loadingBoards()) {
-          <div
-            class="state-card"
-            role="status"
+        @if (selectedBoard(); as selectedBoard) {
+          <button
+            class="back-button"
+            type="button"
+            (click)="backToBoards()"
           >
-            <span
-              class="loading-indicator"
-              aria-hidden="true"
-            ></span>
+            <span aria-hidden="true">←</span>
+            Voltar aos quadros
+          </button>
 
+          <div class="section-header">
             <div>
-              <h2>Carregando quadros</h2>
+              <p class="eyebrow">
+                Quadro selecionado
+              </p>
 
-              <p>
-                Buscando os quadros de
+              <h2>{{ selectedBoard.name }}</h2>
+
+              <p class="section-description">
+                Acompanhe o fluxo de trabalho do projeto
                 {{ project.name }}.
               </p>
             </div>
           </div>
-        } @else if (boardsLoadError()) {
-          <div
-            class="state-card state-card--error"
-            role="alert"
-          >
-            <div>
-              <h2>Erro ao carregar os quadros</h2>
 
-              <p>{{ boardsLoadError() }}</p>
-            </div>
-
-            <button
-              type="button"
-              (click)="retryBoards()"
+          @if (loadingKanban()) {
+            <div
+              class="state-card"
+              role="status"
             >
-              Tentar novamente
-            </button>
-          </div>
-        } @else if (boards().length === 0) {
-          <div class="state-card">
-            <div>
-              <h2>Nenhum quadro encontrado</h2>
+              <span
+                class="loading-indicator"
+                aria-hidden="true"
+              ></span>
 
-              <p>
-                Este projeto ainda não possui quadros.
-              </p>
-            </div>
-          </div>
-        } @else {
-          <div class="board-grid">
-            @for (
-              board of boards();
-              track board.id
-            ) {
-              <article class="board-card">
-                <header class="board-card__header">
-                  <span class="board-icon" aria-hidden="true">
-                    ▦
-                  </span>
-
-                  <span class="project-id">
-                    #{{ board.id }}
-                  </span>
-                </header>
-
-                <h3>{{ board.name }}</h3>
+              <div>
+                <h2>Carregando Kanban</h2>
 
                 <p>
-                  Quadro pertencente ao projeto
-                  {{ project.name }}.
+                  Buscando as colunas e tarefas do quadro.
                 </p>
+              </div>
+            </div>
+          } @else if (kanbanLoadError()) {
+            <div
+              class="state-card state-card--error"
+              role="alert"
+            >
+              <div>
+                <h2>Erro ao carregar o Kanban</h2>
 
-                <footer>
-                  <span>
-                    Projeto #{{ board.projectId }}
-                  </span>
+                <p>{{ kanbanLoadError() }}</p>
+              </div>
 
-                  <button
-                    type="button"
-                    disabled
-                    title="O carregamento do Kanban será implementado na próxima etapa"
+              <button
+                type="button"
+                (click)="retryKanban()"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          } @else if (kanban(); as board) {
+            @if (board.columns.length === 0) {
+              <div class="state-card">
+                <div>
+                  <h2>Nenhuma coluna encontrada</h2>
+
+                  <p>
+                    Este quadro ainda não possui colunas.
+                  </p>
+                </div>
+              </div>
+            } @else {
+              <div
+                class="kanban-board"
+                aria-label="Quadro Kanban"
+              >
+                @for (
+                  column of board.columns;
+                  track column.id
+                ) {
+                  <section
+                    class="kanban-column"
+                    [attr.data-category]="column.category"
                   >
-                    Abrir quadro
-                  </button>
-                </footer>
-              </article>
+                    <header class="kanban-column__header">
+                      <div>
+                        <h3>{{ column.name }}</h3>
+
+                        <span>
+                          {{ column.category }}
+                        </span>
+                      </div>
+
+                      <strong>
+                        {{ column.tasks.length }}
+                      </strong>
+                    </header>
+
+                    <div class="task-list">
+                      @if (column.tasks.length === 0) {
+                        <div class="empty-column">
+                          <p>Nenhuma tarefa nesta coluna.</p>
+                        </div>
+                      } @else {
+                        @for (
+                          task of column.tasks;
+                          track task.id
+                        ) {
+                          <article
+                            class="task-card"
+                            [attr.data-priority]="task.priority"
+                          >
+                            <header class="task-card__header">
+                              <span class="task-priority">
+                                {{ task.priority }}
+                              </span>
+
+                              <span class="task-id">
+                                #{{ task.id }}
+                              </span>
+                            </header>
+
+                            <h4>{{ task.title }}</h4>
+
+                            <dl class="task-metadata">
+                              <div>
+                                <dt>Prazo</dt>
+
+                                <dd>
+                                  {{ task.dueDate ?? 'Sem prazo' }}
+                                </dd>
+                              </div>
+
+                              <div>
+                                <dt>Responsável</dt>
+
+                                <dd>
+                                  {{
+                                    task.assigneeName ??
+                                    'Sem responsável'
+                                  }}
+                                </dd>
+                              </div>
+                            </dl>
+
+                            <footer class="task-card__footer">
+                              Posição {{ task.position }}
+                            </footer>
+                          </article>
+                        }
+                      }
+                    </div>
+                  </section>
+                }
+              </div>
+            }
+          }
+        } @else {
+          <button
+            class="back-button"
+            type="button"
+            (click)="backToProjects()"
+          >
+            <span aria-hidden="true">←</span>
+            Voltar aos projetos
+          </button>
+
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">
+                Projeto selecionado
+              </p>
+
+              <h2>{{ project.name }}</h2>
+
+              <p class="section-description">
+                Escolha o quadro que deseja visualizar.
+              </p>
+            </div>
+
+            @if (!loadingBoards() && !boardsLoadError()) {
+              <span class="project-count">
+                {{ boards().length }}
+
+                @if (boards().length === 1) {
+                  quadro
+                } @else {
+                  quadros
+                }
+              </span>
             }
           </div>
+
+          @if (loadingBoards()) {
+            <div
+              class="state-card"
+              role="status"
+            >
+              <span
+                class="loading-indicator"
+                aria-hidden="true"
+              ></span>
+
+              <div>
+                <h2>Carregando quadros</h2>
+
+                <p>
+                  Buscando os quadros de
+                  {{ project.name }}.
+                </p>
+              </div>
+            </div>
+          } @else if (boardsLoadError()) {
+            <div
+              class="state-card state-card--error"
+              role="alert"
+            >
+              <div>
+                <h2>Erro ao carregar os quadros</h2>
+
+                <p>{{ boardsLoadError() }}</p>
+              </div>
+
+              <button
+                type="button"
+                (click)="retryBoards()"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          } @else if (boards().length === 0) {
+            <div class="state-card">
+              <div>
+                <h2>Nenhum quadro encontrado</h2>
+
+                <p>
+                  Este projeto ainda não possui quadros.
+                </p>
+              </div>
+            </div>
+          } @else {
+            <div class="board-grid">
+              @for (
+                board of boards();
+                track board.id
+              ) {
+                <article class="board-card">
+                  <header class="board-card__header">
+                    <span
+                      class="board-icon"
+                      aria-hidden="true"
+                    >
+                      ▦
+                    </span>
+
+                    <span class="project-id">
+                      #{{ board.id }}
+                    </span>
+                  </header>
+
+                  <h3>{{ board.name }}</h3>
+
+                  <p>
+                    Quadro pertencente ao projeto
+                    {{ project.name }}.
+                  </p>
+
+                  <footer>
+                    <span>
+                      Projeto #{{ board.projectId }}
+                    </span>
+
+                    <button
+                      type="button"
+                      (click)="selectBoard(board)"
+                    >
+                      Abrir quadro
+                    </button>
+                  </footer>
+                </article>
+              }
+            </div>
+          }
         }
       </div>
     } @else {
@@ -209,9 +369,7 @@
             Organização
           </p>
 
-          <h2 id="projects-title">
-            Seus projetos
-          </h2>
+          <h2>Seus projetos</h2>
         </div>
 
         <span class="project-count">
@@ -243,14 +401,10 @@
 
             <h3>{{ project.name }}</h3>
 
-            <p>
-              {{ project.description }}
-            </p>
+            <p>{{ project.description }}</p>
 
             <footer>
-              <span>
-                Projeto DevTasker
-              </span>
+              <span>Projeto DevTasker</span>
 
               <button
                 type="button"
