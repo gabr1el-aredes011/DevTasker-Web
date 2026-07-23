@@ -46,4 +46,10 @@ export class TaskService {
     );
   }
 
+  archive(taskId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiUrl}/tasks/${taskId}`,
+    );
+  }
+
 }
