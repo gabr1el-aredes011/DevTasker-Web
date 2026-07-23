@@ -36,22 +36,22 @@ export class LoginComponent {
   readonly submitting = signal(false);
   readonly apiError = signal<string | null>(null);
   readonly registrationMessage =
-  this.route.snapshot.queryParamMap.get(
-    'registered',
-  ) === 'true'
-    ? 'Conta criada com sucesso. Faça seu primeiro login.'
-    : null;
+    this.route.snapshot.queryParamMap.get(
+      'registered',
+    ) === 'true'
+      ? 'Conta criada com sucesso. Faça seu primeiro login.'
+      : null;
 
   readonly form = this.formBuilder.nonNullable.group({
     email: [
-  this.route.snapshot.queryParamMap.get(
-    'email',
-  ) ?? '',
-  [
-    Validators.required,
-    Validators.email,
-  ],
-],
+      this.route.snapshot.queryParamMap.get(
+        'email',
+      ) ?? '',
+      [
+        Validators.required,
+        Validators.email,
+      ],
+    ],
     password: [
       '',
       [
@@ -95,13 +95,57 @@ export class LoginComponent {
       });
   }
 
-  private extractErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      const response = error.error as Partial<ApiError>;
+  private extractErrorMessage(
+    error: unknown,
+  ): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Ocorreu um erro inesperado. Tente novamente.';
+    }
 
-      if (response.message) {
-        return response.message;
+    if (error.status === 401) {
+      return 'E-mail ou senha inválidos.';
+    }
+
+    if (error.status === 0) {
+      return 'Não foi possível conectar ao servidor.';
+    }
+
+    const response = error.error;
+
+    if (
+      response &&
+      typeof response === 'object'
+    ) {
+      const apiError = response as {
+        message?: unknown;
+        fields?: Record<string, unknown>;
+      };
+
+      if (
+        typeof apiError.message === 'string' &&
+        apiError.message.trim()
+      ) {
+        return apiError.message;
       }
+
+      const firstFieldError = Object.values(
+        apiError.fields ?? {},
+      ).find(
+        (value): value is string =>
+          typeof value === 'string' &&
+          value.trim().length > 0,
+      );
+
+      if (firstFieldError) {
+        return firstFieldError;
+      }
+    }
+
+    if (
+      typeof response === 'string' &&
+      response.trim()
+    ) {
+      return response;
     }
 
     return 'Não foi possível realizar o login. Tente novamente.';

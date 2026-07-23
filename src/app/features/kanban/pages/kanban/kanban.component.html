@@ -212,8 +212,8 @@
             </h3>
           </div>
 
-          <button type="button" aria-label="Fechar detalhes da tarefa" [disabled]="loadingTaskDetails()"
-            (click)="closeTaskDetails()">
+          <button type="button" aria-label="Fechar detalhes da tarefa"
+            [disabled]="loadingTaskDetails() || updatingTask()" (click)="closeTaskDetails()">
             ×
           </button>
         </header>
@@ -234,19 +234,106 @@
         </div>
         } @else if (selectedTask(); as task) {
         <div class="task-details-content">
-          <div class="task-details-title">
-            <span class="task-priority" [attr.data-priority]="task.priority">
-              {{ task.priority }}
-            </span>
+          @if (updateTaskSuccess()) {
+          <div class="task-update-success" role="status">
+            {{ updateTaskSuccess() }}
+          </div>
+          }
 
-            <span class="task-id">
-              #{{ task.id }}
-            </span>
+          @if (editingTask()) {
+          <form class="task-form" [formGroup]="editTaskForm" (ngSubmit)="submitTaskUpdate()" novalidate>
+            <div class="task-form-field">
+              <label for="edit-task-title">
+                Título
+              </label>
+
+              <input id="edit-task-title" type="text" formControlName="title" placeholder="Título da tarefa" />
+
+              @if (
+              editTaskForm.controls.title.touched &&
+              editTaskForm.controls.title.hasError('required')
+              ) {
+              <small>
+                O título é obrigatório.
+              </small>
+              }
+            </div>
+
+            <div class="task-form-field">
+              <label for="edit-task-description">
+                Descrição
+              </label>
+
+              <textarea id="edit-task-description" formControlName="description" rows="5"
+                placeholder="Descreva o objetivo da tarefa"></textarea>
+            </div>
+
+            <div class="task-form-row">
+              <div class="task-form-field">
+                <label for="edit-task-priority">
+                  Prioridade
+                </label>
+
+                <select id="edit-task-priority" formControlName="priority">
+                  @for (
+                  priority of priorities;
+                  track priority
+                  ) {
+                  <option [ngValue]="priority">
+                    {{ priority }}
+                  </option>
+                  }
+                </select>
+              </div>
+
+              <div class="task-form-field">
+                <label for="edit-task-due-date">
+                  Data de vencimento
+                </label>
+
+                <input id="edit-task-due-date" type="date" formControlName="dueDate" />
+              </div>
+            </div>
+
+            @if (updateTaskError()) {
+            <div class="task-form-error" role="alert">
+              {{ updateTaskError() }}
+            </div>
+            }
+
+            <footer class="task-form-actions">
+              <button class="secondary-button" type="button" [disabled]="updatingTask()" (click)="cancelTaskEdit()">
+                Cancelar
+              </button>
+
+              <button class="primary-button" type="submit" [disabled]="updatingTask()">
+                @if (updatingTask()) {
+                Salvando alterações...
+                } @else {
+                Salvar alterações
+                }
+              </button>
+            </footer>
+          </form>
+          } @else {
+          <div class="task-details-title">
+            <div class="task-details-title__metadata">
+              <span class="task-priority" [attr.data-priority]="task.priority">
+                {{ task.priority }}
+              </span>
+
+              <span class="task-id">
+                #{{ task.id }}
+              </span>
+            </div>
 
             <h4>{{ task.title }}</h4>
 
             <p>
-              {{ task.description ?? 'Esta tarefa não possui descrição.' }}
+              {{
+              task.description ??
+              'Esta tarefa não possui descrição.'
+              }}
             </p>
           </div>
 
@@ -268,7 +355,9 @@
 
             <div>
               <dt>Data de vencimento</dt>
-              <dd>{{ task.dueDate ?? 'Sem prazo' }}</dd>
+              <dd>
+                {{ task.dueDate ?? 'Sem prazo' }}
+              </dd>
             </div>
 
             <div>
@@ -279,7 +368,10 @@
             <div>
               <dt>Responsável</dt>
               <dd>
-                {{ task.assignee?.name ?? 'Sem responsável' }}
+                {{
+                task.assignee?.name ??
+                'Sem responsável'
+                }}
               </dd>
             </div>
 
@@ -295,14 +387,15 @@
           </dl>
 
           <footer class="task-details-actions">
-            <button type="button" disabled title="A edição será implementada na próxima etapa">
+            <button type="button" (click)="startTaskEdit()">
               Editar tarefa
             </button>
 
-            <button type="button" disabled title="O arquivamento será implementado posteriormente">
+            <button type="button" disabled title="O arquivamento será implementado na próxima etapa">
               Arquivar tarefa
             </button>
           </footer>
+          }
         </div>
         }
       </section>
