@@ -85,6 +85,15 @@
           </p>
         </div>
       </div>
+
+      @if (archiveTaskSuccess()) {
+      <div class="task-action-success" role="status" aria-live="polite">
+        <span aria-hidden="true">✓</span>
+
+        {{ archiveTaskSuccess() }}
+      </div>
+      }
+
       @if (taskFormOpen()) {
       <section class="task-form-panel" aria-labelledby="create-task-title">
         <header class="task-form-header">
@@ -212,8 +221,11 @@
             </h3>
           </div>
 
-          <button type="button" aria-label="Fechar detalhes da tarefa"
-            [disabled]="loadingTaskDetails() || updatingTask()" (click)="closeTaskDetails()">
+          <button type="button" aria-label="Fechar detalhes da tarefa" [disabled]="
+  loadingTaskDetails() ||
+  updatingTask() ||
+  archivingTask()
+" (click)="closeTaskDetails()">
             ×
           </button>
         </header>
@@ -391,10 +403,58 @@
               Editar tarefa
             </button>
 
-            <button type="button" disabled title="O arquivamento será implementado na próxima etapa">
+            <button class="danger-button" type="button" [disabled]="
+    updatingTask() ||
+    archivingTask()
+  " (click)="requestTaskArchive()">
               Arquivar tarefa
             </button>
           </footer>
+
+          @if (archiveConfirmationOpen()) {
+          <section class="archive-confirmation" role="alertdialog" aria-labelledby="archive-confirmation-title"
+            aria-describedby="archive-confirmation-description">
+            <div class="archive-confirmation__content">
+              <span class="archive-confirmation__icon">
+                !
+              </span>
+
+              <div>
+                <h4 id="archive-confirmation-title">
+                  Arquivar esta tarefa?
+                </h4>
+
+                <p id="archive-confirmation-description">
+                  A tarefa
+                  <strong>{{ task.title }}</strong>
+                  deixará de aparecer no Kanban, mas continuará
+                  armazenada no sistema.
+                </p>
+              </div>
+            </div>
+
+            @if (archiveTaskError()) {
+            <div class="task-form-error" role="alert">
+              {{ archiveTaskError() }}
+            </div>
+            }
+
+            <footer class="archive-confirmation__actions">
+              <button class="secondary-button" type="button" [disabled]="archivingTask()" (click)="cancelTaskArchive()">
+                Cancelar
+              </button>
+
+              <button class="danger-button" type="button" [disabled]="archivingTask()" (click)="confirmTaskArchive()">
+                @if (archivingTask()) {
+                Arquivando...
+                } @else {
+                Confirmar arquivamento
+                }
+              </button>
+            </footer>
+          </section>
+          }
+
           }
         </div>
         }

@@ -167,6 +167,16 @@ export class KanbanComponent implements OnInit {
       dueDate: [''],
     });
 
+  readonly archiveConfirmationOpen = signal(false);
+  readonly archivingTask = signal(false);
+
+  readonly archiveTaskError =
+    signal<string | null>(null);
+
+  readonly archiveTaskSuccess =
+    signal<string | null>(null);
+
+
   ngOnInit(): void {
     this.loadPageData();
   }
@@ -197,6 +207,8 @@ export class KanbanComponent implements OnInit {
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
     this.resetTaskDetails();
+
+    this.archiveTaskSuccess.set(null);
   }
 
   retryBoards(): void {
@@ -219,6 +231,9 @@ export class KanbanComponent implements OnInit {
 
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
+
+    this.archiveTaskSuccess.set(null);
+
     this.resetTaskDetails();
   }
 
@@ -240,6 +255,7 @@ export class KanbanComponent implements OnInit {
     this.closeTaskDetails();
 
     this.createTaskError.set(null);
+    this.archiveTaskSuccess.set(null);
 
     this.createTaskForm.reset({
       columnId: firstColumn.id,
@@ -350,10 +366,6 @@ export class KanbanComponent implements OnInit {
             'Tarefa atualizada com sucesso.',
           );
 
-          /*
-           * Recarrega o Kanban para que o cartão resumido
-           * também receba título, prioridade e prazo novos.
-           */
           const board = this.selectedBoard();
 
           if (board) {
@@ -455,25 +467,125 @@ export class KanbanComponent implements OnInit {
       });
   }
 
+  requestTaskArchive(): void {
+    const task = this.selectedTask();
+
+    if (
+      !task ||
+      this.loadingTaskDetails() ||
+      this.updatingTask() ||
+      this.archivingTask()
+    ) {
+      return;
+    }
+
+    this.archiveTaskError.set(null);
+    this.archiveTaskSuccess.set(null);
+    this.archiveConfirmationOpen.set(true);
+  }
+
+  cancelTaskArchive(): void {
+    if (this.archivingTask()) {
+      return;
+    }
+
+    this.archiveConfirmationOpen.set(false);
+    this.archiveTaskError.set(null);
+  }
+
+  confirmTaskArchive(): void {
+    const task = this.selectedTask();
+    const board = this.selectedBoard();
+
+    if (!task) {
+      this.archiveTaskError.set(
+        'Nenhuma tarefa foi selecionada.',
+      );
+
+      return;
+    }
+
+    this.archivingTask.set(true);
+    this.archiveTaskError.set(null);
+    this.archiveTaskSuccess.set(null);
+
+    this.taskService
+      .archive(task.id)
+      .pipe(
+        finalize(() => {
+          this.archivingTask.set(false);
+        }),
+      )
+      .subscribe({
+        next: () => {
+
+          this.resetTaskDetails();
+
+          this.archiveTaskSuccess.set(
+            'Tarefa arquivada com sucesso.',
+          );
+
+          if (board) {
+            this.loadKanban(board.id);
+          }
+        },
+
+        error: (error: unknown) => {
+          this.archiveTaskError.set(
+            this.extractApiError(
+              error,
+              'Não foi possível arquivar a tarefa.',
+            ),
+          );
+        },
+      });
+  }
+
   private extractApiError(
     error: unknown,
     fallbackMessage: string,
   ): string {
-    if (error instanceof HttpErrorResponse) {
-      const response =
-        error.error as Partial<ApiError>;
+    if (!(error instanceof HttpErrorResponse)) {
+      return fallbackMessage;
+    }
+
+    if (error.status === 0) {
+      return 'Não foi possível conectar ao servidor.';
+    }
+
+    const response = error.error;
+
+    if (
+      response &&
+      typeof response === 'object'
+    ) {
+      const apiError = response as Partial<ApiError>;
 
       const firstFieldError = Object.values(
-        response.fields ?? {},
-      )[0];
+        apiError.fields ?? {},
+      ).find(
+        (value): value is string =>
+          typeof value === 'string' &&
+          value.trim().length > 0,
+      );
 
       if (firstFieldError) {
         return firstFieldError;
       }
 
-      if (response.message) {
-        return response.message;
+      if (
+        typeof apiError.message === 'string' &&
+        apiError.message.trim()
+      ) {
+        return apiError.message;
       }
+    }
+
+    if (
+      typeof response === 'string' &&
+      response.trim()
+    ) {
+      return response;
     }
 
     return fallbackMessage;
@@ -482,6 +594,9 @@ export class KanbanComponent implements OnInit {
   openTaskDetails(taskId: number): void {
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
+    this.archiveConfirmationOpen.set(false);
+    this.archiveTaskError.set(null);
+    this.archiveTaskSuccess.set(null);
 
     this.editingTask.set(false);
     this.updateTaskError.set(null);
@@ -524,7 +639,8 @@ export class KanbanComponent implements OnInit {
   closeTaskDetails(): void {
     if (
       this.loadingTaskDetails() ||
-      this.updatingTask()
+      this.updatingTask() ||
+      this.archivingTask()
     ) {
       return;
     }
@@ -536,6 +652,9 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+
+    this.archiveConfirmationOpen.set(false);
+    this.archiveTaskError.set(null);
   }
 
   logout(): void {
@@ -638,6 +757,9 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+
+    this.archiveConfirmationOpen.set(false);
+    this.archiveTaskError.set(null);
   }
 
 }

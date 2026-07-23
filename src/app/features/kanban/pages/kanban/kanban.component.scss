@@ -813,8 +813,146 @@
   }
 }
 
-@media (max-width: 620px) {
+/* =========================================================
+   ARQUIVAMENTO DE TAREFA
+   ========================================================= */
 
+.archive-confirmation {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 92, 92, 0.32);
+  border-left: 3px solid #ff6b6b;
+  border-radius: 0.8rem;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(95, 20, 20, 0.2),
+      rgba(35, 12, 12, 0.12)
+    );
+}
+
+.archive-confirmation__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+
+  h4 {
+    margin: 0;
+    color: #ffd2d2;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0.4rem 0 0;
+    color: #bdaaaa;
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  strong {
+    color: #fff;
+  }
+}
+
+.archive-confirmation__icon {
+  display: grid;
+  flex: 0 0 2.2rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border: 1px solid rgba(255, 92, 92, 0.4);
+  border-radius: 50%;
+  background: rgba(255, 92, 92, 0.12);
+  color: #ff8c8c;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.archive-confirmation__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+
+  button {
+    min-height: 2.6rem;
+    padding: 0 1rem;
+    border-radius: 0.65rem;
+    font-weight: 750;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+  }
+}
+
+.task-details-actions .danger-button,
+.archive-confirmation__actions .danger-button {
+  border: 1px solid rgba(255, 92, 92, 0.45);
+  background: rgba(255, 92, 92, 0.1);
+  color: #ff9b9b;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(255, 92, 92, 0.7);
+    background: rgba(255, 92, 92, 0.18);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+
+.task-action-success {
+  display: flex;
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1rem;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid rgba(47, 255, 105, 0.28);
+  border-left: 3px solid #2fff69;
+  border-radius: 0.75rem;
+  background: rgba(47, 255, 105, 0.07);
+  color: #bdfdce;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  animation: task-success-enter 220ms ease-out;
+
+  span {
+    display: grid;
+    width: 1.7rem;
+    height: 1.7rem;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(47, 255, 105, 0.12);
+    color: #65f790;
+    font-weight: 900;
+  }
+}
+
+@keyframes task-success-enter {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+@media (max-width: 620px) {
   .workspace-header,
   .section-header {
     align-items: stretch;
@@ -829,7 +967,8 @@
     width: fit-content;
   }
 
-  .project-card footer {
+  .project-card footer,
+  .board-card footer {
     align-items: stretch;
     flex-direction: column;
 
@@ -838,37 +977,32 @@
     }
   }
 
-  .board-card footer {
-    align-items: stretch;
+  .task-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .task-form-actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .task-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-details-actions,
+  .archive-confirmation__actions {
     flex-direction: column;
 
     button {
       width: 100%;
     }
+  }
 
-    .task-form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .task-form-actions {
-      flex-direction: column-reverse;
-
-      button {
-        width: 100%;
-      }
-    }
-
-    .task-details-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .task-details-actions {
-      flex-direction: column;
-
-      button {
-        width: 100%;
-      }
-    }
-
+  .archive-confirmation__content {
+    align-items: flex-start;
   }
 }
