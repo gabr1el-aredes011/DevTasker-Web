@@ -8,6 +8,7 @@ import {
   CreateTaskRequest,
   TaskPriority,
   TaskResponse,
+  UpdateTaskRequest,
 } from '../../../tasks/models/task.models';
 import {
   ChangeDetectionStrategy,
@@ -100,6 +101,15 @@ export class KanbanComponent implements OnInit {
   readonly taskDetailsError =
     signal<string | null>(null);
 
+  readonly editingTask = signal(false);
+  readonly updatingTask = signal(false);
+
+  readonly updateTaskError =
+    signal<string | null>(null);
+
+  readonly updateTaskSuccess =
+    signal<string | null>(null);
+
   readonly priorities: readonly TaskPriority[] = [
     'LOW',
     'MEDIUM',
@@ -117,6 +127,27 @@ export class KanbanComponent implements OnInit {
         ],
       ],
 
+      title: [
+        '',
+        [
+          Validators.required,
+        ],
+      ],
+
+      description: [''],
+
+      priority: [
+        'MEDIUM' as TaskPriority,
+        [
+          Validators.required,
+        ],
+      ],
+
+      dueDate: [''],
+    });
+
+  readonly editTaskForm =
+    this.formBuilder.nonNullable.group({
       title: [
         '',
         [
@@ -217,8 +248,128 @@ export class KanbanComponent implements OnInit {
       priority: 'MEDIUM',
       dueDate: '',
     });
-
     this.taskFormOpen.set(true);
+  }
+
+  startTaskEdit(): void {
+    const task = this.selectedTask();
+
+    if (!task || this.loadingTaskDetails()) {
+      return;
+    }
+
+    this.updateTaskError.set(null);
+    this.updateTaskSuccess.set(null);
+
+    this.editTaskForm.reset({
+      title: task.title,
+      description: task.description ?? '',
+      priority: task.priority,
+      dueDate: task.dueDate ?? '',
+    });
+
+    this.editingTask.set(true);
+  }
+
+  cancelTaskEdit(): void {
+    if (this.updatingTask()) {
+      return;
+    }
+
+    this.editingTask.set(false);
+    this.updateTaskError.set(null);
+  }
+
+  submitTaskUpdate(): void {
+    if (this.editTaskForm.invalid) {
+      this.editTaskForm.markAllAsTouched();
+      return;
+    }
+
+    const task = this.selectedTask();
+
+    if (!task) {
+      this.updateTaskError.set(
+        'Nenhuma tarefa foi selecionada.',
+      );
+
+      return;
+    }
+
+    const formValue =
+      this.editTaskForm.getRawValue();
+
+    const normalizedTitle =
+      formValue.title.trim();
+
+    if (!normalizedTitle) {
+      this.editTaskForm.controls.title.setErrors({
+        required: true,
+      });
+
+      this.editTaskForm.controls.title.markAsTouched();
+      return;
+    }
+
+    const request: UpdateTaskRequest = {
+      title: normalizedTitle,
+
+      description:
+        formValue.description.trim() || null,
+
+      priority: formValue.priority,
+
+      dueDate:
+        formValue.dueDate || null,
+    };
+
+    this.updatingTask.set(true);
+    this.updateTaskError.set(null);
+    this.updateTaskSuccess.set(null);
+
+    this.taskService
+      .update(
+        task.id,
+        request,
+      )
+      .pipe(
+        finalize(() => {
+          this.updatingTask.set(false);
+        }),
+      )
+      .subscribe({
+        next: (updatedTask) => {
+          /*
+           * Atualiza imediatamente os detalhes com
+           * a resposta oficial devolvida pelo backend.
+           */
+          this.selectedTask.set(updatedTask);
+          this.editingTask.set(false);
+
+          this.updateTaskSuccess.set(
+            'Tarefa atualizada com sucesso.',
+          );
+
+          /*
+           * Recarrega o Kanban para que o cartão resumido
+           * também receba título, prioridade e prazo novos.
+           */
+          const board = this.selectedBoard();
+
+          if (board) {
+            this.loadKanban(board.id);
+          }
+        },
+
+        error: (error: unknown) => {
+          this.updateTaskError.set(
+            this.extractApiError(
+              error,
+              'Não foi possível atualizar a tarefa.',
+            ),
+          );
+        },
+      });
   }
 
   closeCreateTaskForm(): void {
@@ -295,14 +446,18 @@ export class KanbanComponent implements OnInit {
 
         error: (error: unknown) => {
           this.createTaskError.set(
-            this.extractTaskCreationError(error),
+            this.extractApiError(
+              error,
+              'Não foi possível criar a tarefa. Tente novamente.',
+            ),
           );
         }
       });
   }
 
-  private extractTaskCreationError(
+  private extractApiError(
     error: unknown,
+    fallbackMessage: string,
   ): string {
     if (error instanceof HttpErrorResponse) {
       const response =
@@ -321,12 +476,16 @@ export class KanbanComponent implements OnInit {
       }
     }
 
-    return 'Não foi possível criar a tarefa. Tente novamente.';
+    return fallbackMessage;
   }
 
   openTaskDetails(taskId: number): void {
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
+
+    this.editingTask.set(false);
+    this.updateTaskError.set(null);
+    this.updateTaskSuccess.set(null);
 
     this.taskDetailsOpen.set(true);
     this.selectedTaskId.set(taskId);
@@ -363,14 +522,20 @@ export class KanbanComponent implements OnInit {
   }
 
   closeTaskDetails(): void {
-    if (this.loadingTaskDetails()) {
+    if (
+      this.loadingTaskDetails() ||
+      this.updatingTask()
+    ) {
       return;
     }
-
     this.taskDetailsOpen.set(false);
     this.selectedTaskId.set(null);
     this.selectedTask.set(null);
     this.taskDetailsError.set(null);
+
+    this.editingTask.set(false);
+    this.updateTaskError.set(null);
+    this.updateTaskSuccess.set(null);
   }
 
   logout(): void {
@@ -469,6 +634,10 @@ export class KanbanComponent implements OnInit {
     this.selectedTaskId.set(null);
     this.selectedTask.set(null);
     this.taskDetailsError.set(null);
+
+    this.editingTask.set(false);
+    this.updateTaskError.set(null);
+    this.updateTaskSuccess.set(null);
   }
 
 }
