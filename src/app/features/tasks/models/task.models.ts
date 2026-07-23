@@ -11,6 +11,13 @@ export interface CreateTaskRequest {
   readonly dueDate: string | null;
 }
 
+export interface UpdateTaskRequest {
+  readonly title: string;
+  readonly description: string | null;
+  readonly priority: TaskPriority;
+  readonly dueDate: string | null;
+}
+
 export interface TaskUserSummary {
   readonly id: number;
   readonly name: string;

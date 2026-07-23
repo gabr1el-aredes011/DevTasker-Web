@@ -9,6 +9,7 @@ import { environment } from '../../../../environments/environment';
 import {
   CreateTaskRequest,
   TaskResponse,
+  UpdateTaskRequest,
 } from '../models/task.models';
 
 @Injectable({
@@ -17,13 +18,13 @@ import {
 export class TaskService {
   private readonly http = inject(HttpClient);
 
-findById(
-  taskId: number,
-): Observable<TaskResponse> {
-  return this.http.get<TaskResponse>(
-    `${environment.apiUrl}/tasks/${taskId}`,
-  );
-}
+  findById(
+    taskId: number,
+  ): Observable<TaskResponse> {
+    return this.http.get<TaskResponse>(
+      `${environment.apiUrl}/tasks/${taskId}`,
+    );
+  }
 
   create(
     columnId: number,
@@ -34,4 +35,15 @@ findById(
       request,
     );
   }
+
+  update(
+    taskId: number,
+    request: UpdateTaskRequest,
+  ): Observable<TaskResponse> {
+    return this.http.put<TaskResponse>(
+      `${environment.apiUrl}/tasks/${taskId}`,
+      request,
+    );
+  }
+
 }
