@@ -378,6 +378,22 @@ app-auth-particles {
     }
 }
 
+.auth-shell[data-context="register"] {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.auth-shell[data-context="register"] .auth-shell__container {
+    grid-template-columns:
+        minmax(0, 1fr) minmax(29rem, 0.92fr);
+
+    gap: clamp(2.5rem, 6vw, 6rem);
+}
+
+.auth-shell[data-context="register"] .auth-story {
+    min-height: 42rem;
+}
+
 @media (max-width: 62rem) {
     .auth-shell__container {
         width: min(100%, 38rem);
@@ -417,6 +433,10 @@ app-auth-particles {
     .auth-capabilities,
     .auth-terminal {
         display: none;
+    }
+
+    .auth-shell[data-context="register"] .auth-shell__container {
+        grid-template-columns: 1fr;
     }
 }
 
