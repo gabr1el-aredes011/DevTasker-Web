@@ -1,5 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  AuthLayoutComponent,
+} from '../../layouts/auth-layout/auth-layout.component';
+import {
   ChangeDetectionStrategy,
   Component,
   inject,
@@ -22,7 +25,7 @@ import { ApiError } from '../../../../core/http/api-error.model';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,17 +64,34 @@ export class LoginComponent {
     ],
   });
 
+  readonly passwordVisible = signal(false);
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible.update(
+      (visible) => !visible,
+    );
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
+    const formValue = this.form.getRawValue();
+
+    const request = {
+      email: formValue.email
+        .trim()
+        .toLowerCase(),
+      password: formValue.password,
+    };
+
     this.apiError.set(null);
     this.submitting.set(true);
 
     this.authService
-      .login(this.form.getRawValue())
+      .login(request)
       .pipe(
         finalize(() => {
           this.submitting.set(false);
