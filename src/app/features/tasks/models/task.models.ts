@@ -18,6 +18,11 @@ export interface UpdateTaskRequest {
   readonly dueDate: string | null;
 }
 
+export interface MoveTaskRequest {
+  readonly targetColumnId: number;
+  readonly targetPosition: number;
+}
+
 export interface TaskUserSummary {
   readonly id: number;
   readonly name: string;

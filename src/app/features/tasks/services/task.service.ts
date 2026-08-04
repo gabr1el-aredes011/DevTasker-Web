@@ -10,6 +10,7 @@ import {
   CreateTaskRequest,
   TaskResponse,
   UpdateTaskRequest,
+  MoveTaskRequest,
 } from '../models/task.models';
 
 @Injectable({
@@ -49,6 +50,16 @@ export class TaskService {
   archive(taskId: number): Observable<void> {
     return this.http.delete<void>(
       `${environment.apiUrl}/tasks/${taskId}`,
+    );
+  }
+
+  move(
+    taskId: number,
+    request: MoveTaskRequest,
+  ): Observable<TaskResponse> {
+    return this.http.patch<TaskResponse>(
+      `${environment.apiUrl}/tasks/${taskId}/move`,
+      request,
     );
   }
 
