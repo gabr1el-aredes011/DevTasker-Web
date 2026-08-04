@@ -94,6 +94,22 @@
       </div>
       }
 
+      @if (moveTaskSuccess()) {
+      <div class="task-action-success" role="status" aria-live="polite">
+        <span aria-hidden="true">✓</span>
+
+        {{ moveTaskSuccess() }}
+      </div>
+      }
+
+      @if (moveTaskError()) {
+      <div class="task-action-error" role="alert" aria-live="assertive">
+        <span aria-hidden="true">!</span>
+
+        {{ moveTaskError() }}
+      </div>
+      }
+
       @if (taskFormOpen()) {
       <section class="task-form-panel" aria-labelledby="create-task-title">
         <header class="task-form-header">
@@ -496,7 +512,7 @@
         </div>
       </div>
       } @else {
-      <div class="kanban-board" aria-label="Quadro Kanban">
+      <div class="kanban-board" cdkDropListGroup [class.kanban-board--moving]="movingTask()" aria-label="Quadro Kanban">
         @for (
         column of board.columns;
         track column.id
@@ -516,7 +532,9 @@
             </strong>
           </header>
 
-          <div class="task-list">
+          <div class="task-list" cdkDropList [cdkDropListData]="column" [cdkDropListDisabled]="
+    taskMovementDisabled()
+  " (cdkDropListDropped)="dropTask($event)">
             @if (column.tasks.length === 0) {
             <div class="empty-column">
               <p>Nenhuma tarefa nesta coluna.</p>
@@ -526,15 +544,26 @@
             task of column.tasks;
             track task.id
             ) {
-            <article class="task-card" [attr.data-priority]="task.priority">
+            <article class="task-card" cdkDrag [cdkDragData]="task" [cdkDragDisabled]="
+    taskMovementDisabled()
+  " [attr.data-priority]="task.priority">
               <header class="task-card__header">
                 <span class="task-priority">
                   {{ task.priority }}
                 </span>
 
-                <span class="task-id">
-                  #{{ task.id }}
-                </span>
+                <div class="task-card__header-actions">
+                  <span class="task-id">
+                    #{{ task.id }}
+                  </span>
+
+                  <button class="task-drag-handle" type="button" cdkDragHandle [disabled]="taskMovementDisabled()"
+                    [attr.aria-label]="
+        'Mover tarefa ' + task.title
+      " title="Arrastar tarefa">
+                    ⠿
+                  </button>
+                </div>
               </header>
 
               <h4>{{ task.title }}</h4>

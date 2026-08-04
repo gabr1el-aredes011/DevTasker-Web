@@ -1,3 +1,10 @@
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDropList,
+  CdkDropListGroup,
+} from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormBuilder,
@@ -9,10 +16,12 @@ import {
   TaskPriority,
   TaskResponse,
   UpdateTaskRequest,
+  MoveTaskRequest,
 } from '../../../tasks/models/task.models';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   OnInit,
   signal,
@@ -24,7 +33,11 @@ import {
 } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
-import { KanbanBoard } from '../../models/kanban.models';
+import {
+  KanbanBoard,
+  KanbanColumn,
+  KanbanTask,
+} from '../../models/kanban.models';
 import { KanbanService } from '../../services/kanban.service';
 import { TaskService } from '../../../tasks/services/task.service';
 import { ApiError } from '../../../../core/http/api-error.model';
@@ -37,7 +50,13 @@ import { ProjectService } from '../../../projects/services/project.service';
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    CdkDropListGroup,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+  ],
   templateUrl: './kanban.component.html',
   styleUrl: './kanban.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -177,6 +196,25 @@ export class KanbanComponent implements OnInit {
     signal<string | null>(null);
 
 
+  readonly movingTask = signal(false);
+
+  readonly moveTaskError =
+    signal<string | null>(null);
+
+  readonly moveTaskSuccess =
+    signal<string | null>(null);
+
+  readonly taskMovementDisabled = computed(
+    () =>
+      this.loadingKanban() ||
+      this.movingTask() ||
+      this.creatingTask() ||
+      this.updatingTask() ||
+      this.archivingTask() ||
+      this.taskFormOpen() ||
+      this.taskDetailsOpen(),
+  );
+
   ngOnInit(): void {
     this.loadPageData();
   }
@@ -191,7 +229,8 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
-
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
     this.loadBoards(project.id);
   }
 
@@ -209,6 +248,9 @@ export class KanbanComponent implements OnInit {
     this.resetTaskDetails();
 
     this.archiveTaskSuccess.set(null);
+
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
   }
 
   retryBoards(): void {
@@ -221,6 +263,8 @@ export class KanbanComponent implements OnInit {
 
   selectBoard(board: BoardSummary): void {
     this.selectedBoard.set(board);
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
     this.loadKanban(board.id);
   }
 
@@ -235,6 +279,9 @@ export class KanbanComponent implements OnInit {
     this.archiveTaskSuccess.set(null);
 
     this.resetTaskDetails();
+
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
   }
 
   retryKanban(): void {
@@ -243,6 +290,123 @@ export class KanbanComponent implements OnInit {
     if (board) {
       this.loadKanban(board.id);
     }
+  }
+
+  dropTask(
+    event: CdkDragDrop<
+      KanbanColumn,
+      KanbanColumn,
+      KanbanTask
+    >,
+  ): void {
+    if (
+      this.taskMovementDisabled() ||
+      !event.isPointerOverContainer
+    ) {
+      return;
+    }
+
+    const board = this.kanban();
+    const selectedBoard = this.selectedBoard();
+
+    if (!board || !selectedBoard) {
+      return;
+    }
+
+    const task = event.item.data;
+    const sourceColumn = event.previousContainer.data;
+    const targetColumn = event.container.data;
+
+    const sameColumn =
+      sourceColumn.id === targetColumn.id;
+
+    const samePosition =
+      event.previousIndex === event.currentIndex;
+
+    if (sameColumn && samePosition) {
+      return;
+    }
+
+    const previousBoard = board;
+
+    const optimisticBoard =
+      this.moveTaskLocally(
+        board,
+        task.id,
+        sourceColumn.id,
+        targetColumn.id,
+        event.currentIndex,
+      );
+
+    if (optimisticBoard === board) {
+      this.moveTaskError.set(
+        'A tarefa não foi localizada no quadro.',
+      );
+
+      return;
+    }
+
+    const request: MoveTaskRequest = {
+      targetColumnId: targetColumn.id,
+      targetPosition: event.currentIndex,
+    };
+
+    this.kanban.set(optimisticBoard);
+
+    this.movingTask.set(true);
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
+    this.archiveTaskSuccess.set(null);
+
+    this.taskService
+      .move(
+        task.id,
+        request,
+      )
+      .pipe(
+        finalize(() => {
+          this.movingTask.set(false);
+        }),
+      )
+      .subscribe({
+        next: () => {
+
+          if (
+            this.selectedBoard()?.id !==
+            selectedBoard.id
+          ) {
+            return;
+          }
+
+          this.moveTaskSuccess.set(
+            'Tarefa movida com sucesso.',
+          );
+
+
+          this.refreshKanbanAfterMovement(
+            selectedBoard.id,
+          );
+        },
+
+        error: (error: unknown) => {
+          if (
+            this.selectedBoard()?.id !==
+            selectedBoard.id
+          ) {
+            return;
+          }
+
+
+          this.kanban.set(previousBoard);
+
+          this.moveTaskError.set(
+            this.extractApiError(
+              error,
+              'Não foi possível mover a tarefa.',
+            ),
+          );
+        },
+      });
   }
   openCreateTaskForm(): void {
     const board = this.kanban();
@@ -256,6 +420,9 @@ export class KanbanComponent implements OnInit {
 
     this.createTaskError.set(null);
     this.archiveTaskSuccess.set(null);
+
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
 
     this.createTaskForm.reset({
       columnId: firstColumn.id,
@@ -592,6 +759,9 @@ export class KanbanComponent implements OnInit {
   }
 
   openTaskDetails(taskId: number): void {
+    this.moveTaskError.set(null);
+    this.moveTaskSuccess.set(null);
+
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
     this.archiveConfirmationOpen.set(false);
@@ -743,6 +913,126 @@ export class KanbanComponent implements OnInit {
         error: () => {
           this.kanbanLoadError.set(
             'Não foi possível carregar o Kanban deste quadro.',
+          );
+        },
+      });
+  }
+
+  private moveTaskLocally(
+    board: KanbanBoard,
+    taskId: number,
+    sourceColumnId: number,
+    targetColumnId: number,
+    targetPosition: number,
+  ): KanbanBoard {
+    const sourceColumn = board.columns.find(
+      (column) => column.id === sourceColumnId,
+    );
+
+    const targetColumn = board.columns.find(
+      (column) => column.id === targetColumnId,
+    );
+
+    const movingTask = sourceColumn?.tasks.find(
+      (task) => task.id === taskId,
+    );
+
+    if (
+      !sourceColumn ||
+      !targetColumn ||
+      !movingTask
+    ) {
+      return board;
+    }
+
+    /*
+     * Primeiro retiramos a tarefa de sua coluna
+     * original, sem modificar o array recebido.
+     */
+    const columnsWithoutTask =
+      board.columns.map((column) => {
+        if (column.id !== sourceColumnId) {
+          return {
+            ...column,
+            tasks: [...column.tasks],
+          };
+        }
+
+        return {
+          ...column,
+          tasks: column.tasks.filter(
+            (task) => task.id !== taskId,
+          ),
+        };
+      });
+
+    const updatedColumns =
+      columnsWithoutTask.map((column) => {
+        const tasks = [...column.tasks];
+
+        if (column.id === targetColumnId) {
+          const safePosition = Math.min(
+            Math.max(targetPosition, 0),
+            tasks.length,
+          );
+
+          tasks.splice(
+            safePosition,
+            0,
+            movingTask,
+          );
+        }
+
+        /*
+         * Recalculamos 0, 1, 2...
+         * tanto na origem quanto no destino.
+         */
+        const reorderedTasks = tasks.map(
+          (task, position): KanbanTask => ({
+            ...task,
+            position,
+          }),
+        );
+
+        return {
+          ...column,
+          tasks: reorderedTasks,
+        };
+      });
+
+    return {
+      ...board,
+      columns: updatedColumns,
+    };
+  }
+
+  private refreshKanbanAfterMovement(
+    boardId: number,
+  ): void {
+    this.kanbanService
+      .findByBoardId(boardId)
+      .subscribe({
+        next: (officialBoard) => {
+          if (
+            this.selectedBoard()?.id !== boardId
+          ) {
+            return;
+          }
+
+          this.kanban.set(officialBoard);
+        },
+
+        error: () => {
+          if (
+            this.selectedBoard()?.id !== boardId
+          ) {
+            return;
+          }
+
+          this.moveTaskSuccess.set(null);
+
+          this.moveTaskError.set(
+            'A tarefa foi movida, mas não foi possível sincronizar o quadro. Atualize a página.',
           );
         },
       });
