@@ -1,0 +1,51 @@
+:host {
+  display: flex;
+  width: fit-content;
+  min-height: 1.08em;
+  align-items: baseline;
+
+  color: var(--dt-color-brand-400);
+
+  text-shadow:
+    0 0 38px
+    rgba(34, 237, 95, 0.2);
+
+  white-space: nowrap;
+}
+
+.typewriter-text {
+  display: inline-block;
+  min-width: 10.5ch;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  width: 0.075em;
+  height: 0.82em;
+  margin-left: 0.08em;
+
+  background:
+    var(--dt-color-brand-400);
+
+  box-shadow:
+    0 0 14px
+    var(--dt-color-brand-glow);
+
+  animation:
+    typewriter-cursor-blink
+    800ms
+    steps(2)
+    infinite;
+}
+
+@keyframes typewriter-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter-cursor {
+    animation: none;
+  }
+}
