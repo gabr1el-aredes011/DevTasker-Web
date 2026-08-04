@@ -1,27 +1,317 @@
+/* =========================================================
+   DEVTASKER DESIGN SYSTEM
+   Fundação visual global
+   ========================================================= */
+
+:root {
+  color-scheme: dark;
+
+  /* -------------------------------------------------------
+     CORES — FUNDO E SUPERFÍCIES
+     ------------------------------------------------------- */
+
+  --dt-color-canvas: #020806;
+  --dt-color-canvas-soft: #04100c;
+
+  --dt-color-surface-1: #07120e;
+  --dt-color-surface-2: #0a1812;
+  --dt-color-surface-3: #0d2118;
+  --dt-color-surface-hover: #10291e;
+
+  --dt-color-overlay: rgba(1, 7, 4, 0.78);
+
+  /* -------------------------------------------------------
+     CORES — TEXTO
+     ------------------------------------------------------- */
+
+  --dt-color-text-primary: #f2fff6;
+  --dt-color-text-secondary: #a8bdae;
+  --dt-color-text-muted: #708a78;
+  --dt-color-text-disabled: #4f6657;
+  --dt-color-text-inverse: #021008;
+
+  /* -------------------------------------------------------
+     CORES — MARCA
+     ------------------------------------------------------- */
+
+  --dt-color-brand-200: #a1ffb8;
+  --dt-color-brand-300: #76ff99;
+  --dt-color-brand-400: #46ff78;
+  --dt-color-brand-500: #22ed5f;
+  --dt-color-brand-600: #13c94c;
+  --dt-color-brand-700: #0c9c3a;
+
+  --dt-color-brand-soft: rgba(34, 237, 95, 0.1);
+  --dt-color-brand-subtle: rgba(34, 237, 95, 0.06);
+  --dt-color-brand-glow: rgba(34, 237, 95, 0.24);
+
+  /* -------------------------------------------------------
+     CORES — SEMÂNTICAS
+     ------------------------------------------------------- */
+
+  --dt-color-success: #34e873;
+  --dt-color-success-soft: rgba(52, 232, 115, 0.1);
+
+  --dt-color-warning: #f5ca4a;
+  --dt-color-warning-soft: rgba(245, 202, 74, 0.1);
+
+  --dt-color-danger: #ff6969;
+  --dt-color-danger-hover: #ff8585;
+  --dt-color-danger-soft: rgba(255, 105, 105, 0.1);
+
+  --dt-color-info: #58a6ff;
+  --dt-color-info-soft: rgba(88, 166, 255, 0.1);
+
+  /* -------------------------------------------------------
+     BORDAS
+     ------------------------------------------------------- */
+
+  --dt-color-border-subtle: rgba(151, 255, 181, 0.1);
+  --dt-color-border-default: rgba(151, 255, 181, 0.17);
+  --dt-color-border-strong: rgba(70, 255, 120, 0.34);
+
+  --dt-color-border-danger: rgba(255, 105, 105, 0.42);
+  --dt-color-border-warning: rgba(245, 202, 74, 0.38);
+
+  /* -------------------------------------------------------
+     TIPOGRAFIA
+     ------------------------------------------------------- */
+
+  --dt-font-sans:
+    Inter,
+    "Segoe UI Variable",
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  --dt-font-display:
+    "Space Grotesk",
+    "Segoe UI Variable Display",
+    "Segoe UI",
+    sans-serif;
+
+  --dt-font-mono:
+    "JetBrains Mono",
+    "Cascadia Code",
+    Consolas,
+    monospace;
+
+  --dt-text-xs: 0.75rem;
+  --dt-text-sm: 0.875rem;
+  --dt-text-md: 1rem;
+  --dt-text-lg: 1.125rem;
+  --dt-text-xl: 1.25rem;
+  --dt-text-2xl: 1.5rem;
+  --dt-text-3xl: 2rem;
+  --dt-text-4xl: clamp(2.25rem, 5vw, 4.5rem);
+
+  --dt-line-tight: 1.15;
+  --dt-line-normal: 1.5;
+  --dt-line-relaxed: 1.7;
+
+  --dt-weight-regular: 400;
+  --dt-weight-medium: 500;
+  --dt-weight-semibold: 600;
+  --dt-weight-bold: 700;
+  --dt-weight-black: 800;
+
+  /* -------------------------------------------------------
+     ESPAÇAMENTOS
+     ------------------------------------------------------- */
+
+  --dt-space-1: 0.25rem;
+  --dt-space-2: 0.5rem;
+  --dt-space-3: 0.75rem;
+  --dt-space-4: 1rem;
+  --dt-space-5: 1.25rem;
+  --dt-space-6: 1.5rem;
+  --dt-space-8: 2rem;
+  --dt-space-10: 2.5rem;
+  --dt-space-12: 3rem;
+  --dt-space-16: 4rem;
+  --dt-space-20: 5rem;
+
+  /* -------------------------------------------------------
+     BORDAS ARREDONDADAS
+     ------------------------------------------------------- */
+
+  --dt-radius-xs: 0.375rem;
+  --dt-radius-sm: 0.5rem;
+  --dt-radius-md: 0.75rem;
+  --dt-radius-lg: 1rem;
+  --dt-radius-xl: 1.25rem;
+  --dt-radius-2xl: 1.75rem;
+  --dt-radius-pill: 999px;
+
+  /* -------------------------------------------------------
+     SOMBRAS
+     ------------------------------------------------------- */
+
+  --dt-shadow-xs:
+    0 1px 2px rgba(0, 0, 0, 0.3);
+
+  --dt-shadow-sm:
+    0 8px 24px rgba(0, 0, 0, 0.2);
+
+  --dt-shadow-md:
+    0 18px 50px rgba(0, 0, 0, 0.3);
+
+  --dt-shadow-lg:
+    0 28px 80px rgba(0, 0, 0, 0.42);
+
+  --dt-shadow-brand:
+    0 0 0 1px rgba(70, 255, 120, 0.08),
+    0 18px 55px rgba(34, 237, 95, 0.1);
+
+  --dt-shadow-focus:
+    0 0 0 4px rgba(34, 237, 95, 0.16);
+
+  /* -------------------------------------------------------
+     MOVIMENTO
+     ------------------------------------------------------- */
+
+  --dt-duration-fast: 140ms;
+  --dt-duration-normal: 220ms;
+  --dt-duration-slow: 360ms;
+
+  --dt-ease-standard:
+    cubic-bezier(0.2, 0, 0, 1);
+
+  --dt-ease-emphasized:
+    cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* -------------------------------------------------------
+     LAYOUT
+     ------------------------------------------------------- */
+
+  --dt-container-sm: 42rem;
+  --dt-container-md: 68rem;
+  --dt-container-lg: 88rem;
+
+  --dt-header-height: 4.5rem;
+  --dt-sidebar-width: 17rem;
+
+  /* -------------------------------------------------------
+     CAMADAS
+     ------------------------------------------------------- */
+
+  --dt-z-base: 1;
+  --dt-z-header: 20;
+  --dt-z-dropdown: 40;
+  --dt-z-overlay: 80;
+  --dt-z-modal: 100;
+  --dt-z-toast: 120;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html,
-body {
+html {
   width: 100%;
   min-width: 320px;
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background: #020707;
+  background: var(--dt-color-canvas);
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
-  min-height: 100vh;
+  position: relative;
+  width: 100%;
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(34, 237, 95, 0.11),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(23, 113, 68, 0.09),
+      transparent 30rem
+    ),
+    linear-gradient(
+      180deg,
+      #020806 0%,
+      #020a07 45%,
+      #010604 100%
+    );
+
+  color: var(--dt-color-text-primary);
+  font-family: var(--dt-font-sans);
+  font-size: var(--dt-text-md);
+  font-weight: var(--dt-weight-regular);
+  line-height: var(--dt-line-normal);
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  isolation: isolate;
+}
+
+/*
+ * Grade tecnológica global extremamente sutil.
+ * Ela não interfere com cliques ou componentes.
+ */
+body::before {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+
+  background-image:
+    linear-gradient(
+      rgba(124, 255, 160, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(124, 255, 160, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 3rem 3rem;
+
+  opacity: 0.55;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.95),
+      transparent 85%
+    );
+
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.95),
+      transparent 85%
+    );
 }
 
 app-root {
+  position: relative;
+  z-index: var(--dt-z-base);
   display: block;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 button,
@@ -29,4 +319,175 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+textarea,
+select {
+  color: inherit;
+  caret-color: var(--dt-color-brand-400);
+}
+
+textarea {
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dt-color-text-muted);
+  opacity: 1;
+}
+
+a {
+  color: var(--dt-color-brand-400);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+
+  transition:
+    color var(--dt-duration-fast)
+      var(--dt-ease-standard);
+}
+
+a:hover {
+  color: var(--dt-color-brand-300);
+}
+
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+picture {
+  height: auto;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* =========================================================
+   SELEÇÃO E FOCO
+   ========================================================= */
+
+::selection {
+  background: rgba(34, 237, 95, 0.28);
+  color: var(--dt-color-text-primary);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--dt-color-brand-400);
+  outline-offset: 3px;
+  box-shadow: var(--dt-shadow-focus);
+}
+
+/* =========================================================
+   BARRA DE ROLAGEM
+   ========================================================= */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(70, 255, 120, 0.36)
+    rgba(5, 18, 12, 0.75);
+}
+
+*::-webkit-scrollbar {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(5, 18, 12, 0.75);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(5, 18, 12, 0.75);
+  border-radius: var(--dt-radius-pill);
+  background: rgba(70, 255, 120, 0.32);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(70, 255, 120, 0.5);
+}
+
+/* =========================================================
+   UTILITÁRIOS GLOBAIS
+   ========================================================= */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+.dt-page-container {
+  width: min(
+    calc(100% - 2rem),
+    var(--dt-container-lg)
+  );
+  margin-inline: auto;
+}
+
+/* =========================================================
+   RESPONSIVIDADE GLOBAL
+   ========================================================= */
+
+@media (max-width: 48rem) {
+  body::before {
+    background-size: 2rem 2rem;
+    opacity: 0.35;
+  }
+
+  .dt-page-container {
+    width: min(
+      calc(100% - 1.25rem),
+      var(--dt-container-lg)
+    );
+  }
+}
+
+/* =========================================================
+   ACESSIBILIDADE — MOVIMENTO REDUZIDO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
