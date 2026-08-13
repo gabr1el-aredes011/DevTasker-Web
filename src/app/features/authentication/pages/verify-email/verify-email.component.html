@@ -1,0 +1,219 @@
+<main class="verify-page">
+  <div class="ambient ambient--one" aria-hidden="true"></div>
+
+  <div class="ambient ambient--two" aria-hidden="true"></div>
+
+  <div class="verify-layout">
+    <section class="verify-context" aria-labelledby="verification-context-title">
+      <a class="brand" routerLink="/login" aria-label="Voltar para o DevTasker">
+        <span class="brand__icon"> ✓ </span>
+
+        <span class="brand__name"> Dev<span>Tasker</span> </span>
+      </a>
+
+      <div class="context-copy">
+        <p class="eyebrow">SEGURANÇA DA SUA CONTA</p>
+
+        <h1 id="verification-context-title">
+          Só falta
+          <span> confirmar. </span>
+        </h1>
+
+        <p class="context-description">
+          Estamos protegendo seu workspace antes mesmo do primeiro acesso. Confirme que este e-mail
+          realmente pertence a você.
+        </p>
+
+        <div class="verification-steps">
+          <article class="step step--complete">
+            <span class="step__number"> ✓ </span>
+
+            <div>
+              <strong> Conta criada </strong>
+
+              <span> Seus dados foram registrados. </span>
+            </div>
+          </article>
+
+          <article class="step step--active">
+            <span class="step__number"> 02 </span>
+
+            <div>
+              <strong> Confirmar e-mail </strong>
+
+              <span> Digite o código de segurança. </span>
+            </div>
+          </article>
+
+          <article class="step">
+            <span class="step__number"> 03 </span>
+
+            <div>
+              <strong> Entrar no workspace </strong>
+
+              <span> Sua conta estará pronta. </span>
+            </div>
+          </article>
+        </div>
+
+        <div class="terminal-preview">
+          <header class="terminal-preview__header">
+            <span class="terminal-dot"></span>
+            <span class="terminal-dot"></span>
+            <span class="terminal-dot"></span>
+
+            <small> devtasker.security </small>
+          </header>
+
+          <div class="terminal-preview__body">
+            <p>
+              <span>✓</span>
+              registro concluído
+            </p>
+
+            <p>
+              <span>›</span>
+              aguardando verificação...
+            </p>
+
+            <p>
+              <span>›</span>
+              acesso protegido por token
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="verify-card" aria-labelledby="verify-title">
+      @if (!verified()) {
+        <header class="verify-card__header">
+          <div class="security-label">
+            <span></span>
+            VERIFICAÇÃO DE SEGURANÇA
+          </div>
+
+          <h2 id="verify-title">Confirme seu e-mail</h2>
+
+          <p>Enviamos um código de 6 números para</p>
+
+          <div class="email-chip">
+            <span class="email-chip__icon"> @ </span>
+
+            <strong>
+              {{ maskedEmail }}
+            </strong>
+          </div>
+        </header>
+
+        <form class="verification-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <fieldset class="code-fieldset" [disabled]="submitting()">
+            <legend>Código de verificação</legend>
+
+            <div class="code-inputs" (paste)="onPaste($event)">
+              @for (control of codeControls; track $index) {
+                <input
+                  #codeInput
+                  class="code-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  autocomplete="one-time-code"
+                  maxlength="1"
+                  [formControl]="control"
+                  [attr.aria-label]="'Dígito ' + ($index + 1) + ' do código'"
+                  (input)="onDigitInput($event, $index)"
+                  (keydown)="onDigitKeydown($event, $index)"
+                />
+              }
+            </div>
+
+            <p class="code-hint">Digite ou cole o código recebido no seu e-mail.</p>
+          </fieldset>
+
+          @if (apiError()) {
+            <div class="feedback feedback--error" role="alert">
+              <span class="feedback__icon" aria-hidden="true"> ! </span>
+
+              <div>
+                <strong> Não foi possível confirmar </strong>
+
+                <p>
+                  {{ apiError() }}
+                </p>
+              </div>
+            </div>
+          }
+
+          @if (resendMessage()) {
+            <div class="feedback feedback--success" role="status">
+              <span class="feedback__icon" aria-hidden="true"> ✓ </span>
+
+              <div>
+                <strong> Código reenviado </strong>
+
+                <p>
+                  {{ resendMessage() }}
+                </p>
+              </div>
+            </div>
+          }
+
+          <button class="primary-action" type="submit" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="spinner"></span>
+              Verificando código...
+            } @else {
+              Confirmar e-mail
+
+              <span class="button-arrow" aria-hidden="true"> → </span>
+            }
+          </button>
+        </form>
+
+        <div class="resend-area">
+          <span> Não recebeu o código? </span>
+
+          @if (resendCooldown() > 0) {
+            <span class="countdown">
+              Reenviar em
+              {{ resendCooldown() }}s
+            </span>
+          } @else {
+            <button class="resend-button" type="button" [disabled]="resending()" (click)="resend()">
+              @if (resending()) {
+                Enviando...
+              } @else {
+                Reenviar código
+              }
+            </button>
+          }
+        </div>
+
+        <footer class="verify-card__footer">
+          <span class="security-dot"></span>
+
+          Código temporário e protegido
+
+          <span class="footer-separator"> • </span>
+
+          <a routerLink="/login"> Voltar ao login </a>
+        </footer>
+      } @else {
+        <div class="verification-success" role="status" aria-live="polite">
+          <div class="verification-success__icon">✓</div>
+
+          <p class="eyebrow">VERIFICAÇÃO CONCLUÍDA</p>
+
+          <h2>E-mail confirmado!</h2>
+
+          <p>Sua conta DevTasker está pronta. Estamos levando você para o login.</p>
+
+          <div class="success-loader">
+            <span></span>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+</main>
