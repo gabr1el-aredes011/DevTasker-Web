@@ -1,0 +1,134 @@
+<app-auth-layout context="verify">
+  <section class="verify-card" aria-labelledby="verify-title">
+    @if (!verified()) {
+      <header class="verify-card__header">
+        <div class="security-label">
+          <span></span>
+
+          VERIFICAÇÃO DE SEGURANÇA
+        </div>
+
+        <h2 id="verify-title">Confirme seu e-mail</h2>
+
+        <p>Enviamos um código de 6 números para</p>
+
+        <div class="email-chip">
+          <span class="email-chip__icon" aria-hidden="true"> @ </span>
+
+          <strong>
+            {{ maskedEmail }}
+          </strong>
+        </div>
+      </header>
+
+      <form class="verification-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <fieldset class="code-fieldset" [disabled]="submitting()">
+          <legend>Código de verificação</legend>
+
+          <div class="code-inputs" (paste)="onPaste($event)">
+            @for (control of codeControls; track $index) {
+              <input
+                #codeInput
+                class="code-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                autocomplete="one-time-code"
+                maxlength="1"
+                [formControl]="control"
+                [attr.aria-label]="'Dígito ' + ($index + 1) + ' do código'"
+                (input)="onDigitInput($event, $index)"
+                (keydown)="onDigitKeydown($event, $index)"
+              />
+            }
+          </div>
+
+          <p class="code-hint">Digite ou cole o código recebido no seu e-mail.</p>
+        </fieldset>
+
+        @if (apiError()) {
+          <div class="feedback feedback--error" role="alert">
+            <span class="feedback__icon" aria-hidden="true"> ! </span>
+
+            <div>
+              <strong> Não foi possível confirmar </strong>
+
+              <p>
+                {{ apiError() }}
+              </p>
+            </div>
+          </div>
+        }
+
+        @if (resendMessage()) {
+          <div class="feedback feedback--success" role="status">
+            <span class="feedback__icon" aria-hidden="true"> ✓ </span>
+
+            <div>
+              <strong> Código reenviado </strong>
+
+              <p>
+                {{ resendMessage() }}
+              </p>
+            </div>
+          </div>
+        }
+
+        <button class="primary-action" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+
+            Verificando código...
+          } @else {
+            Confirmar e-mail
+
+            <span class="button-arrow" aria-hidden="true"> → </span>
+          }
+        </button>
+      </form>
+
+      <div class="resend-area">
+        <span> Não recebeu o código? </span>
+
+        @if (resendCooldown() > 0) {
+          <span class="countdown">
+            Reenviar em
+            {{ resendCooldown() }}s
+          </span>
+        } @else {
+          <button class="resend-button" type="button" [disabled]="resending()" (click)="resend()">
+            @if (resending()) {
+              Enviando...
+            } @else {
+              Reenviar código
+            }
+          </button>
+        }
+      </div>
+
+      <footer class="verify-card__footer">
+        <span class="security-dot" aria-hidden="true"></span>
+
+        Código temporário e protegido
+
+        <span class="footer-separator" aria-hidden="true"> • </span>
+
+        <a routerLink="/login"> Voltar ao login </a>
+      </footer>
+    } @else {
+      <div class="verification-success" role="status" aria-live="polite">
+        <div class="verification-success__icon" aria-hidden="true">✓</div>
+
+        <p class="eyebrow">VERIFICAÇÃO CONCLUÍDA</p>
+
+        <h2>E-mail confirmado!</h2>
+
+        <p>Sua conta DevTasker está pronta. Estamos levando você para o login.</p>
+
+        <div class="success-loader" aria-hidden="true">
+          <span></span>
+        </div>
+      </div>
+    }
+  </section>
+</app-auth-layout>

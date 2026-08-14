@@ -6,143 +6,179 @@
         Acesso ao workspace
       </div>
 
-      <h2 id="login-title">
-        Bem-vindo de volta
-      </h2>
+      <h2 id="login-title">Bem-vindo de volta</h2>
 
-      <p>
-        Entre para continuar organizando seus projetos,
-        quadros e entregas.
-      </p>
+      <p>Entre para continuar organizando seus projetos, quadros e entregas.</p>
     </header>
 
     <form class="login-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      @if (registrationMessage) {
-      <div class="feedback-message
-                 feedback-message--success" role="status" aria-live="polite">
-        <span aria-hidden="true">✓</span>
+      @if (successMessage) {
+        <div class="feedback-message feedback-message--success" role="status" aria-live="polite">
+          <span aria-hidden="true">✓</span>
 
-        <p>{{ registrationMessage }}</p>
-      </div>
+          <div class="feedback-message__content">
+            <strong> Verificação concluída </strong>
+
+            <p>
+              {{ successMessage }}
+            </p>
+          </div>
+        </div>
       }
 
       <div class="form-field">
-        <label for="email">
-          E-mail
-        </label>
+        <label for="email"> E-mail </label>
 
-        <div class="input-wrapper" [class.input-wrapper--invalid]="
-            form.controls.email.touched &&
-            form.controls.email.invalid
-          ">
+        <div
+          class="input-wrapper"
+          [class.input-wrapper--invalid]="
+            form.controls.email.touched && form.controls.email.invalid
+          "
+        >
           <span class="input-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
-              <path d="M4 6.5h16v11H4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+              <path
+                d="M4 6.5h16v11H4z"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linejoin="round"
+              />
 
-              <path d="m5 7.5 7 5 7-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
-                stroke-linejoin="round" />
+              <path
+                d="m5 7.5 7 5 7-5"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </span>
 
-          <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="voce@exemplo.com"
-            [attr.aria-invalid]="
-              form.controls.email.touched &&
-              form.controls.email.invalid
-            " />
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="voce@exemplo.com"
+            [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid"
+          />
         </div>
 
-        @if (
-        form.controls.email.touched &&
-        form.controls.email.hasError('required')
-        ) {
-        <small>O e-mail é obrigatório.</small>
+        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+          <small>O e-mail é obrigatório.</small>
         }
 
-        @if (
-        form.controls.email.touched &&
-        form.controls.email.hasError('email')
-        ) {
-        <small>
-          Informe um endereço de e-mail válido.
-        </small>
+        @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+          <small> Informe um endereço de e-mail válido. </small>
         }
       </div>
 
       <div class="form-field">
-        <label for="password">
-          Senha
-        </label>
+        <label for="password"> Senha </label>
 
-        <div class="input-wrapper" [class.input-wrapper--invalid]="
-            form.controls.password.touched &&
-            form.controls.password.invalid
-          ">
+        <div
+          class="input-wrapper"
+          [class.input-wrapper--invalid]="
+            form.controls.password.touched && form.controls.password.invalid
+          "
+        >
           <span class="input-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
-              <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7" />
+              <rect
+                x="5"
+                y="10"
+                width="14"
+                height="10"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="1.7"
+              />
 
-              <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              <path
+                d="M8 10V7a4 4 0 0 1 8 0v3"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+              />
             </svg>
           </span>
 
-          <input id="password" [type]="
-              passwordVisible()
-                ? 'text'
-                : 'password'
-            " formControlName="password" autocomplete="current-password" placeholder="Digite sua senha"
-            [attr.aria-invalid]="
-              form.controls.password.touched &&
-              form.controls.password.invalid
-            " />
+          <input
+            id="password"
+            [type]="passwordVisible() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Digite sua senha"
+            [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid"
+          />
 
-          <button class="password-toggle" type="button" (click)="togglePasswordVisibility()"
-            [attr.aria-pressed]="passwordVisible()" [attr.aria-label]="
-              passwordVisible()
-                ? 'Ocultar senha'
-                : 'Mostrar senha'
-            ">
+          <button
+            class="password-toggle"
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-pressed]="passwordVisible()"
+            [attr.aria-label]="passwordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
+          >
             @if (passwordVisible()) {
-            Ocultar
+              Ocultar
             } @else {
-            Mostrar
+              Mostrar
             }
           </button>
         </div>
 
-        @if (
-        form.controls.password.touched &&
-        form.controls.password.hasError('required')
-        ) {
-        <small>A senha é obrigatória.</small>
+        @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+          <small>A senha é obrigatória.</small>
         }
 
-        @if (
-        form.controls.password.touched &&
-        form.controls.password.hasError('minlength')
-        ) {
-        <small>
-          A senha deve possuir ao menos 8 caracteres.
-        </small>
+        @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+          <small> A senha deve possuir ao menos 8 caracteres. </small>
         }
       </div>
 
       @if (apiError()) {
-      <div class="feedback-message
-                 feedback-message--error" role="alert" aria-live="assertive">
-        <span aria-hidden="true">!</span>
+        <div class="feedback-message feedback-message--error" role="alert" aria-live="assertive">
+          <span aria-hidden="true">!</span>
 
-        <p>{{ apiError() }}</p>
-      </div>
+          <p>{{ apiError() }}</p>
+        </div>
+      }
+
+      @if (verificationRequired()) {
+        <div class="verification-required" role="alert" aria-live="polite">
+          <div class="verification-required__icon">!</div>
+
+          <div class="verification-required__content">
+            <span class="verification-required__label"> VERIFICAÇÃO NECESSÁRIA </span>
+
+            <strong> Confirme seu e-mail antes de entrar </strong>
+
+            <p>
+              Sua conta existe, mas ainda precisamos confirmar que este endereço de e-mail pertence
+              a você.
+            </p>
+
+            <button
+              type="button"
+              class="verification-required__action"
+              (click)="goToEmailVerification()"
+            >
+              Verificar agora
+
+              <span aria-hidden="true"> → </span>
+            </button>
+          </div>
+        </div>
       }
 
       <button class="submit-button" type="submit" [disabled]="submitting()">
         @if (submitting()) {
-        <span class="loading-indicator" aria-hidden="true"></span>
+          <span class="loading-indicator" aria-hidden="true"></span>
 
-        Acessando workspace...
+          Acessando workspace...
         } @else {
-        <span>Acessar o DevTasker</span>
-        <span aria-hidden="true">→</span>
+          <span>Acessar o DevTasker</span>
+          <span aria-hidden="true">→</span>
         }
       </button>
 
@@ -153,13 +189,9 @@
       </div>
 
       <a class="register-link" routerLink="/cadastro">
-        <span>
-          Ainda não possui uma conta?
-        </span>
+        <span> Ainda não possui uma conta? </span>
 
-        <strong>
-          Criar conta gratuita
-        </strong>
+        <strong> Criar conta gratuita </strong>
       </a>
     </form>
 
