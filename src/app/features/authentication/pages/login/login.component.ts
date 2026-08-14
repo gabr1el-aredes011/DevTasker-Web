@@ -1,23 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  AuthLayoutComponent,
-} from '../../layouts/auth-layout/auth-layout.component';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import {
-  ActivatedRoute,
-  Router,
-  RouterLink,
-} from '@angular/router';
+import { AuthLayoutComponent } from '../../layouts/auth-layout/auth-layout.component';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -38,38 +23,27 @@ export class LoginComponent {
 
   readonly submitting = signal(false);
   readonly apiError = signal<string | null>(null);
-  readonly registrationMessage =
-    this.route.snapshot.queryParamMap.get(
-      'registered',
-    ) === 'true'
-      ? 'Conta criada com sucesso. Faça seu primeiro login.'
-      : null;
+  readonly successMessage =
+    this.route.snapshot.queryParamMap.get('verified') === 'true'
+      ? 'E-mail confirmado com sucesso. Sua conta está pronta para uso.'
+      : this.route.snapshot.queryParamMap.get('registered') === 'true'
+        ? 'Conta criada com sucesso. Faça seu primeiro login.'
+        : null;
+
+  readonly verificationRequired = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
     email: [
-      this.route.snapshot.queryParamMap.get(
-        'email',
-      ) ?? '',
-      [
-        Validators.required,
-        Validators.email,
-      ],
+      this.route.snapshot.queryParamMap.get('email') ?? '',
+      [Validators.required, Validators.email],
     ],
-    password: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(8),
-      ],
-    ],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   readonly passwordVisible = signal(false);
 
   togglePasswordVisibility(): void {
-    this.passwordVisible.update(
-      (visible) => !visible,
-    );
+    this.passwordVisible.update((visible) => !visible);
   }
 
   submit(): void {
@@ -81,13 +55,12 @@ export class LoginComponent {
     const formValue = this.form.getRawValue();
 
     const request = {
-      email: formValue.email
-        .trim()
-        .toLowerCase(),
+      email: formValue.email.trim().toLowerCase(),
       password: formValue.password,
     };
 
     this.apiError.set(null);
+    this.verificationRequired.set(false);
     this.submitting.set(true);
 
     this.authService
@@ -99,25 +72,44 @@ export class LoginComponent {
       )
       .subscribe({
         next: () => {
-          const returnUrl =
-            this.route.snapshot.queryParamMap.get(
-              'returnUrl',
-            ) ?? '/kanban';
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/kanban';
 
           void this.router.navigateByUrl(returnUrl);
         },
 
         error: (error: unknown) => {
-          this.apiError.set(
-            this.extractErrorMessage(error),
-          );
+          if (error instanceof HttpErrorResponse && error.status === 403) {
+            this.apiError.set(null);
+            this.verificationRequired.set(true);
+            return;
+          }
+
+          this.verificationRequired.set(false);
+
+          this.apiError.set(this.extractErrorMessage(error));
         },
       });
   }
 
-  private extractErrorMessage(
-    error: unknown,
-  ): string {
+  goToEmailVerification(): void {
+    const email = this.form.controls.email.value.trim().toLowerCase();
+
+    if (!email) {
+      this.form.controls.email.markAsTouched();
+
+      this.apiError.set('Informe seu e-mail para continuar com a verificação.');
+
+      return;
+    }
+
+    void this.router.navigate(['/verify-email'], {
+      queryParams: {
+        email,
+      },
+    });
+  }
+
+  private extractErrorMessage(error: unknown): string {
     if (!(error instanceof HttpErrorResponse)) {
       return 'Ocorreu um erro inesperado. Tente novamente.';
     }
@@ -132,28 +124,18 @@ export class LoginComponent {
 
     const response = error.error;
 
-    if (
-      response &&
-      typeof response === 'object'
-    ) {
+    if (response && typeof response === 'object') {
       const apiError = response as {
         message?: unknown;
         fields?: Record<string, unknown>;
       };
 
-      if (
-        typeof apiError.message === 'string' &&
-        apiError.message.trim()
-      ) {
+      if (typeof apiError.message === 'string' && apiError.message.trim()) {
         return apiError.message;
       }
 
-      const firstFieldError = Object.values(
-        apiError.fields ?? {},
-      ).find(
-        (value): value is string =>
-          typeof value === 'string' &&
-          value.trim().length > 0,
+      const firstFieldError = Object.values(apiError.fields ?? {}).find(
+        (value): value is string => typeof value === 'string' && value.trim().length > 0,
       );
 
       if (firstFieldError) {
@@ -161,10 +143,7 @@ export class LoginComponent {
       }
     }
 
-    if (
-      typeof response === 'string' &&
-      response.trim()
-    ) {
+    if (typeof response === 'string' && response.trim()) {
       return response;
     }
 

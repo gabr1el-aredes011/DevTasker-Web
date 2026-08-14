@@ -1,5 +1,6 @@
 :host {
   display: block;
+  width: 100%;
 
   --verify-bg: #020906;
   --verify-surface: rgba(7, 22, 15, 0.86);
@@ -18,8 +19,6 @@
 
   --verify-danger: #ff6b6b;
   --verify-danger-soft: rgba(255, 82, 82, 0.09);
-
-  min-height: 100vh;
 }
 
 * {
@@ -372,6 +371,9 @@
   position: relative;
 
   width: 100%;
+  max-width: 31rem;
+
+  margin-inline: auto;
 
   padding: clamp(28px, 4vw, 40px);
 
@@ -591,10 +593,6 @@
     0 0 24px rgba(50, 245, 121, 0.08);
 
   transform: translateY(-2px);
-}
-
-.code-input:not(:placeholder-shown) {
-  border-color: rgba(50, 245, 121, 0.48);
 }
 
 .code-hint {

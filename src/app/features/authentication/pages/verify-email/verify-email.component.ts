@@ -13,6 +13,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+import { AuthLayoutComponent } from '../../layouts/auth-layout/auth-layout.component';
 
 import { EmailVerificationService } from '../../../../core/auth/email-verification.service';
 import { ApiError } from '../../../../core/http/api-error.model';
@@ -20,7 +21,7 @@ import { ApiError } from '../../../../core/http/api-error.model';
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent],
   templateUrl: './verify-email.component.html',
   styleUrl: './verify-email.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

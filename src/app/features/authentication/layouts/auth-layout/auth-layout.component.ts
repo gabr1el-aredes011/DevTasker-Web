@@ -1,30 +1,16 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import {
-  AuthTypewriterComponent,
-} from './typewriter/auth-typewriter.component';
+import { AuthTypewriterComponent } from './typewriter/auth-typewriter.component';
 
-import {
-  AuthParticlesComponent,
-} from './particles/auth-particles.component';
+import { AuthParticlesComponent } from './particles/auth-particles.component';
 
-export type AuthLayoutContext =
-  | 'login'
-  | 'register';
+export type AuthLayoutContext = 'login' | 'register' | 'verify';
 
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
-  imports: [
-    RouterLink,
-    AuthParticlesComponent,
-    AuthTypewriterComponent,
-  ],
+  imports: [RouterLink, AuthParticlesComponent, AuthTypewriterComponent],
   templateUrl: './auth-layout.component.html',
   styleUrl: './auth-layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
