@@ -6,11 +6,7 @@ import {
   CdkDropListGroup,
 } from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   CreateTaskRequest,
   TaskPriority,
@@ -26,183 +22,109 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import {
-  finalize,
-  forkJoin,
-} from 'rxjs';
+import { finalize } from 'rxjs';
 
-import { AuthService } from '../../../../core/auth/auth.service';
-import {
-  KanbanBoard,
-  KanbanColumn,
-  KanbanTask,
-} from '../../models/kanban.models';
+import { KanbanBoard, KanbanColumn, KanbanTask } from '../../models/kanban.models';
 import { KanbanService } from '../../services/kanban.service';
 import { TaskService } from '../../../tasks/services/task.service';
 import { ApiError } from '../../../../core/http/api-error.model';
-import {
-  BoardSummary,
-  ProjectSummary,
-} from '../../../projects/models/project.models';
+import { BoardSummary, ProjectSummary } from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
 
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    CdkDropListGroup,
-    CdkDropList,
-    CdkDrag,
-    CdkDragHandle,
-  ],
+  imports: [ReactiveFormsModule, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './kanban.component.html',
   styleUrl: './kanban.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class KanbanComponent implements OnInit {
-  private readonly authService = inject(AuthService);
   private readonly projectService = inject(ProjectService);
   private readonly kanbanService = inject(KanbanService);
-  private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly taskService = inject(TaskService);
 
-  readonly currentUser = this.authService.currentUser;
+  readonly projects = signal<readonly ProjectSummary[]>([]);
 
-  readonly projects =
-    signal<readonly ProjectSummary[]>([]);
+  readonly selectedProject = signal<ProjectSummary | null>(null);
 
-  readonly selectedProject =
-    signal<ProjectSummary | null>(null);
+  readonly boards = signal<readonly BoardSummary[]>([]);
 
-  readonly boards =
-    signal<readonly BoardSummary[]>([]);
+  readonly selectedBoard = signal<BoardSummary | null>(null);
 
-  readonly selectedBoard =
-    signal<BoardSummary | null>(null);
-
-  readonly kanban =
-    signal<KanbanBoard | null>(null);
+  readonly kanban = signal<KanbanBoard | null>(null);
 
   readonly loading = signal(true);
 
-  readonly loadError =
-    signal<string | null>(null);
+  readonly loadError = signal<string | null>(null);
 
   readonly loadingBoards = signal(false);
 
-  readonly boardsLoadError =
-    signal<string | null>(null);
+  readonly boardsLoadError = signal<string | null>(null);
 
   readonly loadingKanban = signal(false);
 
-  readonly kanbanLoadError =
-    signal<string | null>(null);
+  readonly kanbanLoadError = signal<string | null>(null);
 
   readonly taskFormOpen = signal(false);
   readonly creatingTask = signal(false);
 
-  readonly createTaskError =
-    signal<string | null>(null);
+  readonly createTaskError = signal<string | null>(null);
 
   readonly taskDetailsOpen = signal(false);
 
-  readonly selectedTaskId =
-    signal<number | null>(null);
+  readonly selectedTaskId = signal<number | null>(null);
 
-  readonly selectedTask =
-    signal<TaskResponse | null>(null);
+  readonly selectedTask = signal<TaskResponse | null>(null);
 
   readonly loadingTaskDetails = signal(false);
 
-  readonly taskDetailsError =
-    signal<string | null>(null);
+  readonly taskDetailsError = signal<string | null>(null);
 
   readonly editingTask = signal(false);
   readonly updatingTask = signal(false);
 
-  readonly updateTaskError =
-    signal<string | null>(null);
+  readonly updateTaskError = signal<string | null>(null);
 
-  readonly updateTaskSuccess =
-    signal<string | null>(null);
+  readonly updateTaskSuccess = signal<string | null>(null);
 
-  readonly priorities: readonly TaskPriority[] = [
-    'LOW',
-    'MEDIUM',
-    'HIGH',
-    'URGENT',
-  ];
+  readonly priorities: readonly TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
-  readonly createTaskForm =
-    this.formBuilder.nonNullable.group({
-      columnId: [
-        0,
-        [
-          Validators.required,
-          Validators.min(1),
-        ],
-      ],
+  readonly createTaskForm = this.formBuilder.nonNullable.group({
+    columnId: [0, [Validators.required, Validators.min(1)]],
 
-      title: [
-        '',
-        [
-          Validators.required,
-        ],
-      ],
+    title: ['', [Validators.required]],
 
-      description: [''],
+    description: [''],
 
-      priority: [
-        'MEDIUM' as TaskPriority,
-        [
-          Validators.required,
-        ],
-      ],
+    priority: ['MEDIUM' as TaskPriority, [Validators.required]],
 
-      dueDate: [''],
-    });
+    dueDate: [''],
+  });
 
-  readonly editTaskForm =
-    this.formBuilder.nonNullable.group({
-      title: [
-        '',
-        [
-          Validators.required,
-        ],
-      ],
+  readonly editTaskForm = this.formBuilder.nonNullable.group({
+    title: ['', [Validators.required]],
 
-      description: [''],
+    description: [''],
 
-      priority: [
-        'MEDIUM' as TaskPriority,
-        [
-          Validators.required,
-        ],
-      ],
+    priority: ['MEDIUM' as TaskPriority, [Validators.required]],
 
-      dueDate: [''],
-    });
+    dueDate: [''],
+  });
 
   readonly archiveConfirmationOpen = signal(false);
   readonly archivingTask = signal(false);
 
-  readonly archiveTaskError =
-    signal<string | null>(null);
+  readonly archiveTaskError = signal<string | null>(null);
 
-  readonly archiveTaskSuccess =
-    signal<string | null>(null);
-
+  readonly archiveTaskSuccess = signal<string | null>(null);
 
   readonly movingTask = signal(false);
 
-  readonly moveTaskError =
-    signal<string | null>(null);
+  readonly moveTaskError = signal<string | null>(null);
 
-  readonly moveTaskSuccess =
-    signal<string | null>(null);
+  readonly moveTaskSuccess = signal<string | null>(null);
 
   readonly taskMovementDisabled = computed(
     () =>
@@ -292,17 +214,8 @@ export class KanbanComponent implements OnInit {
     }
   }
 
-  dropTask(
-    event: CdkDragDrop<
-      KanbanColumn,
-      KanbanColumn,
-      KanbanTask
-    >,
-  ): void {
-    if (
-      this.taskMovementDisabled() ||
-      !event.isPointerOverContainer
-    ) {
+  dropTask(event: CdkDragDrop<KanbanColumn, KanbanColumn, KanbanTask>): void {
+    if (this.taskMovementDisabled() || !event.isPointerOverContainer) {
       return;
     }
 
@@ -317,11 +230,9 @@ export class KanbanComponent implements OnInit {
     const sourceColumn = event.previousContainer.data;
     const targetColumn = event.container.data;
 
-    const sameColumn =
-      sourceColumn.id === targetColumn.id;
+    const sameColumn = sourceColumn.id === targetColumn.id;
 
-    const samePosition =
-      event.previousIndex === event.currentIndex;
+    const samePosition = event.previousIndex === event.currentIndex;
 
     if (sameColumn && samePosition) {
       return;
@@ -329,19 +240,16 @@ export class KanbanComponent implements OnInit {
 
     const previousBoard = board;
 
-    const optimisticBoard =
-      this.moveTaskLocally(
-        board,
-        task.id,
-        sourceColumn.id,
-        targetColumn.id,
-        event.currentIndex,
-      );
+    const optimisticBoard = this.moveTaskLocally(
+      board,
+      task.id,
+      sourceColumn.id,
+      targetColumn.id,
+      event.currentIndex,
+    );
 
     if (optimisticBoard === board) {
-      this.moveTaskError.set(
-        'A tarefa não foi localizada no quadro.',
-      );
+      this.moveTaskError.set('A tarefa não foi localizada no quadro.');
 
       return;
     }
@@ -359,10 +267,7 @@ export class KanbanComponent implements OnInit {
     this.archiveTaskSuccess.set(null);
 
     this.taskService
-      .move(
-        task.id,
-        request,
-      )
+      .move(task.id, request)
       .pipe(
         finalize(() => {
           this.movingTask.set(false);
@@ -370,41 +275,23 @@ export class KanbanComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-
-          if (
-            this.selectedBoard()?.id !==
-            selectedBoard.id
-          ) {
+          if (this.selectedBoard()?.id !== selectedBoard.id) {
             return;
           }
 
-          this.moveTaskSuccess.set(
-            'Tarefa movida com sucesso.',
-          );
+          this.moveTaskSuccess.set('Tarefa movida com sucesso.');
 
-
-          this.refreshKanbanAfterMovement(
-            selectedBoard.id,
-          );
+          this.refreshKanbanAfterMovement(selectedBoard.id);
         },
 
         error: (error: unknown) => {
-          if (
-            this.selectedBoard()?.id !==
-            selectedBoard.id
-          ) {
+          if (this.selectedBoard()?.id !== selectedBoard.id) {
             return;
           }
 
-
           this.kanban.set(previousBoard);
 
-          this.moveTaskError.set(
-            this.extractApiError(
-              error,
-              'Não foi possível mover a tarefa.',
-            ),
-          );
+          this.moveTaskError.set(this.extractApiError(error, 'Não foi possível mover a tarefa.'));
         },
       });
   }
@@ -472,18 +359,14 @@ export class KanbanComponent implements OnInit {
     const task = this.selectedTask();
 
     if (!task) {
-      this.updateTaskError.set(
-        'Nenhuma tarefa foi selecionada.',
-      );
+      this.updateTaskError.set('Nenhuma tarefa foi selecionada.');
 
       return;
     }
 
-    const formValue =
-      this.editTaskForm.getRawValue();
+    const formValue = this.editTaskForm.getRawValue();
 
-    const normalizedTitle =
-      formValue.title.trim();
+    const normalizedTitle = formValue.title.trim();
 
     if (!normalizedTitle) {
       this.editTaskForm.controls.title.setErrors({
@@ -497,13 +380,11 @@ export class KanbanComponent implements OnInit {
     const request: UpdateTaskRequest = {
       title: normalizedTitle,
 
-      description:
-        formValue.description.trim() || null,
+      description: formValue.description.trim() || null,
 
       priority: formValue.priority,
 
-      dueDate:
-        formValue.dueDate || null,
+      dueDate: formValue.dueDate || null,
     };
 
     this.updatingTask.set(true);
@@ -511,10 +392,7 @@ export class KanbanComponent implements OnInit {
     this.updateTaskSuccess.set(null);
 
     this.taskService
-      .update(
-        task.id,
-        request,
-      )
+      .update(task.id, request)
       .pipe(
         finalize(() => {
           this.updatingTask.set(false);
@@ -529,9 +407,7 @@ export class KanbanComponent implements OnInit {
           this.selectedTask.set(updatedTask);
           this.editingTask.set(false);
 
-          this.updateTaskSuccess.set(
-            'Tarefa atualizada com sucesso.',
-          );
+          this.updateTaskSuccess.set('Tarefa atualizada com sucesso.');
 
           const board = this.selectedBoard();
 
@@ -542,10 +418,7 @@ export class KanbanComponent implements OnInit {
 
         error: (error: unknown) => {
           this.updateTaskError.set(
-            this.extractApiError(
-              error,
-              'Não foi possível atualizar a tarefa.',
-            ),
+            this.extractApiError(error, 'Não foi possível atualizar a tarefa.'),
           );
         },
       });
@@ -569,18 +442,14 @@ export class KanbanComponent implements OnInit {
     const selectedBoard = this.selectedBoard();
 
     if (!selectedBoard) {
-      this.createTaskError.set(
-        'Nenhum quadro foi selecionado.',
-      );
+      this.createTaskError.set('Nenhum quadro foi selecionado.');
 
       return;
     }
 
-    const formValue =
-      this.createTaskForm.getRawValue();
+    const formValue = this.createTaskForm.getRawValue();
 
-    const normalizedTitle =
-      formValue.title.trim();
+    const normalizedTitle = formValue.title.trim();
 
     if (!normalizedTitle) {
       this.createTaskForm.controls.title.setErrors({
@@ -595,23 +464,18 @@ export class KanbanComponent implements OnInit {
     const request: CreateTaskRequest = {
       title: normalizedTitle,
 
-      description:
-        formValue.description.trim() || null,
+      description: formValue.description.trim() || null,
 
       priority: formValue.priority,
 
-      dueDate:
-        formValue.dueDate || null,
+      dueDate: formValue.dueDate || null,
     };
 
     this.creatingTask.set(true);
     this.createTaskError.set(null);
 
     this.taskService
-      .create(
-        formValue.columnId,
-        request,
-      )
+      .create(formValue.columnId, request)
       .pipe(
         finalize(() => {
           this.creatingTask.set(false);
@@ -625,24 +489,16 @@ export class KanbanComponent implements OnInit {
 
         error: (error: unknown) => {
           this.createTaskError.set(
-            this.extractApiError(
-              error,
-              'Não foi possível criar a tarefa. Tente novamente.',
-            ),
+            this.extractApiError(error, 'Não foi possível criar a tarefa. Tente novamente.'),
           );
-        }
+        },
       });
   }
 
   requestTaskArchive(): void {
     const task = this.selectedTask();
 
-    if (
-      !task ||
-      this.loadingTaskDetails() ||
-      this.updatingTask() ||
-      this.archivingTask()
-    ) {
+    if (!task || this.loadingTaskDetails() || this.updatingTask() || this.archivingTask()) {
       return;
     }
 
@@ -665,9 +521,7 @@ export class KanbanComponent implements OnInit {
     const board = this.selectedBoard();
 
     if (!task) {
-      this.archiveTaskError.set(
-        'Nenhuma tarefa foi selecionada.',
-      );
+      this.archiveTaskError.set('Nenhuma tarefa foi selecionada.');
 
       return;
     }
@@ -685,12 +539,9 @@ export class KanbanComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-
           this.resetTaskDetails();
 
-          this.archiveTaskSuccess.set(
-            'Tarefa arquivada com sucesso.',
-          );
+          this.archiveTaskSuccess.set('Tarefa arquivada com sucesso.');
 
           if (board) {
             this.loadKanban(board.id);
@@ -699,19 +550,13 @@ export class KanbanComponent implements OnInit {
 
         error: (error: unknown) => {
           this.archiveTaskError.set(
-            this.extractApiError(
-              error,
-              'Não foi possível arquivar a tarefa.',
-            ),
+            this.extractApiError(error, 'Não foi possível arquivar a tarefa.'),
           );
         },
       });
   }
 
-  private extractApiError(
-    error: unknown,
-    fallbackMessage: string,
-  ): string {
+  private extractApiError(error: unknown, fallbackMessage: string): string {
     if (!(error instanceof HttpErrorResponse)) {
       return fallbackMessage;
     }
@@ -722,36 +567,23 @@ export class KanbanComponent implements OnInit {
 
     const response = error.error;
 
-    if (
-      response &&
-      typeof response === 'object'
-    ) {
+    if (response && typeof response === 'object') {
       const apiError = response as Partial<ApiError>;
 
-      const firstFieldError = Object.values(
-        apiError.fields ?? {},
-      ).find(
-        (value): value is string =>
-          typeof value === 'string' &&
-          value.trim().length > 0,
+      const firstFieldError = Object.values(apiError.fields ?? {}).find(
+        (value): value is string => typeof value === 'string' && value.trim().length > 0,
       );
 
       if (firstFieldError) {
         return firstFieldError;
       }
 
-      if (
-        typeof apiError.message === 'string' &&
-        apiError.message.trim()
-      ) {
+      if (typeof apiError.message === 'string' && apiError.message.trim()) {
         return apiError.message;
       }
     }
 
-    if (
-      typeof response === 'string' &&
-      response.trim()
-    ) {
+    if (typeof response === 'string' && response.trim()) {
       return response;
     }
 
@@ -791,9 +623,7 @@ export class KanbanComponent implements OnInit {
         },
 
         error: () => {
-          this.taskDetailsError.set(
-            'Não foi possível carregar os detalhes da tarefa.',
-          );
+          this.taskDetailsError.set('Não foi possível carregar os detalhes da tarefa.');
         },
       });
   }
@@ -807,11 +637,7 @@ export class KanbanComponent implements OnInit {
   }
 
   closeTaskDetails(): void {
-    if (
-      this.loadingTaskDetails() ||
-      this.updatingTask() ||
-      this.archivingTask()
-    ) {
+    if (this.loadingTaskDetails() || this.updatingTask() || this.archivingTask()) {
       return;
     }
     this.taskDetailsOpen.set(false);
@@ -825,11 +651,6 @@ export class KanbanComponent implements OnInit {
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
-  }
-
-  logout(): void {
-    this.authService.logout();
-    void this.router.navigateByUrl('/login');
   }
 
   private loadPageData(): void {
@@ -846,24 +667,20 @@ export class KanbanComponent implements OnInit {
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
 
-    forkJoin({
-      user: this.authService.loadCurrentUser(),
-      projects: this.projectService.findAll(),
-    })
+    this.projectService
+      .findAll()
       .pipe(
         finalize(() => {
           this.loading.set(false);
         }),
       )
       .subscribe({
-        next: ({ projects }) => {
+        next: (projects) => {
           this.projects.set(projects);
         },
 
         error: () => {
-          this.loadError.set(
-            'Não foi possível carregar seus projetos. Tente novamente.',
-          );
+          this.loadError.set('Não foi possível carregar seus projetos. Tente novamente.');
         },
       });
   }
@@ -886,9 +703,7 @@ export class KanbanComponent implements OnInit {
         },
 
         error: () => {
-          this.boardsLoadError.set(
-            'Não foi possível carregar os quadros deste projeto.',
-          );
+          this.boardsLoadError.set('Não foi possível carregar os quadros deste projeto.');
         },
       });
   }
@@ -911,9 +726,7 @@ export class KanbanComponent implements OnInit {
         },
 
         error: () => {
-          this.kanbanLoadError.set(
-            'Não foi possível carregar o Kanban deste quadro.',
-          );
+          this.kanbanLoadError.set('Não foi possível carregar o Kanban deste quadro.');
         },
       });
   }
@@ -925,23 +738,13 @@ export class KanbanComponent implements OnInit {
     targetColumnId: number,
     targetPosition: number,
   ): KanbanBoard {
-    const sourceColumn = board.columns.find(
-      (column) => column.id === sourceColumnId,
-    );
+    const sourceColumn = board.columns.find((column) => column.id === sourceColumnId);
 
-    const targetColumn = board.columns.find(
-      (column) => column.id === targetColumnId,
-    );
+    const targetColumn = board.columns.find((column) => column.id === targetColumnId);
 
-    const movingTask = sourceColumn?.tasks.find(
-      (task) => task.id === taskId,
-    );
+    const movingTask = sourceColumn?.tasks.find((task) => task.id === taskId);
 
-    if (
-      !sourceColumn ||
-      !targetColumn ||
-      !movingTask
-    ) {
+    if (!sourceColumn || !targetColumn || !movingTask) {
       return board;
     }
 
@@ -949,56 +752,43 @@ export class KanbanComponent implements OnInit {
      * Primeiro retiramos a tarefa de sua coluna
      * original, sem modificar o array recebido.
      */
-    const columnsWithoutTask =
-      board.columns.map((column) => {
-        if (column.id !== sourceColumnId) {
-          return {
-            ...column,
-            tasks: [...column.tasks],
-          };
-        }
-
+    const columnsWithoutTask = board.columns.map((column) => {
+      if (column.id !== sourceColumnId) {
         return {
           ...column,
-          tasks: column.tasks.filter(
-            (task) => task.id !== taskId,
-          ),
+          tasks: [...column.tasks],
         };
-      });
+      }
 
-    const updatedColumns =
-      columnsWithoutTask.map((column) => {
-        const tasks = [...column.tasks];
+      return {
+        ...column,
+        tasks: column.tasks.filter((task) => task.id !== taskId),
+      };
+    });
 
-        if (column.id === targetColumnId) {
-          const safePosition = Math.min(
-            Math.max(targetPosition, 0),
-            tasks.length,
-          );
+    const updatedColumns = columnsWithoutTask.map((column) => {
+      const tasks = [...column.tasks];
 
-          tasks.splice(
-            safePosition,
-            0,
-            movingTask,
-          );
-        }
+      if (column.id === targetColumnId) {
+        const safePosition = Math.min(Math.max(targetPosition, 0), tasks.length);
 
-        /*
-         * Recalculamos 0, 1, 2...
-         * tanto na origem quanto no destino.
-         */
-        const reorderedTasks = tasks.map(
-          (task, position): KanbanTask => ({
-            ...task,
-            position,
-          }),
-        );
+        tasks.splice(safePosition, 0, movingTask);
+      }
 
-        return {
-          ...column,
-          tasks: reorderedTasks,
-        };
-      });
+      /*
+       * Recalculamos 0, 1, 2...
+       * tanto na origem quanto no destino.
+       */
+      const reorderedTasks = tasks.map((task, position): KanbanTask => ({
+        ...task,
+        position,
+      }));
+
+      return {
+        ...column,
+        tasks: reorderedTasks,
+      };
+    });
 
     return {
       ...board,
@@ -1006,36 +796,28 @@ export class KanbanComponent implements OnInit {
     };
   }
 
-  private refreshKanbanAfterMovement(
-    boardId: number,
-  ): void {
-    this.kanbanService
-      .findByBoardId(boardId)
-      .subscribe({
-        next: (officialBoard) => {
-          if (
-            this.selectedBoard()?.id !== boardId
-          ) {
-            return;
-          }
+  private refreshKanbanAfterMovement(boardId: number): void {
+    this.kanbanService.findByBoardId(boardId).subscribe({
+      next: (officialBoard) => {
+        if (this.selectedBoard()?.id !== boardId) {
+          return;
+        }
 
-          this.kanban.set(officialBoard);
-        },
+        this.kanban.set(officialBoard);
+      },
 
-        error: () => {
-          if (
-            this.selectedBoard()?.id !== boardId
-          ) {
-            return;
-          }
+      error: () => {
+        if (this.selectedBoard()?.id !== boardId) {
+          return;
+        }
 
-          this.moveTaskSuccess.set(null);
+        this.moveTaskSuccess.set(null);
 
-          this.moveTaskError.set(
-            'A tarefa foi movida, mas não foi possível sincronizar o quadro. Atualize a página.',
-          );
-        },
-      });
+        this.moveTaskError.set(
+          'A tarefa foi movida, mas não foi possível sincronizar o quadro. Atualize a página.',
+        );
+      },
+    });
   }
 
   private resetTaskDetails(): void {
@@ -1051,5 +833,4 @@ export class KanbanComponent implements OnInit {
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
   }
-
 }

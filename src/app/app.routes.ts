@@ -30,12 +30,31 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'kanban',
+    path: 'app',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/kanban/pages/kanban/kanban.component').then(
-        (component) => component.KanbanComponent,
+      import('./features/workspace/layouts/workspace-layout/workspace-layout.component').then(
+        (component) => component.WorkspaceLayoutComponent,
       ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'kanban',
+      },
+      {
+        path: 'kanban',
+        loadComponent: () =>
+          import('./features/kanban/pages/kanban/kanban.component').then(
+            (component) => component.KanbanComponent,
+          ),
+      },
+    ],
+  },
+  {
+    path: 'kanban',
+    pathMatch: 'full',
+    redirectTo: 'app/kanban',
   },
   {
     path: '**',

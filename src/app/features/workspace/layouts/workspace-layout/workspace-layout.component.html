@@ -1,0 +1,124 @@
+<div class="workspace-shell" [class.workspace-shell--sidebar-open]="sidebarOpen()">
+  <aside class="workspace-sidebar">
+    <header class="workspace-sidebar__header">
+      <a class="workspace-brand" routerLink="/app/kanban" (click)="closeSidebar()">
+        <span class="workspace-brand__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 12.5 9.2 17 19 7"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="
+                M19 12v6
+                a2 2 0 0 1-2 2H6
+                a2 2 0 0 1-2-2V7
+                a2 2 0 0 1 2-2h8
+              "
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+
+        <span class="workspace-brand__text"> Dev<strong>Tasker</strong> </span>
+      </a>
+
+      <button
+        class="workspace-sidebar__close"
+        type="button"
+        aria-label="Fechar menu"
+        (click)="closeSidebar()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="workspace-sidebar__section">
+      <p class="workspace-sidebar__label">WORKSPACE</p>
+
+      <nav class="workspace-navigation" aria-label="Navegação principal">
+        <a routerLink="/app/kanban" routerLinkActive="is-active" (click)="closeSidebar()">
+          <span class="workspace-navigation__icon" aria-hidden="true"> ▦ </span>
+
+          <span> Workspace </span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="workspace-sidebar__roadmap">
+      <span class="workspace-sidebar__roadmap-dot" aria-hidden="true"></span>
+
+      <div>
+        <strong> DevTasker Workspace </strong>
+
+        <p>Organize. Desenvolva. Entregue.</p>
+      </div>
+    </div>
+
+    <footer class="workspace-user">
+      @if (currentUser(); as user) {
+        <div class="workspace-user__avatar">
+          {{ userInitials() }}
+        </div>
+
+        <div class="workspace-user__information">
+          <strong>
+            {{ user.name }}
+          </strong>
+
+          <span>
+            {{ user.email }}
+          </span>
+        </div>
+
+        <button type="button" aria-label="Sair da conta" title="Sair" (click)="logout()">↗</button>
+      } @else {
+        <div class="workspace-user__skeleton">Carregando perfil...</div>
+      }
+    </footer>
+  </aside>
+
+  <button
+    class="workspace-overlay"
+    type="button"
+    aria-label="Fechar menu"
+    (click)="closeSidebar()"
+  ></button>
+
+  <div class="workspace-main">
+    <header class="workspace-topbar">
+      <div class="workspace-topbar__left">
+        <button
+          class="workspace-menu-button"
+          type="button"
+          aria-label="Abrir menu"
+          (click)="toggleSidebar()"
+        >
+          ☰
+        </button>
+
+        <div>
+          <p>DEVTasker / Workspace</p>
+
+          <strong> Seu ambiente de desenvolvimento </strong>
+        </div>
+      </div>
+
+      <div class="workspace-topbar__status">
+        <span></span>
+
+        Sistema operacional
+      </div>
+    </header>
+
+    <main class="workspace-main__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
