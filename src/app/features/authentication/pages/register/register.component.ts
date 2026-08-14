@@ -159,38 +159,57 @@ export class RegisterComponent {
   }
 
   submit(): void {
+    if (this.submitting()) {
+      return;
+    }
+
     this.apiError.set(null);
 
     /*
-     * Recalcula inclusive o validador
-     * aplicado ao formulário completo.
+     * Garante que todos os validators,
+     * inclusive o validator do formulário,
+     * sejam recalculados antes do envio.
      */
     this.form.updateValueAndValidity();
 
     const formValue = this.form.getRawValue();
 
     /*
-     * Proteção explícita contra o envio
-     * de duas senhas diferentes.
+     * Ao tentar cadastrar, mostramos
+     * imediatamente todos os campos
+     * que precisam de atenção.
      */
+    this.form.markAllAsTouched();
+
     if (formValue.password !== formValue.confirmPassword) {
+      this.apiError.set('As senhas informadas não coincidem.');
+
       this.form.controls.confirmPassword.markAsTouched();
 
       return;
     }
 
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
+      this.apiError.set('Revise os campos destacados antes de criar sua conta.');
+
+      return;
+    }
+
+    const normalizedName = formValue.name.trim();
+
+    const normalizedEmail = formValue.email.trim().toLowerCase();
+
+    if (!normalizedName) {
+      this.apiError.set('Informe seu nome completo.');
+
       return;
     }
 
     this.submitting.set(true);
 
-    const normalizedEmail = formValue.email.trim().toLowerCase();
-
     this.authService
       .register({
-        name: formValue.name.trim(),
+        name: normalizedName,
         email: normalizedEmail,
         password: formValue.password,
       })
@@ -201,8 +220,6 @@ export class RegisterComponent {
       )
       .subscribe({
         next: () => {
-          const normalizedEmail = formValue.email.trim().toLowerCase();
-
           void this.router.navigate(['/verify-email'], {
             queryParams: {
               email: normalizedEmail,
@@ -217,18 +234,34 @@ export class RegisterComponent {
   }
 
   private extractErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      const response = error.error as Partial<ApiError>;
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Ocorreu um erro inesperado. Tente novamente.';
+    }
 
-      const firstFieldError = Object.values(response.fields ?? {})[0];
+    if (error.status === 0) {
+      return 'Não foi possível conectar ao servidor. Verifique se a API está em execução.';
+    }
+
+    const response = error.error;
+
+    if (response && typeof response === 'object') {
+      const apiError = response as Partial<ApiError>;
+
+      const firstFieldError = Object.values(apiError.fields ?? {}).find(
+        (value): value is string => typeof value === 'string' && value.trim().length > 0,
+      );
 
       if (firstFieldError) {
         return firstFieldError;
       }
 
-      if (response.message) {
-        return response.message;
+      if (typeof apiError.message === 'string' && apiError.message.trim()) {
+        return apiError.message;
       }
+    }
+
+    if (typeof response === 'string' && response.trim()) {
+      return response;
     }
 
     return 'Não foi possível criar a conta. Tente novamente.';
