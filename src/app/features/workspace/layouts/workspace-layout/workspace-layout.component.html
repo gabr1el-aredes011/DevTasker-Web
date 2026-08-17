@@ -1,7 +1,7 @@
 <div class="workspace-shell" [class.workspace-shell--sidebar-open]="sidebarOpen()">
   <aside class="workspace-sidebar">
     <header class="workspace-sidebar__header">
-      <a class="workspace-brand" routerLink="/app/kanban" (click)="closeSidebar()">
+      <a class="workspace-brand" routerLink="/app/dashboard" (click)="closeSidebar()">
         <span class="workspace-brand__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none">
             <path
@@ -43,10 +43,16 @@
       <p class="workspace-sidebar__label">WORKSPACE</p>
 
       <nav class="workspace-navigation" aria-label="Navegação principal">
+        <a routerLink="/app/dashboard" routerLinkActive="is-active" (click)="closeSidebar()">
+          <span class="workspace-navigation__icon" aria-hidden="true"> ◫ </span>
+
+          <span> Dashboard </span>
+        </a>
+
         <a routerLink="/app/kanban" routerLinkActive="is-active" (click)="closeSidebar()">
           <span class="workspace-navigation__icon" aria-hidden="true"> ▦ </span>
 
-          <span> Workspace </span>
+          <span> Kanban </span>
         </a>
       </nav>
     </div>

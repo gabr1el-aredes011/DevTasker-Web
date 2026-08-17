@@ -23,13 +23,13 @@ import {
   signal,
 } from '@angular/core';
 import { finalize } from 'rxjs';
-
 import { KanbanBoard, KanbanColumn, KanbanTask } from '../../models/kanban.models';
 import { KanbanService } from '../../services/kanban.service';
 import { TaskService } from '../../../tasks/services/task.service';
 import { ApiError } from '../../../../core/http/api-error.model';
 import { BoardSummary, ProjectSummary } from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-kanban',
@@ -44,6 +44,8 @@ export class KanbanComponent implements OnInit {
   private readonly kanbanService = inject(KanbanService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly taskService = inject(TaskService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly projects = signal<readonly ProjectSummary[]>([]);
 
@@ -151,28 +153,45 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
+
     this.moveTaskError.set(null);
     this.moveTaskSuccess.set(null);
+
+    this.updateNavigationState({
+      projectId: project.id,
+      boardId: null,
+      taskId: null,
+    });
+
     this.loadBoards(project.id);
   }
 
   backToProjects(): void {
     this.selectedProject.set(null);
+
     this.boards.set([]);
     this.boardsLoadError.set(null);
 
     this.selectedBoard.set(null);
+
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
 
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
+
     this.resetTaskDetails();
 
     this.archiveTaskSuccess.set(null);
 
     this.moveTaskError.set(null);
     this.moveTaskSuccess.set(null);
+
+    this.updateNavigationState({
+      projectId: null,
+      boardId: null,
+      taskId: null,
+    });
   }
 
   retryBoards(): void {
@@ -185,13 +204,24 @@ export class KanbanComponent implements OnInit {
 
   selectBoard(board: BoardSummary): void {
     this.selectedBoard.set(board);
+
     this.moveTaskError.set(null);
     this.moveTaskSuccess.set(null);
+
+    this.updateNavigationState({
+      projectId: this.selectedProject()?.id ?? null,
+
+      boardId: board.id,
+
+      taskId: null,
+    });
+
     this.loadKanban(board.id);
   }
 
   backToBoards(): void {
     this.selectedBoard.set(null);
+
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
 
@@ -204,6 +234,11 @@ export class KanbanComponent implements OnInit {
 
     this.moveTaskError.set(null);
     this.moveTaskSuccess.set(null);
+
+    this.updateNavigationState({
+      boardId: null,
+      taskId: null,
+    });
   }
 
   retryKanban(): void {
@@ -606,6 +641,13 @@ export class KanbanComponent implements OnInit {
 
     this.taskDetailsOpen.set(true);
     this.selectedTaskId.set(taskId);
+    this.updateNavigationState({
+      projectId: this.selectedProject()?.id ?? null,
+
+      boardId: this.selectedBoard()?.id ?? null,
+
+      taskId,
+    });
     this.selectedTask.set(null);
     this.taskDetailsError.set(null);
     this.loadingTaskDetails.set(true);
@@ -651,6 +693,10 @@ export class KanbanComponent implements OnInit {
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
+
+    this.updateNavigationState({
+      taskId: null,
+    });
   }
 
   private loadPageData(): void {
@@ -664,6 +710,7 @@ export class KanbanComponent implements OnInit {
     this.boardsLoadError.set(null);
 
     this.selectedBoard.set(null);
+
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
 
@@ -677,6 +724,8 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (projects) => {
           this.projects.set(projects);
+
+          this.applyDeepLink(projects);
         },
 
         error: () => {
@@ -685,7 +734,40 @@ export class KanbanComponent implements OnInit {
       });
   }
 
-  private loadBoards(projectId: number): void {
+  private applyDeepLink(projects: readonly ProjectSummary[]): void {
+    const projectId = this.readPositiveQueryParam('projectId');
+
+    const boardId = this.readPositiveQueryParam('boardId');
+
+    const taskId = this.readPositiveQueryParam('taskId');
+
+    /*
+     * Navegação comum.
+     * Sem projectId o Kanban continua
+     * exatamente com o comportamento atual.
+     */
+    if (projectId === null) {
+      return;
+    }
+
+    const project = projects.find((currentProject) => currentProject.id === projectId);
+
+    if (!project) {
+      this.loadError.set('O projeto solicitado não está disponível no seu workspace.');
+
+      return;
+    }
+
+    this.selectedProject.set(project);
+
+    this.loadBoards(project.id, boardId, taskId);
+  }
+
+  private loadBoards(
+    projectId: number,
+    requestedBoardId: number | null = null,
+    requestedTaskId: number | null = null,
+  ): void {
     this.loadingBoards.set(true);
     this.boardsLoadError.set(null);
     this.boards.set([]);
@@ -700,6 +782,28 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (boards) => {
           this.boards.set(boards);
+
+          /*
+           * Se não existe boardId na URL,
+           * paramos aqui normalmente.
+           */
+          if (requestedBoardId === null) {
+            return;
+          }
+
+          const board = boards.find((currentBoard) => currentBoard.id === requestedBoardId);
+
+          if (!board) {
+            this.boardsLoadError.set(
+              'O quadro solicitado não pertence a este projeto ou não está disponível.',
+            );
+
+            return;
+          }
+
+          this.selectedBoard.set(board);
+
+          this.loadKanban(board.id, requestedTaskId);
         },
 
         error: () => {
@@ -708,7 +812,7 @@ export class KanbanComponent implements OnInit {
       });
   }
 
-  private loadKanban(boardId: number): void {
+  private loadKanban(boardId: number, requestedTaskId: number | null = null): void {
     this.loadingKanban.set(true);
     this.kanbanLoadError.set(null);
     this.kanban.set(null);
@@ -723,6 +827,30 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (kanban) => {
           this.kanban.set(kanban);
+
+          if (requestedTaskId === null) {
+            return;
+          }
+
+          /*
+           * Antes de buscar detalhes,
+           * confirmamos que a tarefa
+           * realmente pertence ao Kanban
+           * carregado.
+           */
+          const taskExists = kanban.columns.some((column) =>
+            column.tasks.some((task) => task.id === requestedTaskId),
+          );
+
+          if (!taskExists) {
+            this.kanbanLoadError.set(
+              'A tarefa solicitada não pertence a este quadro ou não está mais ativa.',
+            );
+
+            return;
+          }
+
+          this.openTaskDetails(requestedTaskId);
         },
 
         error: () => {
@@ -817,6 +945,40 @@ export class KanbanComponent implements OnInit {
           'A tarefa foi movida, mas não foi possível sincronizar o quadro. Atualize a página.',
         );
       },
+    });
+  }
+
+  private readPositiveQueryParam(name: string): number | null {
+    const rawValue = this.route.snapshot.queryParamMap.get(name);
+
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsedValue = Number(rawValue);
+
+    if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+      return null;
+    }
+
+    return parsedValue;
+  }
+
+  private updateNavigationState(queryParams: {
+    projectId?: number | null;
+
+    boardId?: number | null;
+
+    taskId?: number | null;
+  }): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+
+      queryParams,
+
+      queryParamsHandling: 'merge',
+
+      replaceUrl: true,
     });
   }
 

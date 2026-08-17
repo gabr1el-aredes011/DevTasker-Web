@@ -1,0 +1,420 @@
+<section class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <p class="dashboard-eyebrow">VISÃO GERAL</p>
+
+      <h1>
+        Bom te ver,
+        <span> {{ firstName() }}. </span>
+      </h1>
+
+      <p class="dashboard-description">
+        Acompanhe projetos, tarefas, prazos e o fluxo do seu workspace em um único lugar.
+      </p>
+    </div>
+
+    <div class="dashboard-header__actions">
+      <div class="workspace-status">
+        <span></span>
+
+        Workspace sincronizado
+      </div>
+
+      <a class="dashboard-primary-action" routerLink="/app/kanban">
+        Abrir Kanban
+
+        <span aria-hidden="true"> → </span>
+      </a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <section class="dashboard-loading" role="status" aria-live="polite">
+      <div class="dashboard-loading__spinner"></div>
+
+      <div>
+        <p class="dashboard-eyebrow">SINCRONIZANDO</p>
+
+        <h2>Preparando seu workspace</h2>
+
+        <p>Estamos consolidando projetos, quadros e tarefas.</p>
+      </div>
+    </section>
+  } @else if (loadError()) {
+    <section class="dashboard-error" role="alert">
+      <div class="dashboard-error__icon" aria-hidden="true">!</div>
+
+      <div>
+        <p class="dashboard-eyebrow">FALHA NA SINCRONIZAÇÃO</p>
+
+        <h2>Não conseguimos carregar o Dashboard</h2>
+
+        <p>
+          {{ loadError() }}
+        </p>
+
+        <button type="button" (click)="retry()">Tentar novamente</button>
+      </div>
+    </section>
+  } @else if (summary(); as data) {
+    <section class="metrics-grid" aria-label="Resumo do workspace">
+      <article class="metric-card">
+        <header>
+          <span class="metric-card__icon"> ◇ </span>
+
+          <span class="metric-card__code"> PROJECTS </span>
+        </header>
+
+        <strong>
+          {{ data.projectCount }}
+        </strong>
+
+        <div>
+          <span> Projetos </span>
+
+          <small> no seu workspace </small>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <header>
+          <span class="metric-card__icon"> ▦ </span>
+
+          <span class="metric-card__code"> BOARDS </span>
+        </header>
+
+        <strong>
+          {{ data.boardCount }}
+        </strong>
+
+        <div>
+          <span> Quadros </span>
+
+          <small> disponíveis </small>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <header>
+          <span class="metric-card__icon"> ↗ </span>
+
+          <span class="metric-card__code"> ACTIVE </span>
+        </header>
+
+        <strong>
+          {{ data.taskMetrics.active }}
+        </strong>
+
+        <div>
+          <span> Tarefas ativas </span>
+
+          <small>
+            {{ data.taskMetrics.doing }}
+            em desenvolvimento
+          </small>
+        </div>
+      </article>
+
+      <article class="metric-card" [class.metric-card--warning]="data.taskMetrics.overdue > 0">
+        <header>
+          <span class="metric-card__icon"> ! </span>
+
+          <span class="metric-card__code"> OVERDUE </span>
+        </header>
+
+        <strong>
+          {{ data.taskMetrics.overdue }}
+        </strong>
+
+        <div>
+          <span> Tarefas atrasadas </span>
+
+          <small>
+            @if (data.taskMetrics.overdue > 0) {
+              precisam de atenção
+            } @else {
+              tudo em dia
+            }
+          </small>
+        </div>
+      </article>
+    </section>
+
+    <div class="dashboard-main-grid">
+      <section class="dashboard-panel dashboard-panel--projects">
+        <header class="dashboard-panel__header">
+          <div>
+            <p class="dashboard-eyebrow">PROJETOS</p>
+
+            <h2>Projetos recentes</h2>
+          </div>
+
+          <span class="dashboard-panel__count">
+            {{ data.recentProjects.length }}
+          </span>
+        </header>
+
+        @if (data.recentProjects.length === 0) {
+          <div class="dashboard-empty">
+            <span aria-hidden="true"> ◇ </span>
+
+            <strong> Nenhum projeto ainda </strong>
+
+            <p>Seus projetos aparecerão aqui assim que forem criados.</p>
+          </div>
+        } @else {
+          <div class="recent-projects">
+            @for (project of data.recentProjects; track project.id) {
+              <article class="recent-project">
+                <div class="recent-project__symbol" aria-hidden="true">
+                  {{ project.name.charAt(0).toUpperCase() }}
+                </div>
+
+                <div class="recent-project__content">
+                  <div class="recent-project__heading">
+                    <h3>
+                      {{ project.name }}
+                    </h3>
+
+                    <span>
+                      {{ formatMembershipRole(project.membershipRole) }}
+                    </span>
+                  </div>
+
+                  <p>
+                    {{ project.description || 'Projeto DevTasker' }}
+                  </p>
+
+                  <footer>
+                    <span> Projeto #{{ project.id }} </span>
+
+                    <span>
+                      Criado em
+                      {{ project.createdAt | date: 'dd/MM/yyyy' }}
+                    </span>
+                  </footer>
+                </div>
+              </article>
+            }
+          </div>
+        }
+
+        <a class="dashboard-panel__link" routerLink="/app/kanban">
+          Explorar projetos no Kanban
+          <span aria-hidden="true"> → </span>
+        </a>
+      </section>
+
+      <section class="dashboard-panel dashboard-panel--tasks">
+        <header class="dashboard-panel__header">
+          <div>
+            <p class="dashboard-eyebrow">TAREFAS</p>
+
+            <h2>Status atual</h2>
+          </div>
+        </header>
+
+        <div class="completion-overview">
+          <div class="completion-ring" [style.--completion]="completionRate() + '%'">
+            <div>
+              <strong> {{ completionRate() }}% </strong>
+
+              <span> concluído </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-statistics">
+          <div>
+            <span> Total </span>
+
+            <strong>
+              {{ data.taskMetrics.total }}
+            </strong>
+          </div>
+
+          <div>
+            <span> Em desenvolvimento </span>
+
+            <strong>
+              {{ data.taskMetrics.doing }}
+            </strong>
+          </div>
+
+          <div>
+            <span> Concluídas </span>
+
+            <strong>
+              {{ data.taskMetrics.completed }}
+            </strong>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section
+      class="dashboard-panel attention-panel"
+      [class.attention-panel--clear]="data.attentionTasks.length === 0"
+    >
+      <header class="dashboard-panel__header">
+        <div>
+          <p class="dashboard-eyebrow">PRIORIDADES</p>
+
+          <h2>Precisam da sua atenção</h2>
+        </div>
+
+        <span
+          class="attention-count"
+          [class.attention-count--warning]="data.attentionTasks.length > 0"
+        >
+          {{ data.attentionTasks.length }}
+
+          @if (data.attentionTasks.length === 1) {
+            item
+          } @else {
+            itens
+          }
+        </span>
+      </header>
+
+      @if (data.attentionTasks.length === 0) {
+        <div class="attention-clear">
+          <div class="attention-clear__icon" aria-hidden="true">✓</div>
+
+          <div>
+            <strong> Tudo sob controle </strong>
+
+            <p>Nenhuma tarefa vencida ou de alta prioridade exige sua atenção neste momento.</p>
+          </div>
+        </div>
+      } @else {
+        <div class="attention-grid">
+          @for (task of data.attentionTasks; track task.id) {
+            <article
+              class="attention-task"
+              [class.attention-task--overdue]="task.overdue"
+              [attr.data-priority]="task.priority"
+            >
+              <header class="attention-task__header">
+                <div class="attention-task__status">
+                  @if (task.overdue) {
+                    <span class="attention-task__overdue">
+                      <span aria-hidden="true"> ! </span>
+
+                      Vencida
+                    </span>
+                  } @else {
+                    <span class="attention-task__priority-status">
+                      <span aria-hidden="true"> ↑ </span>
+
+                      Alta prioridade
+                    </span>
+                  }
+                </div>
+
+                <span class="attention-task__priority" [attr.data-priority]="task.priority">
+                  {{ formatTaskPriority(task.priority) }}
+                </span>
+              </header>
+
+              <div class="attention-task__body">
+                <h3>
+                  {{ task.title }}
+                </h3>
+
+                <p>
+                  {{ task.projectName }}
+                </p>
+              </div>
+
+              <dl class="attention-task__metadata">
+                <div>
+                  <dt>Coluna</dt>
+
+                  <dd>
+                    {{ task.columnName }}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>Prazo</dt>
+
+                  <dd [class.is-overdue]="task.overdue">
+                    @if (task.dueDate) {
+                      {{ task.dueDate | date: 'dd/MM/yyyy' }}
+                    } @else {
+                      Sem prazo
+                    }
+                  </dd>
+                </div>
+              </dl>
+
+              <footer class="attention-task__footer">
+                <div>
+                  <span>
+                    {{ task.boardName }}
+                  </span>
+
+                  <small> Tarefa #{{ task.id }} </small>
+                </div>
+
+                <a
+                  [routerLink]="['/app/kanban']"
+                  [queryParams]="{
+                    projectId: task.projectId,
+                    boardId: task.boardId,
+                    taskId: task.id,
+                  }"
+                  [attr.aria-label]="'Abrir tarefa ' + task.title"
+                >
+                  Abrir tarefa
+
+                  <span aria-hidden="true"> → </span>
+                </a>
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="dashboard-panel workflow-panel">
+      <header class="dashboard-panel__header">
+        <div>
+          <p class="dashboard-eyebrow">PIPELINE</p>
+
+          <h2>Fluxo de trabalho</h2>
+        </div>
+
+        <span class="workflow-total">
+          {{ data.taskMetrics.total }}
+          tarefas
+        </span>
+      </header>
+
+      <div class="workflow-grid">
+        @for (item of workflowItems(); track item.key) {
+          <article class="workflow-item">
+            <header>
+              <span>
+                {{ item.label }}
+              </span>
+
+              <strong>
+                {{ item.count }}
+              </strong>
+            </header>
+
+            <div class="workflow-track">
+              <span [style.width.%]="item.percentage"></span>
+            </div>
+
+            <small>
+              {{ item.key.toUpperCase() }}
+            </small>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</section>
