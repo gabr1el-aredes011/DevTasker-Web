@@ -1,4 +1,12 @@
-# DevtaskerWeb
+# DevTasker Web
+
+Interface Angular do DevTasker, uma plataforma de gestão de projetos, boards e
+tarefas com autenticação segura e workflows Kanban.
+
+## Documentação do projeto
+
+- [Roadmap de produto e engenharia](docs/PRODUCT_ROADMAP.md)
+- [Roadmap de segurança](docs/SECURITY_ROADMAP.md)
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.7.
 

@@ -108,6 +108,87 @@
             </p>
           </div>
         </div>
+      } @else if (context === 'recovery') {
+        <div class="auth-story__content auth-story__content--verify">
+          <p class="auth-story__eyebrow">Proteção de credenciais</p>
+
+          <h1 class="auth-story__verify-title">
+            Retome seu
+            <strong> fluxo. </strong>
+          </h1>
+
+          <p class="auth-story__description">
+            Confirme que a conta pertence a você e crie uma nova senha sem expor dados sensíveis
+            durante o processo.
+          </p>
+        </div>
+
+        <div class="auth-verification-steps">
+          <article
+            class="auth-verification-step"
+            [class.auth-verification-step--active]="isRecoveryStepActive('request-email')"
+            [class.auth-verification-step--complete]="isRecoveryStepComplete('request-email')"
+          >
+            <span aria-hidden="true">
+              {{ isRecoveryStepComplete('request-email') ? '✓' : '01' }}
+            </span>
+            <div>
+              <strong> Identificar conta </strong>
+              <p>Informe seu e-mail de acesso.</p>
+            </div>
+          </article>
+
+          <article
+            class="auth-verification-step"
+            [class.auth-verification-step--active]="isRecoveryStepActive('verify-code')"
+            [class.auth-verification-step--complete]="isRecoveryStepComplete('verify-code')"
+          >
+            <span aria-hidden="true">
+              {{ isRecoveryStepComplete('verify-code') ? '✓' : '02' }}
+            </span>
+            <div>
+              <strong> Confirmar código </strong>
+              <p>Valide a credencial temporária.</p>
+            </div>
+          </article>
+
+          <article
+            class="auth-verification-step"
+            [class.auth-verification-step--active]="isRecoveryStepActive('new-password')"
+            [class.auth-verification-step--complete]="isRecoveryStepComplete('new-password')"
+          >
+            <span aria-hidden="true">
+              {{ isRecoveryStepComplete('new-password') ? '✓' : '03' }}
+            </span>
+            <div>
+              <strong> Criar nova senha </strong>
+              <p>Restaure seu acesso com segurança.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="auth-terminal auth-terminal--verify" aria-hidden="true">
+          <header>
+            <span></span>
+            <span></span>
+            <span></span>
+            <p>devtasker.recovery</p>
+          </header>
+          <div>
+            <p>
+              <span>✓</span>
+              dados fora da URL
+            </p>
+            <p>
+              <span>&gt;</span>
+              desafio temporário ativo
+            </p>
+            <p class="auth-terminal__cursor">
+              <span>&gt;</span>
+              restaurando acesso_
+            </p>
+          </div>
+        </div>
       } @else {
         <div class="auth-story__content">
           <p class="auth-story__eyebrow">Workspace para desenvolvedores</p>

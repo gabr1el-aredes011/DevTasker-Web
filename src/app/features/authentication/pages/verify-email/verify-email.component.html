@@ -1,6 +1,24 @@
 <app-auth-layout context="verify">
   <section class="verify-card" aria-labelledby="verify-title">
-    @if (!verified()) {
+    @if (contextMissing) {
+      <div class="verification-context-missing" role="status" aria-live="polite">
+        <div class="verification-context-missing__icon" aria-hidden="true">!</div>
+
+        <p class="eyebrow">CONTEXTO DE SEGURANÇA AUSENTE</p>
+
+        <h2 id="verify-title">Não foi possível continuar</h2>
+
+        <p>
+          Abra esta etapa pelo cadastro ou pelo aviso de verificação no login. Nenhum dado da conta
+          foi enviado.
+        </p>
+
+        <a class="primary-action" routerLink="/login" replaceUrl>
+          Voltar ao login
+          <span class="button-arrow" aria-hidden="true"> → </span>
+        </a>
+      </div>
+    } @else if (!verified()) {
       <header class="verify-card__header">
         <div class="security-label">
           <span></span>

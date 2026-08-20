@@ -21,8 +21,14 @@ export const authInterceptor: HttpInterceptorFn = (
   const isApiRequest =
     request.url.startsWith(environment.apiUrl);
 
+  const isPublicAuthRequest =
+    request.url === `${environment.apiUrl}/auth/login` ||
+    request.url === `${environment.apiUrl}/auth/register` ||
+    request.url.startsWith(`${environment.apiUrl}/auth/email-verification/`) ||
+    request.url.startsWith(`${environment.apiUrl}/auth/password-recovery/`);
+
   const requestWithToken =
-    token && isApiRequest
+    token && isApiRequest && !isPublicAuthRequest
       ? request.clone({
           setHeaders: {
             Authorization: `Bearer ${token}`,
@@ -36,10 +42,7 @@ export const authInterceptor: HttpInterceptorFn = (
         error instanceof HttpErrorResponse &&
         error.status === 401;
 
-      const isLoginRequest =
-        request.url.endsWith('/auth/login');
-
-      if (isUnauthorized && !isLoginRequest) {
+      if (isUnauthorized && isApiRequest && !isPublicAuthRequest) {
         tokenStorage.clear();
 
         void router.navigate(['/login'], {

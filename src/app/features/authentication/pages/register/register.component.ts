@@ -2,45 +2,22 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
-  AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthNavigationContextService } from '../../../../core/auth/auth-navigation-context.service';
+import {
+  evaluatePasswordCriteria,
+  evaluatePasswordStrength,
+  passwordsMatchValidator,
+} from '../../../../core/auth/password-validation';
 import { ApiError } from '../../../../core/http/api-error.model';
 import { AuthLayoutComponent } from '../../layouts/auth-layout/auth-layout.component';
-
-const passwordsMatchValidator: ValidatorFn = (
-  control: AbstractControl,
-): ValidationErrors | null => {
-  const password = control.get('password')?.value;
-
-  const confirmPassword = control.get('confirmPassword')?.value;
-
-  if (!password || !confirmPassword) {
-    return null;
-  }
-
-  return password === confirmPassword
-    ? null
-    : {
-        passwordMismatch: true,
-      };
-};
-
-type PasswordStrengthLevel = 'empty' | 'weak' | 'medium' | 'strong';
-
-interface PasswordStrength {
-  readonly level: PasswordStrengthLevel;
-  readonly label: string;
-  readonly percentage: number;
-}
 
 @Component({
   selector: 'app-register',
@@ -54,6 +31,8 @@ export class RegisterComponent {
   private readonly formBuilder = inject(FormBuilder);
 
   private readonly authService = inject(AuthService);
+
+  private readonly navigationContext = inject(AuthNavigationContextService);
 
   private readonly router = inject(Router);
 
@@ -89,58 +68,12 @@ export class RegisterComponent {
   });
 
   readonly passwordCriteria = computed(() => {
-    const password = this.passwordValue();
-
-    return {
-      minimumLength: password.length >= 8,
-
-      uppercase: /[A-Z]/.test(password),
-
-      lowercase: /[a-z]/.test(password),
-
-      number: /\d/.test(password),
-
-      symbol: /[^A-Za-z0-9]/.test(password),
-    };
+    return evaluatePasswordCriteria(this.passwordValue());
   });
 
-  readonly passwordStrength = computed<PasswordStrength>(() => {
-    const password = this.passwordValue();
-
-    if (!password) {
-      return {
-        level: 'empty',
-        label: 'Não avaliada',
-        percentage: 0,
-      };
-    }
-
-    const criteria = this.passwordCriteria();
-
-    const score = Object.values(criteria).filter(Boolean).length;
-
-    if (score <= 2) {
-      return {
-        level: 'weak',
-        label: 'Fraca',
-        percentage: 34,
-      };
-    }
-
-    if (score <= 4) {
-      return {
-        level: 'medium',
-        label: 'Boa',
-        percentage: 67,
-      };
-    }
-
-    return {
-      level: 'strong',
-      label: 'Forte',
-      percentage: 100,
-    };
-  });
+  readonly passwordStrength = computed(() =>
+    evaluatePasswordStrength(this.passwordValue()),
+  );
 
   readonly passwordsMatch = computed(() => {
     const password = this.passwordValue();
@@ -164,6 +97,13 @@ export class RegisterComponent {
     }
 
     this.apiError.set(null);
+
+    this.form.controls.name.setValue(
+      this.form.controls.name.value.trim(),
+    );
+    this.form.controls.email.setValue(
+      this.form.controls.email.value.trim().toLowerCase(),
+    );
 
     /*
      * Garante que todos os validators,
@@ -219,11 +159,24 @@ export class RegisterComponent {
         }),
       )
       .subscribe({
-        next: () => {
+        next: (response) => {
+          if (!response.emailVerificationRequired) {
+            this.navigationContext.setLoginContext('registered', response.email);
+
+            void this.router.navigate(['/login'], {
+              replaceUrl: true,
+            });
+            return;
+          }
+
+          this.navigationContext.setEmailVerificationContext(
+            response.email,
+            'registration',
+            response.verificationExpiresAt,
+          );
+
           void this.router.navigate(['/verify-email'], {
-            queryParams: {
-              email: normalizedEmail,
-            },
+            replaceUrl: true,
           });
         },
 
