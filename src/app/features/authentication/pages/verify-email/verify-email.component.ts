@@ -11,11 +11,12 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthLayoutComponent } from '../../layouts/auth-layout/auth-layout.component';
 
 import { EmailVerificationService } from '../../../../core/auth/email-verification.service';
+import { AuthNavigationContextService } from '../../../../core/auth/auth-navigation-context.service';
 import { ApiError } from '../../../../core/http/api-error.model';
 
 @Component({
@@ -31,15 +32,19 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
 
   private readonly verificationService = inject(EmailVerificationService);
 
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly navigationContext = inject(AuthNavigationContextService);
 
   private resendInterval?: ReturnType<typeof setInterval>;
   private redirectTimeout?: ReturnType<typeof setTimeout>;
 
   readonly codeLength = 6;
 
-  readonly email = this.route.snapshot.queryParamMap.get('email')?.trim().toLowerCase() ?? '';
+  readonly verificationContext = this.navigationContext.consumeEmailVerificationContext();
+
+  readonly contextMissing = this.verificationContext === null;
+
+  readonly email = this.verificationContext?.email ?? '';
 
   readonly maskedEmail = this.maskEmail(this.email);
 
@@ -65,6 +70,11 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
   private codeInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
   ngOnInit(): void {
+    if (this.contextMissing) {
+      this.resendCooldown.set(0);
+      return;
+    }
+
     this.startResendCooldown();
   }
 
@@ -120,11 +130,10 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
           this.apiError.set(null);
 
           this.redirectTimeout = setTimeout(() => {
+            this.navigationContext.setLoginContext('email-verified', this.email);
+
             void this.router.navigate(['/login'], {
-              queryParams: {
-                verified: 'true',
-                email: this.email,
-              },
+              replaceUrl: true,
             });
           }, 1400);
         },

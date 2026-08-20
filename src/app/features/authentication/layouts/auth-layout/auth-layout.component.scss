@@ -370,12 +370,14 @@ app-auth-particles {
   min-height: 42rem;
 }
 
-.auth-shell[data-context='verify'] {
+.auth-shell[data-context='verify'],
+.auth-shell[data-context='recovery'] {
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-.auth-shell[data-context='verify'] .auth-shell__container {
+.auth-shell[data-context='verify'] .auth-shell__container,
+.auth-shell[data-context='recovery'] .auth-shell__container {
   grid-template-columns:
     minmax(0, 1fr)
     minmax(25rem, 0.82fr);
@@ -383,7 +385,8 @@ app-auth-particles {
   gap: clamp(3rem, 7vw, 7rem);
 }
 
-.auth-shell[data-context='verify'] .auth-story {
+.auth-shell[data-context='verify'] .auth-story,
+.auth-shell[data-context='recovery'] .auth-story {
   min-height: 39rem;
 }
 
@@ -560,8 +563,14 @@ app-auth-particles {
     display: none;
   }
 
-  .auth-shell[data-context='verify'] .auth-shell__container {
+  .auth-shell[data-context='verify'] .auth-shell__container,
+  .auth-shell[data-context='recovery'] .auth-shell__container {
     grid-template-columns: 1fr;
+  }
+
+  .auth-shell[data-context='verify'] .auth-story,
+  .auth-shell[data-context='recovery'] .auth-story {
+    min-height: auto;
   }
 }
 

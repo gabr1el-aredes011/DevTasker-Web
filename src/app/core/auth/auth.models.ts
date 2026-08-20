@@ -27,6 +27,8 @@ export interface RegisterResponse {
   email: string;
   role: UserRole;
   createdAt: string;
+  emailVerificationRequired: boolean;
+  verificationExpiresAt: string;
 }
 
 export interface CurrentUserResponse {

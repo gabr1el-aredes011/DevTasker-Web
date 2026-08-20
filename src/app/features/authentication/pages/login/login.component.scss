@@ -204,6 +204,34 @@ input[type='email'] {
   }
 }
 
+.forgot-password-link {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--dt-space-2);
+
+  margin-top: calc(var(--dt-space-2) * -1);
+
+  color: var(--dt-color-brand-400);
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-weight-semibold);
+  text-decoration: none;
+
+  transition: color var(--dt-duration-fast) var(--dt-ease-standard);
+
+  span {
+    transition: transform var(--dt-duration-fast) var(--dt-ease-standard);
+  }
+
+  &:hover {
+    color: var(--dt-color-brand-300);
+
+    span {
+      transform: translateX(3px);
+    }
+  }
+}
+
 .feedback-message {
   display: flex;
   padding: var(--dt-space-3);

@@ -30,6 +30,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'recuperar-senha',
+    loadComponent: () =>
+      import(
+        './features/authentication/pages/password-recovery/password-recovery.component'
+      ).then((component) => component.PasswordRecoveryComponent),
+  },
+  {
     path: 'app',
     canActivate: [authGuard],
     loadComponent: () =>

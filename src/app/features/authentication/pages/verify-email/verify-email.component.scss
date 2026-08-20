@@ -847,6 +847,53 @@
   animation: successEntrance 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.verification-context-missing {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+
+  padding-block: 18px 8px;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    color: var(--verify-text);
+    font-size: clamp(1.7rem, 4vw, 2.2rem);
+  }
+
+  > p:not(.eyebrow) {
+    max-width: 31rem;
+    margin: 0;
+    color: var(--verify-muted-light);
+    line-height: 1.7;
+  }
+
+  .primary-action {
+    margin-top: 8px;
+    text-decoration: none;
+  }
+}
+
+.verification-context-missing__icon {
+  display: grid;
+  place-items: center;
+
+  width: 64px;
+  height: 64px;
+
+  border: 1px solid var(--verify-border-strong);
+  border-radius: 50%;
+  background: var(--verify-green-soft);
+
+  color: var(--verify-green);
+  font-family: Consolas, monospace;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
 .verification-success__icon {
   width: 72px;
   height: 72px;
