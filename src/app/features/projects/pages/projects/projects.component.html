@@ -1,0 +1,394 @@
+<section class="projects-page" aria-labelledby="projects-title">
+  <header class="projects-hero">
+    <div class="projects-hero__content">
+      <p class="projects-eyebrow">
+        <span aria-hidden="true"></span>
+        PROJECTS 2.0
+      </p>
+
+      <h1 id="projects-title">Projetos que viram <strong>entregas.</strong></h1>
+
+      <p>
+        Centralize cada iniciativa, mantenha o contexto visível e siga direto para o quadro onde o
+        trabalho acontece.
+      </p>
+    </div>
+
+    <button
+      class="dt-action dt-action--primary"
+      type="button"
+      [disabled]="submitting() || loadingDetails() || archiveCandidate()"
+      (click)="openCreateForm()"
+    >
+      <span aria-hidden="true">＋</span>
+      Novo projeto
+    </button>
+  </header>
+
+  @if (actionMessage()) {
+    <div class="page-feedback page-feedback--success" role="status" aria-live="polite">
+      <span aria-hidden="true">✓</span>
+      <p>{{ actionMessage() }}</p>
+    </div>
+  }
+
+  @if (formMode(); as mode) {
+    <section class="project-form-panel" aria-labelledby="project-form-title">
+      <header class="project-form-panel__header">
+        <div>
+          <p class="projects-eyebrow">
+            {{ mode === 'edit' ? 'ATUALIZAR CONTEXTO' : 'NOVO WORKSPACE' }}
+          </p>
+          <h2 id="project-form-title">{{ formTitle() }}</h2>
+          <p>
+            @if (mode === 'edit') {
+              Ajuste o nome e a descrição usados por toda a equipe.
+            } @else {
+              O DevTasker prepara automaticamente um quadro inicial com o fluxo recomendado.
+            }
+          </p>
+        </div>
+
+        <button
+          class="icon-action"
+          type="button"
+          aria-label="Fechar formulário"
+          [disabled]="submitting() || loadingDetails()"
+          (click)="closeForm()"
+        >
+          ×
+        </button>
+      </header>
+
+      @if (loadingDetails()) {
+        <div class="page-feedback details-feedback" role="status" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <div>
+            <strong>Carregando detalhes</strong>
+            <p>Confirmando os dados e sua permissão de edição.</p>
+          </div>
+        </div>
+      } @else if (detailsError()) {
+        <div class="page-feedback page-feedback--error details-feedback" role="alert">
+          <span aria-hidden="true">!</span>
+          <div>
+            <strong>Não foi possível abrir a edição</strong>
+            <p>{{ detailsError() }}</p>
+            <button type="button" (click)="retryEdit()">Tentar novamente</button>
+          </div>
+        </div>
+      } @else {
+        <form
+          class="project-form"
+          [formGroup]="projectForm"
+          (ngSubmit)="submitProject()"
+          novalidate
+        >
+          @if (mode === 'edit') {
+            @if (editingProject(); as project) {
+              <div class="editing-context">
+                <span class="project-symbol project-symbol--small" aria-hidden="true">
+                  {{ projectInitial(project.name) }}
+                </span>
+                <div>
+                  <strong>Projeto #{{ project.id }}</strong>
+                  <p>Proprietário: {{ project.ownerName }}</p>
+                </div>
+                <span class="role-badge" [attr.data-role]="project.membershipRole">
+                  {{ roleLabel(project.membershipRole) }}
+                </span>
+              </div>
+            }
+          }
+
+          @if (formError()) {
+            <div class="page-feedback page-feedback--error" role="alert" aria-live="assertive">
+              <span aria-hidden="true">!</span>
+              <p>{{ formError() }}</p>
+            </div>
+          }
+
+          <div class="project-form__grid">
+            <div class="form-field">
+              <label for="project-name">Nome do projeto</label>
+              <input
+                #projectNameInput
+                id="project-name"
+                type="text"
+                formControlName="name"
+                autocomplete="off"
+                maxlength="120"
+                placeholder="Ex.: Plataforma mobile"
+                [attr.aria-invalid]="
+                  projectForm.controls.name.touched && projectForm.controls.name.invalid
+                "
+                [attr.aria-describedby]="
+                  projectForm.controls.name.touched && projectForm.controls.name.invalid
+                    ? 'project-name-error'
+                    : null
+                "
+              />
+
+              @if (projectForm.controls.name.touched && projectForm.controls.name.invalid) {
+                <small id="project-name-error">
+                  @if (projectForm.controls.name.hasError('required')) {
+                    O nome do projeto é obrigatório.
+                  } @else {
+                    O nome deve possuir no máximo 120 caracteres.
+                  }
+                </small>
+              }
+            </div>
+
+            <div class="form-field form-field--description">
+              <div class="form-field__label">
+                <label for="project-description">Descrição</label>
+                <span>{{ descriptionLength() }}/1000</span>
+              </div>
+
+              <textarea
+                id="project-description"
+                formControlName="description"
+                maxlength="1000"
+                rows="4"
+                placeholder="Descreva o objetivo, o produto ou o contexto compartilhado."
+                [attr.aria-invalid]="
+                  projectForm.controls.description.touched &&
+                  projectForm.controls.description.invalid
+                "
+                [attr.aria-describedby]="
+                  projectForm.controls.description.touched &&
+                  projectForm.controls.description.invalid
+                    ? 'project-description-error'
+                    : null
+                "
+              ></textarea>
+
+              @if (
+                projectForm.controls.description.touched && projectForm.controls.description.invalid
+              ) {
+                <small id="project-description-error">
+                  A descrição deve possuir no máximo 1000 caracteres.
+                </small>
+              }
+            </div>
+          </div>
+
+          <footer class="project-form__actions">
+            <button
+              class="dt-action dt-action--secondary"
+              type="button"
+              [disabled]="submitting()"
+              (click)="closeForm()"
+            >
+              Cancelar
+            </button>
+            <button class="dt-action dt-action--primary" type="submit" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="spinner" aria-hidden="true"></span>
+                {{ mode === 'edit' ? 'Salvando...' : 'Criando...' }}
+              } @else {
+                {{ mode === 'edit' ? 'Salvar alterações' : 'Criar projeto' }}
+                <span aria-hidden="true">→</span>
+              }
+            </button>
+          </footer>
+        </form>
+      }
+    </section>
+  }
+
+  <section class="projects-catalog" aria-labelledby="projects-catalog-title">
+    <header class="catalog-toolbar">
+      <div>
+        <p class="projects-eyebrow">SEU WORKSPACE</p>
+        <h2 #projectsCatalogTitle id="projects-catalog-title" tabindex="-1">Todos os projetos</h2>
+      </div>
+
+      <div class="catalog-toolbar__tools">
+        <label class="search-field">
+          <span class="visually-hidden">Pesquisar projetos por nome ou descrição</span>
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            [formControl]="searchControl"
+            placeholder="Pesquisar projetos"
+            aria-controls="projects-grid"
+          />
+          @if (searchControl.value) {
+            <button type="button" aria-label="Limpar pesquisa" (click)="clearSearch()">×</button>
+          }
+        </label>
+
+        <p class="result-count" role="status" aria-live="polite">
+          {{ filteredProjects().length }} de {{ projects().length }}
+        </p>
+      </div>
+    </header>
+
+    @if (loading()) {
+      <div class="catalog-state" role="status" aria-live="polite" aria-busy="true">
+        <span class="spinner" aria-hidden="true"></span>
+        <h3>Carregando projetos</h3>
+        <p>Preparando seu workspace.</p>
+      </div>
+    } @else if (loadError()) {
+      <div class="catalog-state catalog-state--error" role="alert">
+        <span aria-hidden="true">!</span>
+        <h3>Os projetos não puderam ser carregados</h3>
+        <p>{{ loadError() }}</p>
+        <button class="dt-action dt-action--secondary" type="button" (click)="retry()">
+          Tentar novamente
+        </button>
+      </div>
+    } @else if (projects().length === 0) {
+      <div class="catalog-state">
+        <span aria-hidden="true">◇</span>
+        <h3>Seu primeiro projeto começa aqui</h3>
+        <p>Crie um projeto para receber um quadro inicial e organizar as primeiras entregas.</p>
+        <button class="dt-action dt-action--primary" type="button" (click)="openCreateForm()">
+          Criar primeiro projeto
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    } @else if (filteredProjects().length === 0) {
+      <div class="catalog-state">
+        <span aria-hidden="true">⌕</span>
+        <h3>Nenhum projeto corresponde à pesquisa</h3>
+        <p>Tente outro nome ou procure por uma palavra da descrição.</p>
+        <button class="dt-action dt-action--secondary" type="button" (click)="clearSearch()">
+          Limpar pesquisa
+        </button>
+      </div>
+    } @else {
+      <div id="projects-grid" class="projects-grid">
+        @for (project of filteredProjects(); track project.id) {
+          <article class="project-card" [attr.aria-labelledby]="'project-title-' + project.id">
+            <header class="project-card__header">
+              <span class="project-symbol" aria-hidden="true">
+                {{ projectInitial(project.name) }}
+              </span>
+
+              <div class="project-card__identity">
+                <span class="role-badge" [attr.data-role]="project.membershipRole">
+                  {{ roleLabel(project.membershipRole) }}
+                </span>
+                <span>#{{ project.id }}</span>
+              </div>
+            </header>
+
+            <div class="project-card__content">
+              <h3 [attr.id]="'project-title-' + project.id">{{ project.name }}</h3>
+              <p>{{ project.description || 'Projeto DevTasker sem descrição adicionada.' }}</p>
+            </div>
+
+            <dl class="project-card__dates">
+              <div>
+                <dt>Criado</dt>
+                <dd>{{ project.createdAt | date: 'dd/MM/yyyy' }}</dd>
+              </div>
+              <div>
+                <dt>Atualizado</dt>
+                <dd>{{ project.updatedAt | date: 'dd/MM/yyyy' }}</dd>
+              </div>
+            </dl>
+
+            <footer class="project-card__actions">
+              <a
+                class="open-project-action"
+                routerLink="/app/kanban"
+                [queryParams]="{ projectId: project.id }"
+                [attr.aria-label]="'Abrir o projeto ' + project.name + ' no Kanban'"
+              >
+                Abrir no Kanban
+                <span aria-hidden="true">→</span>
+              </a>
+
+              <div class="project-card__management">
+                @if (canEdit(project)) {
+                  <button
+                    class="card-action"
+                    type="button"
+                    [attr.aria-label]="'Editar o projeto ' + project.name"
+                    (click)="editProject(project)"
+                  >
+                    Editar
+                  </button>
+                }
+
+                @if (canArchive(project)) {
+                  <button
+                    #archiveButton
+                    class="card-action card-action--danger"
+                    type="button"
+                    [attr.aria-label]="'Arquivar o projeto ' + project.name"
+                    (click)="requestArchive(project, archiveButton)"
+                  >
+                    Arquivar
+                  </button>
+                }
+              </div>
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  @if (archiveCandidate(); as project) {
+    <div class="archive-backdrop">
+      <section
+        #archiveDialog
+        class="archive-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="archive-dialog-title"
+        aria-describedby="archive-dialog-description"
+        [attr.aria-busy]="archivingProjectId() === project.id"
+        tabindex="-1"
+        (keydown)="handleArchiveDialogKeydown($event)"
+      >
+        <span class="archive-dialog__icon" aria-hidden="true">!</span>
+        <div>
+          <p class="projects-eyebrow">ARQUIVAR PROJETO</p>
+          <h2 id="archive-dialog-title">Arquivar “{{ project.name }}”?</h2>
+          <p id="archive-dialog-description">
+            O projeto deixará de aparecer no workspace e seus quadros não poderão mais ser
+            acessados. Esta ação não exclui os dados definitivamente.
+          </p>
+        </div>
+
+        @if (archiveError()) {
+          <div class="archive-dialog__error" role="alert" aria-live="assertive">
+            {{ archiveError() }}
+          </div>
+        }
+
+        <footer>
+          <button
+            #cancelArchiveButton
+            class="dt-action dt-action--secondary"
+            type="button"
+            [disabled]="archivingProjectId() === project.id"
+            (click)="cancelArchive()"
+          >
+            Manter projeto
+          </button>
+          <button
+            class="dt-action dt-action--danger"
+            type="button"
+            [disabled]="archivingProjectId() === project.id"
+            (click)="confirmArchive()"
+          >
+            @if (archivingProjectId() === project.id) {
+              <span class="spinner" aria-hidden="true"></span>
+              Arquivando...
+            } @else {
+              Arquivar projeto
+            }
+          </button>
+        </footer>
+      </section>
+    </div>
+  }
+</section>

@@ -32,9 +32,9 @@ export const routes: Routes = [
   {
     path: 'recuperar-senha',
     loadComponent: () =>
-      import(
-        './features/authentication/pages/password-recovery/password-recovery.component'
-      ).then((component) => component.PasswordRecoveryComponent),
+      import('./features/authentication/pages/password-recovery/password-recovery.component').then(
+        (component) => component.PasswordRecoveryComponent,
+      ),
   },
   {
     path: 'app',
@@ -54,6 +54,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/pages/dashboard/dashboard.component').then(
             (component) => component.DashboardComponent,
+          ),
+      },
+      {
+        path: 'projetos',
+        loadComponent: () =>
+          import('./features/projects/pages/projects/projects.component').then(
+            (component) => component.ProjectsComponent,
           ),
       },
       {

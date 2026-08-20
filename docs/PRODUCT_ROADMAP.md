@@ -52,8 +52,12 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 ### Projetos
 
 - ✅ Membership e funções `OWNER`, `ADMIN`, `MEMBER` e `VIEWER`
-- ✅ Listagem básica
-- 🚧 Gestão profissional de projetos
+- ✅ Página própria e catálogo responsivo
+- ✅ Criação, edição e arquivamento lógico
+- ✅ Pesquisa por nome e descrição
+- ✅ Cards, estados de carregamento, erro e vazio
+- ✅ Navegação protegida de Projeto → Kanban
+- 🚧 Detalhes avançados, filtros e gestão de membros
 
 ### Boards
 
@@ -79,22 +83,26 @@ servirem apenas como porta de entrada para o Kanban.
 
 ### Entrega 1 — Base de gestão
 
-- 🚧 Auditar e atualizar a branch existente `feature/projects-management`
-- 🧭 Criar página própria de projetos
-- 🧭 Criar projeto
-- 🧭 Editar nome, descrição e demais dados permitidos
-- 🧭 Arquivar projeto com confirmação
-- 🧭 Pesquisar e filtrar projetos
-- 🧭 Exibir cards profissionais, estados vazios, carregamento e erros
-- 🧭 Abrir detalhes e navegar de Projeto → Boards
+- ✅ Auditar e atualizar a branch existente `feature/projects-management`
+- ✅ Criar página própria de projetos
+- ✅ Criar projeto com board e colunas iniciais
+- ✅ Editar nome e descrição conforme a função do membro
+- ✅ Arquivar projeto com confirmação, sem exclusão física
+- ✅ Pesquisar projetos por nome e descrição
+- ✅ Ordenar projetos pela atualização mais recente
+- ✅ Exibir cards profissionais, estados vazios, carregamento e erros
+- ✅ Navegar de Projeto → Kanban preservando o deep link
+- 🧭 Adicionar filtros por função e outros critérios
+- 🧭 Criar uma página avançada de detalhes do projeto
 
 Critérios de aceite:
 
-- Somente usuários autorizados enxergam e modificam um projeto.
-- A interface respeita as permissões retornadas pela API.
-- Arquivamento não apaga acidentalmente dados relacionados.
-- Pesquisa e filtros funcionam de maneira previsível e responsiva.
-- Fluxos críticos possuem testes no backend e no frontend.
+- ✅ Somente usuários autorizados enxergam e modificam um projeto.
+- ✅ A interface respeita as permissões retornadas pela API.
+- ✅ Arquivamento não apaga boards, colunas ou tarefas relacionados.
+- ✅ Projetos arquivados ficam indisponíveis em Projetos, Dashboard, Boards e Tasks.
+- ✅ Pesquisa funciona de maneira previsível e responsiva.
+- ✅ Fluxos críticos possuem testes no backend e no frontend.
 
 ### Entrega 2 — Membros e permissões
 
@@ -183,6 +191,8 @@ Critérios de aceite:
   exigir garantia de entrega durante reinícios.
 - 🔧 Adicionar proteção de borda, métricas de abuso e CAPTCHA quando necessário.
 - 🔧 Monitorar o custo da validação de `credential_version` em cada requisição.
+- 🔧 Adicionar controle de concorrência otimista aos projetos antes de ampliar a
+  edição colaborativa simultânea.
 - 🔧 Reduzir os estilos do Kanban e Dashboard que ultrapassam o orçamento atual
   do build, sem alterar a experiência visual.
 - 🔧 Revisar o script Maven Wrapper no PowerShell para que a suíte possa ser

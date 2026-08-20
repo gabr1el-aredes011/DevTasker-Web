@@ -77,26 +77,11 @@
      TIPOGRAFIA
      ------------------------------------------------------- */
 
-  --dt-font-sans:
-    Inter,
-    "Segoe UI Variable",
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  --dt-font-sans: Inter, 'Segoe UI Variable', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-  --dt-font-display:
-    "Space Grotesk",
-    "Segoe UI Variable Display",
-    "Segoe UI",
-    sans-serif;
+  --dt-font-display: 'Space Grotesk', 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
 
-  --dt-font-mono:
-    "JetBrains Mono",
-    "Cascadia Code",
-    Consolas,
-    monospace;
+  --dt-font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
 
   --dt-text-xs: 0.75rem;
   --dt-text-sm: 0.875rem;
@@ -149,24 +134,17 @@
      SOMBRAS
      ------------------------------------------------------- */
 
-  --dt-shadow-xs:
-    0 1px 2px rgba(0, 0, 0, 0.3);
+  --dt-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
 
-  --dt-shadow-sm:
-    0 8px 24px rgba(0, 0, 0, 0.2);
+  --dt-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.2);
 
-  --dt-shadow-md:
-    0 18px 50px rgba(0, 0, 0, 0.3);
+  --dt-shadow-md: 0 18px 50px rgba(0, 0, 0, 0.3);
 
-  --dt-shadow-lg:
-    0 28px 80px rgba(0, 0, 0, 0.42);
+  --dt-shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.42);
 
-  --dt-shadow-brand:
-    0 0 0 1px rgba(70, 255, 120, 0.08),
-    0 18px 55px rgba(34, 237, 95, 0.1);
+  --dt-shadow-brand: 0 0 0 1px rgba(70, 255, 120, 0.08), 0 18px 55px rgba(34, 237, 95, 0.1);
 
-  --dt-shadow-focus:
-    0 0 0 4px rgba(34, 237, 95, 0.16);
+  --dt-shadow-focus: 0 0 0 4px rgba(34, 237, 95, 0.16);
 
   /* -------------------------------------------------------
      MOVIMENTO
@@ -176,11 +154,9 @@
   --dt-duration-normal: 220ms;
   --dt-duration-slow: 360ms;
 
-  --dt-ease-standard:
-    cubic-bezier(0.2, 0, 0, 1);
+  --dt-ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  --dt-ease-emphasized:
-    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dt-ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* -------------------------------------------------------
      LAYOUT
@@ -236,22 +212,9 @@ body {
   overflow-x: hidden;
 
   background:
-    radial-gradient(
-      circle at 8% 0%,
-      rgba(34, 237, 95, 0.11),
-      transparent 28rem
-    ),
-    radial-gradient(
-      circle at 92% 18%,
-      rgba(23, 113, 68, 0.09),
-      transparent 30rem
-    ),
-    linear-gradient(
-      180deg,
-      #020806 0%,
-      #020a07 45%,
-      #010604 100%
-    );
+    radial-gradient(circle at 8% 0%, rgba(34, 237, 95, 0.11), transparent 28rem),
+    radial-gradient(circle at 92% 18%, rgba(23, 113, 68, 0.09), transparent 30rem),
+    linear-gradient(180deg, #020806 0%, #020a07 45%, #010604 100%);
 
   color: var(--dt-color-text-primary);
   font-family: var(--dt-font-sans);
@@ -274,37 +237,20 @@ body::before {
   position: fixed;
   z-index: 0;
   inset: 0;
-  content: "";
+  content: '';
   pointer-events: none;
 
   background-image:
-    linear-gradient(
-      rgba(124, 255, 160, 0.025) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(124, 255, 160, 0.025) 1px,
-      transparent 1px
-    );
+    linear-gradient(rgba(124, 255, 160, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 255, 160, 0.025) 1px, transparent 1px);
 
   background-size: 3rem 3rem;
 
   opacity: 0.55;
 
-  mask-image:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.95),
-      transparent 85%
-    );
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent 85%);
 
-  -webkit-mask-image:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.95),
-      transparent 85%
-    );
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent 85%);
 }
 
 app-root {
@@ -355,9 +301,7 @@ a {
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 
-  transition:
-    color var(--dt-duration-fast)
-      var(--dt-ease-standard);
+  transition: color var(--dt-duration-fast) var(--dt-ease-standard);
 }
 
 a:hover {
@@ -407,9 +351,7 @@ table {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color:
-    rgba(70, 255, 120, 0.36)
-    rgba(5, 18, 12, 0.75);
+  scrollbar-color: rgba(70, 255, 120, 0.36) rgba(5, 18, 12, 0.75);
 }
 
 *::-webkit-scrollbar {
@@ -447,11 +389,58 @@ table {
   white-space: nowrap !important;
 }
 
+.dt-action {
+  display: inline-flex;
+  min-height: 3.15rem;
+  padding-inline: var(--dt-space-5);
+  align-items: center;
+  justify-content: center;
+  gap: var(--dt-space-3);
+  border-radius: var(--dt-radius-md);
+  font-weight: var(--dt-weight-bold);
+  transition:
+    transform var(--dt-duration-fast) var(--dt-ease-standard),
+    background var(--dt-duration-fast) var(--dt-ease-standard);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.58;
+  }
+}
+
+.dt-action--primary {
+  border: 0;
+  background: linear-gradient(135deg, var(--dt-color-brand-300), var(--dt-color-brand-600));
+  color: var(--dt-color-text-inverse);
+  box-shadow: 0 0.9rem 2.2rem rgba(34, 237, 95, 0.2);
+}
+
+.dt-action--secondary {
+  border: 1px solid var(--dt-color-border-default);
+  background: rgba(8, 27, 18, 0.72);
+  color: var(--dt-color-text-secondary);
+
+  &:hover:not(:disabled) {
+    background: var(--dt-color-brand-subtle);
+    color: var(--dt-color-brand-300);
+  }
+}
+
+.dt-action--danger {
+  border: 1px solid var(--dt-color-border-danger);
+  background: var(--dt-color-danger-soft);
+  color: #ffc2c2;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 105, 105, 0.2);
+  }
+}
+
 .dt-page-container {
-  width: min(
-    calc(100% - 2rem),
-    var(--dt-container-lg)
-  );
+  width: min(calc(100% - 2rem), var(--dt-container-lg));
   margin-inline: auto;
 }
 
@@ -466,10 +455,7 @@ table {
   }
 
   .dt-page-container {
-    width: min(
-      calc(100% - 1.25rem),
-      var(--dt-container-lg)
-    );
+    width: min(calc(100% - 1.25rem), var(--dt-container-lg));
   }
 }
 
