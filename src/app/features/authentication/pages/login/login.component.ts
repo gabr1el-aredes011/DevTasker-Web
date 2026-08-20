@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthNavigationContextService } from '../../../../core/auth/auth-navigation-context.service';
 import { ApiError } from '../../../../core/http/api-error.model';
 
 @Component({
@@ -20,13 +21,16 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly navigationContext = inject(AuthNavigationContextService);
+
+  private readonly loginState = this.navigationContext.consumeLoginContext();
 
   readonly submitting = signal(false);
   readonly apiError = signal<string | null>(null);
   readonly successMessage =
-    this.route.snapshot.queryParamMap.get('verified') === 'true'
+    this.loginState?.feedback === 'email-verified'
       ? 'E-mail confirmado com sucesso. Sua conta está pronta para uso.'
-      : this.route.snapshot.queryParamMap.get('registered') === 'true'
+      : this.loginState?.feedback === 'registered'
         ? 'Conta criada com sucesso. Faça seu primeiro login.'
         : null;
 
@@ -34,7 +38,7 @@ export class LoginComponent {
 
   readonly form = this.formBuilder.nonNullable.group({
     email: [
-      this.route.snapshot.queryParamMap.get('email') ?? '',
+      this.loginState?.email ?? '',
       [Validators.required, Validators.email],
     ],
     password: ['', [Validators.required, Validators.minLength(8)]],
@@ -102,10 +106,10 @@ export class LoginComponent {
       return;
     }
 
+    this.navigationContext.setEmailVerificationContext(email, 'login');
+
     void this.router.navigate(['/verify-email'], {
-      queryParams: {
-        email,
-      },
+      replaceUrl: true,
     });
   }
 
