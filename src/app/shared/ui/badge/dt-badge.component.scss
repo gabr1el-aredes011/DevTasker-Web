@@ -1,0 +1,47 @@
+:host {
+  display: inline-flex;
+  width: fit-content;
+  min-height: calc(var(--dt-space-5) + var(--dt-space-1));
+  padding-inline: var(--dt-space-2);
+  align-items: center;
+  justify-content: center;
+  gap: var(--dt-space-1);
+  border: 1px solid var(--dt-color-border-subtle);
+  border-radius: var(--dt-radius-pill);
+  background: var(--dt-color-surface-2);
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-weight-semibold);
+  line-height: var(--dt-line-tight);
+}
+
+:host([data-tone='brand']) {
+  border-color: var(--dt-color-border-strong);
+  background: var(--dt-color-brand-soft);
+  color: var(--dt-color-brand-300);
+}
+
+:host([data-tone='info']) {
+  border-color: var(--dt-color-border-default);
+  background: var(--dt-color-info-soft);
+  color: var(--dt-color-info);
+}
+
+:host([data-tone='success']) {
+  border-color: var(--dt-color-border-strong);
+  background: var(--dt-color-success-soft);
+  color: var(--dt-color-success);
+}
+
+:host([data-tone='warning']) {
+  border-color: var(--dt-color-border-warning);
+  background: var(--dt-color-warning-soft);
+  color: var(--dt-color-warning);
+}
+
+:host([data-tone='danger']) {
+  border-color: var(--dt-color-border-danger);
+  background: var(--dt-color-danger-soft);
+  color: var(--dt-color-danger);
+}

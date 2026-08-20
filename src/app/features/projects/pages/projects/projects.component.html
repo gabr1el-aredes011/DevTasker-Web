@@ -15,7 +15,9 @@
     </div>
 
     <button
-      class="dt-action dt-action--primary"
+      dtButton
+      variant="primary"
+      size="lg"
       type="button"
       [disabled]="submitting() || loadingDetails() || archiveCandidate()"
       (click)="openCreateForm()"
@@ -94,9 +96,9 @@
                   <strong>Projeto #{{ project.id }}</strong>
                   <p>Proprietário: {{ project.ownerName }}</p>
                 </div>
-                <span class="role-badge" [attr.data-role]="project.membershipRole">
-                  {{ roleLabel(project.membershipRole) }}
-                </span>
+                <dt-badge [tone]="projectRoleTone(project.membershipRole)">
+                  {{ projectRoleLabel(project.membershipRole) }}
+                </dt-badge>
               </div>
             }
           }
@@ -176,16 +178,22 @@
 
           <footer class="project-form__actions">
             <button
-              class="dt-action dt-action--secondary"
+              dtButton
+              variant="secondary"
               type="button"
               [disabled]="submitting()"
               (click)="closeForm()"
             >
               Cancelar
             </button>
-            <button class="dt-action dt-action--primary" type="submit" [disabled]="submitting()">
+            <button
+              dtButton
+              variant="primary"
+              type="submit"
+              [loading]="submitting()"
+              [disabled]="submitting()"
+            >
               @if (submitting()) {
-                <span class="spinner" aria-hidden="true"></span>
                 {{ mode === 'edit' ? 'Salvando...' : 'Criando...' }}
               } @else {
                 {{ mode === 'edit' ? 'Salvar alterações' : 'Criar projeto' }}
@@ -213,7 +221,9 @@
             type="search"
             [formControl]="searchControl"
             placeholder="Pesquisar projetos"
-            aria-controls="projects-grid"
+            [attr.aria-controls]="
+              !loading() && !loadError() && filteredProjects().length > 0 ? 'projects-grid' : null
+            "
           />
           @if (searchControl.value) {
             <button type="button" aria-label="Limpar pesquisa" (click)="clearSearch()">×</button>
@@ -227,39 +237,53 @@
     </header>
 
     @if (loading()) {
-      <div class="catalog-state" role="status" aria-live="polite" aria-busy="true">
-        <span class="spinner" aria-hidden="true"></span>
-        <h3>Carregando projetos</h3>
-        <p>Preparando seu workspace.</p>
-      </div>
+      <dt-feedback-state
+        state="loading"
+        [headingLevel]="3"
+        title="Carregando projetos"
+        description="Preparando seu workspace."
+      />
     } @else if (loadError()) {
-      <div class="catalog-state catalog-state--error" role="alert">
-        <span aria-hidden="true">!</span>
-        <h3>Os projetos não puderam ser carregados</h3>
-        <p>{{ loadError() }}</p>
-        <button class="dt-action dt-action--secondary" type="button" (click)="retry()">
+      <dt-feedback-state
+        state="error"
+        [headingLevel]="3"
+        title="Os projetos não puderam ser carregados"
+        [description]="loadError()"
+      >
+        <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="retry()">
           Tentar novamente
         </button>
-      </div>
+      </dt-feedback-state>
     } @else if (projects().length === 0) {
-      <div class="catalog-state">
-        <span aria-hidden="true">◇</span>
-        <h3>Seu primeiro projeto começa aqui</h3>
-        <p>Crie um projeto para receber um quadro inicial e organizar as primeiras entregas.</p>
-        <button class="dt-action dt-action--primary" type="button" (click)="openCreateForm()">
+      <dt-feedback-state
+        state="empty"
+        [headingLevel]="3"
+        title="Seu primeiro projeto começa aqui"
+        description="Crie um projeto para receber um quadro inicial e organizar as primeiras entregas."
+      >
+        <button
+          dtButton
+          dtFeedbackAction
+          variant="primary"
+          type="button"
+          (click)="openCreateForm()"
+        >
           Criar primeiro projeto
           <span aria-hidden="true">→</span>
         </button>
-      </div>
+      </dt-feedback-state>
     } @else if (filteredProjects().length === 0) {
-      <div class="catalog-state">
-        <span aria-hidden="true">⌕</span>
-        <h3>Nenhum projeto corresponde à pesquisa</h3>
-        <p>Tente outro nome ou procure por uma palavra da descrição.</p>
-        <button class="dt-action dt-action--secondary" type="button" (click)="clearSearch()">
+      <dt-feedback-state
+        state="empty"
+        [headingLevel]="3"
+        title="Nenhum projeto corresponde à pesquisa"
+        description="Tente outro nome ou procure por uma palavra da descrição."
+      >
+        <span dtFeedbackVisual aria-hidden="true">⌕</span>
+        <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="clearSearch()">
           Limpar pesquisa
         </button>
-      </div>
+      </dt-feedback-state>
     } @else {
       <div id="projects-grid" class="projects-grid">
         @for (project of filteredProjects(); track project.id) {
@@ -270,9 +294,9 @@
               </span>
 
               <div class="project-card__identity">
-                <span class="role-badge" [attr.data-role]="project.membershipRole">
-                  {{ roleLabel(project.membershipRole) }}
-                </span>
+                <dt-badge [tone]="projectRoleTone(project.membershipRole)">
+                  {{ projectRoleLabel(project.membershipRole) }}
+                </dt-badge>
                 <span>#{{ project.id }}</span>
               </div>
             </header>
@@ -295,19 +319,22 @@
 
             <footer class="project-card__actions">
               <a
-                class="open-project-action"
-                routerLink="/app/kanban"
-                [queryParams]="{ projectId: project.id }"
-                [attr.aria-label]="'Abrir o projeto ' + project.name + ' no Kanban'"
+                dtButton
+                variant="ghost"
+                size="sm"
+                [routerLink]="['/app/projetos', project.id]"
+                [attr.aria-label]="'Ver os detalhes do projeto ' + project.name"
               >
-                Abrir no Kanban
+                Ver projeto
                 <span aria-hidden="true">→</span>
               </a>
 
               <div class="project-card__management">
                 @if (canEdit(project)) {
                   <button
-                    class="card-action"
+                    dtButton
+                    variant="ghost"
+                    size="sm"
                     type="button"
                     [attr.aria-label]="'Editar o projeto ' + project.name"
                     (click)="editProject(project)"
@@ -319,7 +346,9 @@
                 @if (canArchive(project)) {
                   <button
                     #archiveButton
-                    class="card-action card-action--danger"
+                    dtButton
+                    variant="danger"
+                    size="sm"
                     type="button"
                     [attr.aria-label]="'Arquivar o projeto ' + project.name"
                     (click)="requestArchive(project, archiveButton)"
@@ -367,7 +396,8 @@
         <footer>
           <button
             #cancelArchiveButton
-            class="dt-action dt-action--secondary"
+            dtButton
+            variant="secondary"
             type="button"
             [disabled]="archivingProjectId() === project.id"
             (click)="cancelArchive()"
@@ -375,13 +405,14 @@
             Manter projeto
           </button>
           <button
-            class="dt-action dt-action--danger"
+            dtButton
+            variant="danger"
             type="button"
+            [loading]="archivingProjectId() === project.id"
             [disabled]="archivingProjectId() === project.id"
             (click)="confirmArchive()"
           >
             @if (archivingProjectId() === project.id) {
-              <span class="spinner" aria-hidden="true"></span>
               Arquivando...
             } @else {
               Arquivar projeto

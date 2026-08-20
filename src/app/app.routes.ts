@@ -64,6 +64,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'projetos/:projectId',
+        loadComponent: () =>
+          import('./features/projects/pages/project-details/project-details.component').then(
+            (component) => component.ProjectDetailsComponent,
+          ),
+      },
+      {
         path: 'kanban',
         loadComponent: () =>
           import('./features/kanban/pages/kanban/kanban.component').then(

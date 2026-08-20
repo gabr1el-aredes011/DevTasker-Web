@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../../environments/environment';
-import { ProjectDetails, ProjectSummary } from '../models/project.models';
+import { BoardSummary, ProjectDetails, ProjectSummary } from '../models/project.models';
 import { ProjectService } from './project.service';
 
 describe('ProjectService', () => {
@@ -20,6 +20,12 @@ describe('ProjectService', () => {
     ...summary,
     ownerId: 3,
     ownerName: 'Dev User',
+  };
+
+  const board: BoardSummary = {
+    id: 11,
+    projectId: 7,
+    name: 'Desenvolvimento',
   };
 
   let service: ProjectService;
@@ -62,6 +68,14 @@ describe('ProjectService', () => {
     const request = http.expectOne(`${environment.apiUrl}/projects/7`);
     expect(request.request.method).toBe('GET');
     request.flush(details);
+  });
+
+  it('should list the boards that belong to a project', () => {
+    service.findBoardsByProjectId(7).subscribe((boards) => expect(boards).toEqual([board]));
+
+    const request = http.expectOne(`${environment.apiUrl}/projects/7/boards`);
+    expect(request.request.method).toBe('GET');
+    request.flush([board]);
   });
 
   it('should create a project with a nullable description', () => {

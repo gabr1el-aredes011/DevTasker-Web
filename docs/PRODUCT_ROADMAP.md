@@ -49,6 +49,16 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Workflow real e tarefas que exigem atenção
 - ✅ Layout responsivo
 
+### Mini Design System
+
+- ✅ Tokens globais como fonte única para cores, tipografia, espaços e movimento
+- ✅ Primitive de botão com variantes, tamanhos, loading e bloqueio acessível
+- ✅ Badge semântico reutilizável
+- ✅ Estados reutilizáveis de carregamento, vazio e erro
+- 🧭 Field com label, hint, erro e associação ARIA
+- 🧭 Dialog/Drawer com gerenciamento de foco pelo Angular CDK
+- 🧭 Skeleton e Toast
+
 ### Projetos
 
 - ✅ Membership e funções `OWNER`, `ADMIN`, `MEMBER` e `VIEWER`
@@ -57,7 +67,9 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Pesquisa por nome e descrição
 - ✅ Cards, estados de carregamento, erro e vazio
 - ✅ Navegação protegida de Projeto → Kanban
-- 🚧 Detalhes avançados, filtros e gestão de membros
+- ✅ Página de detalhes com visão geral e quadros reais
+- ✅ Abas acessíveis e deep link do estado da página
+- 🚧 Filtros e gestão de membros
 
 ### Boards
 
@@ -93,7 +105,9 @@ servirem apenas como porta de entrada para o Kanban.
 - ✅ Exibir cards profissionais, estados vazios, carregamento e erros
 - ✅ Navegar de Projeto → Kanban preservando o deep link
 - 🧭 Adicionar filtros por função e outros critérios
-- 🧭 Criar uma página avançada de detalhes do projeto
+- ✅ Criar a base da página avançada de detalhes do projeto
+- ✅ Exibir visão geral e boards sem inventar contratos ainda inexistentes
+- ✅ Preservar deep links para o Kanban em cada board
 
 Critérios de aceite:
 
@@ -206,4 +220,3 @@ Critérios de aceite:
 4. Publicar a feature e revisar o diff contra `develop`.
 5. Integrar com merge explícito em `develop` e validar novamente.
 6. Promover para `main` somente quando o marco estiver estável e documentado.
-

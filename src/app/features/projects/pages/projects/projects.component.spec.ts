@@ -81,6 +81,18 @@ describe('ProjectsComponent', () => {
     expect(fixture.componentInstance.canEdit(memberProject)).toBe(false);
   });
 
+  it('should link each project card to its own details page', () => {
+    const fixture = TestBed.createComponent(ProjectsComponent);
+    fixture.detectChanges();
+
+    const detailsLink = fixture.nativeElement.querySelector(
+      'a[aria-label="Ver os detalhes do projeto Plataforma Mobile"]',
+    ) as HTMLAnchorElement;
+
+    expect(detailsLink).toBeTruthy();
+    expect(detailsLink.getAttribute('href')).toBe('/app/projetos/1');
+  });
+
   it('should require an accessible confirmation and archive only owner projects', () => {
     const fixture = TestBed.createComponent(ProjectsComponent);
     fixture.detectChanges();
@@ -100,7 +112,7 @@ describe('ProjectsComponent', () => {
     expect(dialog.getAttribute('aria-modal')).toBe('true');
     expect(projectService.archive).not.toHaveBeenCalled();
 
-    const confirmButton = dialog.querySelector('.dt-action--danger') as HTMLButtonElement;
+    const confirmButton = dialog.querySelector('.dt-button--danger') as HTMLButtonElement;
     confirmButton.click();
     fixture.detectChanges();
 
@@ -132,6 +144,30 @@ describe('ProjectsComponent', () => {
     expect(component.archivingProjectId()).toBeNull();
     expect(component.archiveError()).toBe('Somente o proprietário pode arquivar este projeto.');
     expect(component.projects()).toHaveLength(2);
+  });
+
+  it('should keep keyboard focus inside the archive dialog from its container', () => {
+    const fixture = TestBed.createComponent(ProjectsComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.requestArchive(ownerProject);
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('[role="alertdialog"]') as HTMLElement;
+    const buttons = dialog.querySelectorAll('button');
+    const lastButton = buttons.item(buttons.length - 1) as HTMLButtonElement;
+
+    dialog.focus();
+    dialog.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Tab',
+        shiftKey: true,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(document.activeElement).toBe(lastButton);
   });
 
   it('should create a project with normalized fields and update the catalog', () => {
@@ -190,6 +226,36 @@ describe('ProjectsComponent', () => {
     });
     expect(component.projects()[0].name).toBe('Plataforma Renovada');
     expect(component.formMode()).toBeNull();
+  });
+
+  it('should move an edited project to its updated position in the catalog', () => {
+    const newerProject: ProjectSummary = {
+      ...memberProject,
+      id: 3,
+      name: 'Projeto mais recente',
+      membershipRole: 'ADMIN',
+      updatedAt: '2026-08-20T18:00:00Z',
+    };
+    const updatedProject: ProjectDetails = {
+      ...ownerDetails,
+      name: 'Plataforma renovada',
+      updatedAt: '2026-08-21T09:00:00Z',
+    };
+    projectService.update.mockReturnValue(of(updatedProject));
+
+    const fixture = TestBed.createComponent(ProjectsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.projects.set([newerProject, ownerProject]);
+
+    component.editProject(ownerProject);
+    component.projectForm.setValue({
+      name: 'Plataforma renovada',
+      description: ownerDetails.description ?? '',
+    });
+    component.submitProject();
+
+    expect(component.projects().map((project) => project.id)).toEqual([1, 3]);
   });
 
   it('should refuse to load edit details for member projects', () => {

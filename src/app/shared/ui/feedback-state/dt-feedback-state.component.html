@@ -1,0 +1,49 @@
+<section class="dt-feedback">
+  <div
+    class="dt-feedback__announcement"
+    [attr.role]="role()"
+    [attr.aria-live]="ariaLive()"
+    aria-atomic="true"
+    [attr.aria-busy]="state() === 'loading' ? 'true' : null"
+  >
+    <div class="dt-feedback__visual" aria-hidden="true">
+      <ng-content select="[dtFeedbackVisual]">
+        @switch (state()) {
+          @case ('loading') {
+            <span class="dt-feedback__loader">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          }
+          @case ('empty') {
+            <span class="dt-feedback__symbol">◇</span>
+          }
+          @case ('error') {
+            <span class="dt-feedback__symbol">!</span>
+          }
+        }
+      </ng-content>
+    </div>
+
+    @switch (headingLevel()) {
+      @case (1) {
+        <h1 class="dt-feedback__title">{{ title() }}</h1>
+      }
+      @case (3) {
+        <h3 class="dt-feedback__title">{{ title() }}</h3>
+      }
+      @default {
+        <h2 class="dt-feedback__title">{{ title() }}</h2>
+      }
+    }
+
+    @if (description(); as supportingText) {
+      <p class="dt-feedback__description">{{ supportingText }}</p>
+    }
+  </div>
+
+  <div class="dt-feedback__action">
+    <ng-content select="[dtFeedbackAction]" />
+  </div>
+</section>

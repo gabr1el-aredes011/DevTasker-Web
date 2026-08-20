@@ -1,3 +1,5 @@
+@use './app/shared/ui/button/dt-button';
+
 /* =========================================================
    DEVTASKER DESIGN SYSTEM
    Fundação visual global
@@ -387,56 +389,6 @@ table {
   border: 0 !important;
   clip: rect(0 0 0 0) !important;
   white-space: nowrap !important;
-}
-
-.dt-action {
-  display: inline-flex;
-  min-height: 3.15rem;
-  padding-inline: var(--dt-space-5);
-  align-items: center;
-  justify-content: center;
-  gap: var(--dt-space-3);
-  border-radius: var(--dt-radius-md);
-  font-weight: var(--dt-weight-bold);
-  transition:
-    transform var(--dt-duration-fast) var(--dt-ease-standard),
-    background var(--dt-duration-fast) var(--dt-ease-standard);
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.58;
-  }
-}
-
-.dt-action--primary {
-  border: 0;
-  background: linear-gradient(135deg, var(--dt-color-brand-300), var(--dt-color-brand-600));
-  color: var(--dt-color-text-inverse);
-  box-shadow: 0 0.9rem 2.2rem rgba(34, 237, 95, 0.2);
-}
-
-.dt-action--secondary {
-  border: 1px solid var(--dt-color-border-default);
-  background: rgba(8, 27, 18, 0.72);
-  color: var(--dt-color-text-secondary);
-
-  &:hover:not(:disabled) {
-    background: var(--dt-color-brand-subtle);
-    color: var(--dt-color-brand-300);
-  }
-}
-
-.dt-action--danger {
-  border: 1px solid var(--dt-color-border-danger);
-  background: var(--dt-color-danger-soft);
-  color: #ffc2c2;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 105, 105, 0.2);
-  }
 }
 
 .dt-page-container {

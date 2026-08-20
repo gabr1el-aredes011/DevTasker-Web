@@ -18,12 +18,17 @@ import { finalize } from 'rxjs';
 
 import { ApiError } from '../../../../core/http/api-error.model';
 import {
+  DtBadgeComponent,
+  DtButtonDirective,
+  DtFeedbackStateComponent,
+} from '../../../../shared/ui';
+import {
   CreateProjectRequest,
   ProjectDetails,
-  ProjectMembershipRole,
   ProjectSummary,
   UpdateProjectRequest,
 } from '../../models/project.models';
+import { projectRoleLabel, projectRoleTone } from '../../presentation/project-role.presentation';
 import { ProjectService } from '../../services/project.service';
 
 type ProjectFormMode = 'create' | 'edit';
@@ -31,7 +36,14 @@ type ProjectFormMode = 'create' | 'edit';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [
+    DatePipe,
+    ReactiveFormsModule,
+    RouterLink,
+    DtBadgeComponent,
+    DtButtonDirective,
+    DtFeedbackStateComponent,
+  ],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,6 +98,9 @@ export class ProjectsComponent implements OnInit {
   });
 
   readonly descriptionLength = computed(() => this.descriptionValue().length);
+
+  readonly projectRoleLabel = projectRoleLabel;
+  readonly projectRoleTone = projectRoleTone;
 
   readonly formTitle = computed(() =>
     this.formMode() === 'edit' ? 'Editar projeto' : 'Criar novo projeto',
@@ -249,6 +264,7 @@ export class ProjectsComponent implements OnInit {
           this.archiveError.set(
             this.extractErrorMessage(error, 'Não foi possível arquivar o projeto.'),
           );
+          setTimeout(() => this.cancelArchiveButton?.nativeElement.focus());
         },
       });
   }
@@ -270,6 +286,12 @@ export class ProjectsComponent implements OnInit {
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
     const activeElement = document.activeElement;
+
+    if (activeElement === this.archiveDialog.nativeElement) {
+      event.preventDefault();
+      (event.shiftKey ? lastElement : firstElement).focus();
+      return;
+    }
 
     if (event.shiftKey && activeElement === firstElement) {
       event.preventDefault();
@@ -339,8 +361,10 @@ export class ProjectsComponent implements OnInit {
         .subscribe({
           next: (updatedProject) => {
             this.projects.update((projects) =>
-              projects.map((item) =>
-                item.id === updatedProject.id ? this.toSummary(updatedProject) : item,
+              this.sortProjectsByUpdatedAt(
+                projects.map((item) =>
+                  item.id === updatedProject.id ? this.toSummary(updatedProject) : item,
+                ),
               ),
             );
             this.actionMessage.set(`Projeto “${updatedProject.name}” atualizado com sucesso.`);
@@ -363,7 +387,9 @@ export class ProjectsComponent implements OnInit {
       .pipe(finalize(() => this.submitting.set(false)))
       .subscribe({
         next: (createdProject) => {
-          this.projects.update((projects) => [this.toSummary(createdProject), ...projects]);
+          this.projects.update((projects) =>
+            this.sortProjectsByUpdatedAt([this.toSummary(createdProject), ...projects]),
+          );
           this.actionMessage.set(
             `Projeto “${createdProject.name}” criado com um quadro inicial pronto para uso.`,
           );
@@ -383,17 +409,6 @@ export class ProjectsComponent implements OnInit {
     return project.membershipRole === 'OWNER';
   }
 
-  roleLabel(role: ProjectMembershipRole): string {
-    const labels: Record<ProjectMembershipRole, string> = {
-      OWNER: 'Proprietário',
-      ADMIN: 'Administrador',
-      MEMBER: 'Membro',
-      VIEWER: 'Visualizador',
-    };
-
-    return labels[role];
-  }
-
   projectInitial(name: string): string {
     return name.trim().charAt(0).toUpperCase() || 'P';
   }
@@ -406,7 +421,7 @@ export class ProjectsComponent implements OnInit {
       .findAll()
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (projects) => this.projects.set(projects),
+        next: (projects) => this.projects.set(this.sortProjectsByUpdatedAt(projects)),
         error: (error: unknown) => {
           this.loadError.set(
             this.extractErrorMessage(error, 'Não foi possível carregar seus projetos.'),
@@ -445,6 +460,12 @@ export class ProjectsComponent implements OnInit {
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     };
+  }
+
+  private sortProjectsByUpdatedAt(projects: readonly ProjectSummary[]): readonly ProjectSummary[] {
+    return [...projects].sort(
+      (left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
+    );
   }
 
   private focusProjectName(): void {

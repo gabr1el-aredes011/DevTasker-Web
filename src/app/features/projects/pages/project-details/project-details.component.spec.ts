@@ -1,0 +1,183 @@
+import { HttpErrorResponse } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { of, throwError } from 'rxjs';
+
+import { BoardSummary, ProjectDetails } from '../../models/project.models';
+import { ProjectService } from '../../services/project.service';
+import { ProjectDetailsComponent } from './project-details.component';
+
+describe('ProjectDetailsComponent', () => {
+  const project: ProjectDetails = {
+    id: 42,
+    name: 'DevTasker Web',
+    description: 'Experiência web para gestão de entregas.',
+    membershipRole: 'ADMIN',
+    ownerId: 7,
+    ownerName: 'Gabriel Silva',
+    createdAt: '2026-08-18T10:00:00Z',
+    updatedAt: '2026-08-20T14:30:00Z',
+  };
+
+  const boards: readonly BoardSummary[] = [
+    { id: 5, projectId: 42, name: 'Quadro Principal' },
+    { id: 8, projectId: 42, name: 'Descoberta' },
+  ];
+
+  const projectService = {
+    findById: vi.fn(),
+    findBoardsByProjectId: vi.fn(),
+  };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    projectService.findById.mockReturnValue(of(project));
+    projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+
+    await TestBed.configureTestingModule({
+      imports: [ProjectDetailsComponent],
+      providers: [
+        provideRouter([
+          {
+            path: 'app/projetos/:projectId',
+            component: ProjectDetailsComponent,
+          },
+        ]),
+        { provide: ProjectService, useValue: projectService },
+      ],
+    }).compileComponents();
+  });
+
+  it('should load project details and boards from the route projectId', async () => {
+    const { component, element } = await renderPage('/app/projetos/42');
+
+    expect(projectService.findById).toHaveBeenCalledWith(42);
+    expect(projectService.findBoardsByProjectId).toHaveBeenCalledWith(42);
+    expect(component.project()).toEqual(project);
+    expect(component.boards()).toEqual(boards);
+    expect(element.querySelector('h1')?.textContent).toContain('DevTasker Web');
+    expect(element.querySelector('dt-badge')?.textContent).toContain('Administrador');
+    expect(element.querySelector('dt-badge')?.getAttribute('data-tone')).toBe('info');
+    expect(element.querySelector('.owner-profile')?.textContent).toContain('Gabriel Silva');
+  });
+
+  it('should preserve a boards deep link and build Kanban links with projectId and boardId', async () => {
+    const { component, element } = await renderPage('/app/projetos/42?tab=boards');
+
+    expect(component.activeTab()).toBe('boards');
+    expect((element.querySelector('#project-panel-boards') as HTMLElement).hidden).toBe(false);
+    expect((element.querySelector('#project-panel-overview') as HTMLElement).hidden).toBe(true);
+
+    const boardLink = element.querySelector('.board-card .dt-button') as HTMLAnchorElement;
+    expect(boardLink.getAttribute('href')).toContain('/app/kanban');
+    expect(boardLink.getAttribute('href')).toContain('projectId=42');
+    expect(boardLink.getAttribute('href')).toContain('boardId=5');
+  });
+
+  it('should render the shared empty feedback when the project has no boards', async () => {
+    projectService.findBoardsByProjectId.mockReturnValue(of([]));
+
+    const { element } = await renderPage('/app/projetos/42?tab=boards');
+    const emptyState = element.querySelector(
+      'dt-feedback-state[data-state="empty"]',
+    ) as HTMLElement;
+
+    expect(emptyState).toBeTruthy();
+    expect(emptyState.textContent).toContain('Nenhum quadro disponível');
+  });
+
+  it('should update the tab query param and support keyboard tab navigation', async () => {
+    const { component, element, harness } = await renderPage('/app/projetos/42?tab=overview');
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    const overviewTab = element.querySelector('#project-tab-overview') as HTMLButtonElement;
+
+    overviewTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    harness.detectChanges();
+
+    expect(component.activeTab()).toBe('boards');
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { tab: 'boards' },
+        queryParamsHandling: 'merge',
+      }),
+    );
+    expect((element.querySelector('#project-tab-boards') as HTMLButtonElement).tabIndex).toBe(0);
+  });
+
+  it('should normalize an invalid tab to overview using replaceUrl', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    const { component } = await renderPage('/app/projetos/42?tab=unknown');
+
+    expect(component.activeTab()).toBe('overview');
+    expect(navigateSpy).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { tab: 'overview' },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      }),
+    );
+  });
+
+  it('should preserve project details when boards fail and allow retry', async () => {
+    projectService.findBoardsByProjectId
+      .mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 503,
+              error: { message: 'Serviço temporariamente indisponível.' },
+            }),
+        ),
+      )
+      .mockReturnValueOnce(of(boards));
+
+    const { component, element, harness } = await renderPage('/app/projetos/42?tab=boards');
+
+    expect(component.loadError()).toBeNull();
+    expect(component.boardsLoadError()).toBe('Serviço temporariamente indisponível.');
+    expect(component.project()).toEqual(project);
+    expect(element.querySelector('.details-hero__meta')?.textContent).toContain(
+      'Quadros indisponíveis',
+    );
+    expect(element.querySelector('.details-hero__meta')?.textContent).not.toContain('0 quadros');
+    expect(element.querySelector('dt-feedback-state[data-state="error"]')).toBeTruthy();
+
+    component.retry();
+    harness.detectChanges();
+
+    expect(projectService.findById).toHaveBeenCalledTimes(2);
+    expect(projectService.findBoardsByProjectId).toHaveBeenCalledTimes(2);
+    expect(component.boardsLoadError()).toBeNull();
+    expect(component.project()).toEqual(project);
+  });
+
+  it('should reject an invalid projectId without calling the API', async () => {
+    const { component, element } = await renderPage('/app/projetos/not-a-number');
+
+    expect(projectService.findById).not.toHaveBeenCalled();
+    expect(projectService.findBoardsByProjectId).not.toHaveBeenCalled();
+    expect(component.loadError()).toContain('identificador');
+    expect(element.querySelector('dt-feedback-state[data-state="error"]')).toBeTruthy();
+  });
+
+  async function renderPage(url: string): Promise<{
+    component: ProjectDetailsComponent;
+    element: HTMLElement;
+    harness: RouterTestingHarness;
+  }> {
+    const harness = await RouterTestingHarness.create();
+    const component = await harness.navigateByUrl(url, ProjectDetailsComponent);
+    harness.detectChanges();
+
+    return {
+      component,
+      element: harness.routeNativeElement as HTMLElement,
+      harness,
+    };
+  }
+});
