@@ -1,3 +1,5 @@
+@use './app/shared/ui/button/dt-button';
+
 /* =========================================================
    DEVTASKER DESIGN SYSTEM
    Fundação visual global
@@ -77,26 +79,11 @@
      TIPOGRAFIA
      ------------------------------------------------------- */
 
-  --dt-font-sans:
-    Inter,
-    "Segoe UI Variable",
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  --dt-font-sans: Inter, 'Segoe UI Variable', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
-  --dt-font-display:
-    "Space Grotesk",
-    "Segoe UI Variable Display",
-    "Segoe UI",
-    sans-serif;
+  --dt-font-display: 'Space Grotesk', 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
 
-  --dt-font-mono:
-    "JetBrains Mono",
-    "Cascadia Code",
-    Consolas,
-    monospace;
+  --dt-font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
 
   --dt-text-xs: 0.75rem;
   --dt-text-sm: 0.875rem;
@@ -149,24 +136,17 @@
      SOMBRAS
      ------------------------------------------------------- */
 
-  --dt-shadow-xs:
-    0 1px 2px rgba(0, 0, 0, 0.3);
+  --dt-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
 
-  --dt-shadow-sm:
-    0 8px 24px rgba(0, 0, 0, 0.2);
+  --dt-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.2);
 
-  --dt-shadow-md:
-    0 18px 50px rgba(0, 0, 0, 0.3);
+  --dt-shadow-md: 0 18px 50px rgba(0, 0, 0, 0.3);
 
-  --dt-shadow-lg:
-    0 28px 80px rgba(0, 0, 0, 0.42);
+  --dt-shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.42);
 
-  --dt-shadow-brand:
-    0 0 0 1px rgba(70, 255, 120, 0.08),
-    0 18px 55px rgba(34, 237, 95, 0.1);
+  --dt-shadow-brand: 0 0 0 1px rgba(70, 255, 120, 0.08), 0 18px 55px rgba(34, 237, 95, 0.1);
 
-  --dt-shadow-focus:
-    0 0 0 4px rgba(34, 237, 95, 0.16);
+  --dt-shadow-focus: 0 0 0 4px rgba(34, 237, 95, 0.16);
 
   /* -------------------------------------------------------
      MOVIMENTO
@@ -176,11 +156,9 @@
   --dt-duration-normal: 220ms;
   --dt-duration-slow: 360ms;
 
-  --dt-ease-standard:
-    cubic-bezier(0.2, 0, 0, 1);
+  --dt-ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  --dt-ease-emphasized:
-    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dt-ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* -------------------------------------------------------
      LAYOUT
@@ -236,22 +214,9 @@ body {
   overflow-x: hidden;
 
   background:
-    radial-gradient(
-      circle at 8% 0%,
-      rgba(34, 237, 95, 0.11),
-      transparent 28rem
-    ),
-    radial-gradient(
-      circle at 92% 18%,
-      rgba(23, 113, 68, 0.09),
-      transparent 30rem
-    ),
-    linear-gradient(
-      180deg,
-      #020806 0%,
-      #020a07 45%,
-      #010604 100%
-    );
+    radial-gradient(circle at 8% 0%, rgba(34, 237, 95, 0.11), transparent 28rem),
+    radial-gradient(circle at 92% 18%, rgba(23, 113, 68, 0.09), transparent 30rem),
+    linear-gradient(180deg, #020806 0%, #020a07 45%, #010604 100%);
 
   color: var(--dt-color-text-primary);
   font-family: var(--dt-font-sans);
@@ -274,37 +239,20 @@ body::before {
   position: fixed;
   z-index: 0;
   inset: 0;
-  content: "";
+  content: '';
   pointer-events: none;
 
   background-image:
-    linear-gradient(
-      rgba(124, 255, 160, 0.025) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(124, 255, 160, 0.025) 1px,
-      transparent 1px
-    );
+    linear-gradient(rgba(124, 255, 160, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 255, 160, 0.025) 1px, transparent 1px);
 
   background-size: 3rem 3rem;
 
   opacity: 0.55;
 
-  mask-image:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.95),
-      transparent 85%
-    );
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent 85%);
 
-  -webkit-mask-image:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.95),
-      transparent 85%
-    );
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95), transparent 85%);
 }
 
 app-root {
@@ -355,9 +303,7 @@ a {
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 
-  transition:
-    color var(--dt-duration-fast)
-      var(--dt-ease-standard);
+  transition: color var(--dt-duration-fast) var(--dt-ease-standard);
 }
 
 a:hover {
@@ -407,9 +353,7 @@ table {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color:
-    rgba(70, 255, 120, 0.36)
-    rgba(5, 18, 12, 0.75);
+  scrollbar-color: rgba(70, 255, 120, 0.36) rgba(5, 18, 12, 0.75);
 }
 
 *::-webkit-scrollbar {
@@ -448,10 +392,7 @@ table {
 }
 
 .dt-page-container {
-  width: min(
-    calc(100% - 2rem),
-    var(--dt-container-lg)
-  );
+  width: min(calc(100% - 2rem), var(--dt-container-lg));
   margin-inline: auto;
 }
 
@@ -466,10 +407,7 @@ table {
   }
 
   .dt-page-container {
-    width: min(
-      calc(100% - 1.25rem),
-      var(--dt-container-lg)
-    );
+    width: min(calc(100% - 1.25rem), var(--dt-container-lg));
   }
 }
 

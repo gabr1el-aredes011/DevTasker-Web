@@ -1,14 +1,14 @@
-import { HttpClient } from '@angular/common/http';
-import {
-  inject,
-  Injectable,
-} from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import {
   BoardSummary,
+  CreateProjectRequest,
+  ProjectDetails,
   ProjectSummary,
+  UpdateProjectRequest,
 } from '../models/project.models';
 
 @Injectable({
@@ -17,15 +17,30 @@ import {
 export class ProjectService {
   private readonly http = inject(HttpClient);
 
-  findAll(): Observable<readonly ProjectSummary[]> {
-    return this.http.get<readonly ProjectSummary[]>(
-      `${environment.apiUrl}/projects`,
-    );
+  findAll(query?: string): Observable<readonly ProjectSummary[]> {
+    const normalizedQuery = query?.trim();
+    const params = normalizedQuery ? new HttpParams().set('query', normalizedQuery) : undefined;
+
+    return this.http.get<readonly ProjectSummary[]>(`${environment.apiUrl}/projects`, { params });
   }
 
-  findBoardsByProjectId(
-    projectId: number,
-  ): Observable<readonly BoardSummary[]> {
+  findById(projectId: number): Observable<ProjectDetails> {
+    return this.http.get<ProjectDetails>(`${environment.apiUrl}/projects/${projectId}`);
+  }
+
+  create(request: CreateProjectRequest): Observable<ProjectDetails> {
+    return this.http.post<ProjectDetails>(`${environment.apiUrl}/projects`, request);
+  }
+
+  update(projectId: number, request: UpdateProjectRequest): Observable<ProjectDetails> {
+    return this.http.put<ProjectDetails>(`${environment.apiUrl}/projects/${projectId}`, request);
+  }
+
+  archive(projectId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/projects/${projectId}`);
+  }
+
+  findBoardsByProjectId(projectId: number): Observable<readonly BoardSummary[]> {
     return this.http.get<readonly BoardSummary[]>(
       `${environment.apiUrl}/projects/${projectId}/boards`,
     );

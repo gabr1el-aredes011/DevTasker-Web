@@ -7,6 +7,7 @@ tarefas com autenticação segura e workflows Kanban.
 
 - [Roadmap de produto e engenharia](docs/PRODUCT_ROADMAP.md)
 - [Roadmap de segurança](docs/SECURITY_ROADMAP.md)
+- [Direção visual e Design System](docs/DESIGN_SYSTEM.md)
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.7.
 

@@ -2,7 +2,7 @@
 
 ## SEC-001 — Remover dados pessoais da navegação de verificação
 
-- **Status:** implementado na branch `feature/password-recovery`
+- **Status:** implementado e integrado em `develop`
 - **Prioridade:** alta
 - **Área:** cadastro, login e verificação de e-mail
 
@@ -32,7 +32,7 @@ tela e, dependendo da infraestrutura, em logs e ferramentas de análise.
 
 ## SEC-002 — Recuperação de senha
 
-- **Status:** implementado na branch `feature/password-recovery`
+- **Status:** implementado e integrado em `develop`
 - **Prioridade:** alta
 - **Área:** autenticação
 

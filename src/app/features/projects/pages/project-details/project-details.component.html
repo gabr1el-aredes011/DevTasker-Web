@@ -1,0 +1,209 @@
+<section class="project-details-page">
+  <a dtButton class="details-back" variant="secondary" size="sm" routerLink="/app/projetos">
+    <span aria-hidden="true">←</span>
+    Voltar para projetos
+  </a>
+
+  @if (loading()) {
+    <dt-feedback-state
+      state="loading"
+      title="Carregando projeto"
+      description="Reunindo contexto, acesso e quadros disponíveis."
+      [headingLevel]="1"
+    />
+  } @else if (loadError()) {
+    <dt-feedback-state
+      state="error"
+      title="Não foi possível abrir o projeto"
+      [description]="loadError()"
+      [headingLevel]="1"
+    >
+      @if (projectId()) {
+        <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="retry()">
+          Tentar novamente
+        </button>
+      }
+    </dt-feedback-state>
+  } @else if (project(); as project) {
+    <header class="details-hero" aria-labelledby="project-details-title">
+      <div class="details-hero__content">
+        <p class="details-eyebrow">
+          <span aria-hidden="true"></span>
+          PROJECT / #{{ project.id }}
+        </p>
+
+        <h1 id="project-details-title">{{ project.name }}</h1>
+        <p>Contexto central do projeto, acesso da sua conta e quadros disponíveis para execução.</p>
+
+        <div class="details-hero__meta" aria-label="Metadados principais">
+          <dt-badge [tone]="projectRoleTone(project.membershipRole)">
+            {{ projectRoleLabel(project.membershipRole) }}
+          </dt-badge>
+          @if (boardsLoadError()) {
+            <span>Quadros indisponíveis</span>
+          } @else {
+            <span>{{ boards().length }} {{ boards().length === 1 ? 'quadro' : 'quadros' }}</span>
+          }
+          <span>Atualizado em {{ project.updatedAt | date: 'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+
+      <a
+        dtButton
+        variant="primary"
+        routerLink="/app/kanban"
+        [queryParams]="{ projectId: project.id }"
+        [attr.aria-label]="'Abrir o projeto ' + project.name + ' no Kanban'"
+      >
+        Abrir no Kanban
+        <span aria-hidden="true">→</span>
+      </a>
+    </header>
+
+    <div class="details-workspace">
+      <div class="details-tabs" role="tablist" aria-label="Seções do projeto">
+        @for (tab of tabs; track tab.id) {
+          <button
+            type="button"
+            role="tab"
+            [id]="'project-tab-' + tab.id"
+            [attr.aria-selected]="activeTab() === tab.id"
+            [attr.aria-controls]="'project-panel-' + tab.id"
+            [attr.tabindex]="activeTab() === tab.id ? 0 : -1"
+            (click)="selectTab(tab.id)"
+            (keydown)="handleTabKeydown($event, tab.id)"
+          >
+            {{ tab.label }}
+            @if (tab.id === 'boards') {
+              <span
+                [attr.aria-label]="boardsLoadError() ? 'Contagem de quadros indisponível' : null"
+              >
+                {{ boardsLoadError() ? '—' : boards().length }}
+              </span>
+            }
+          </button>
+        }
+      </div>
+
+      <section
+        id="project-panel-overview"
+        class="tab-panel overview-grid"
+        role="tabpanel"
+        aria-labelledby="project-tab-overview"
+        tabindex="0"
+        [hidden]="activeTab() !== 'overview'"
+      >
+        <article class="details-surface details-surface--description">
+          <p class="details-eyebrow">CONTEXTO</p>
+          <h2>Sobre o projeto</h2>
+          <p class="project-description">
+            {{ project.description || 'Este projeto ainda não possui uma descrição.' }}
+          </p>
+        </article>
+
+        <article class="details-surface">
+          <p class="details-eyebrow">PROPRIEDADE</p>
+          <h2>Responsável pelo projeto</h2>
+          <div class="owner-profile">
+            <span aria-hidden="true">{{ project.ownerName.charAt(0).toUpperCase() }}</span>
+            <div>
+              <strong>{{ project.ownerName }}</strong>
+              <p>Proprietário · ID {{ project.ownerId }}</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="details-surface details-surface--metadata">
+          <p class="details-eyebrow">METADADOS</p>
+          <h2>Informações do workspace</h2>
+          <dl class="metadata-list">
+            <div>
+              <dt>Projeto</dt>
+              <dd>#{{ project.id }}</dd>
+            </div>
+            <div>
+              <dt>Seu acesso</dt>
+              <dd>{{ projectRoleLabel(project.membershipRole) }}</dd>
+            </div>
+            <div>
+              <dt>Criado em</dt>
+              <dd>{{ project.createdAt | date: "dd/MM/yyyy 'às' HH:mm" }}</dd>
+            </div>
+            <div>
+              <dt>Atualizado em</dt>
+              <dd>{{ project.updatedAt | date: "dd/MM/yyyy 'às' HH:mm" }}</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
+
+      <section
+        id="project-panel-boards"
+        class="tab-panel"
+        role="tabpanel"
+        aria-labelledby="project-tab-boards"
+        tabindex="0"
+        [hidden]="activeTab() !== 'boards'"
+      >
+        <header class="boards-header">
+          <div>
+            <p class="details-eyebrow">EXECUÇÃO</p>
+            <h2>Quadros do projeto</h2>
+            <p>Escolha um quadro para continuar o trabalho no Kanban.</p>
+          </div>
+          @if (boardsLoadError()) {
+            <span role="status">Contagem indisponível</span>
+          } @else {
+            <span role="status">{{ boards().length }} disponíveis</span>
+          }
+        </header>
+
+        @if (boardsLoadError()) {
+          <dt-feedback-state
+            class="boards-feedback"
+            state="error"
+            title="Os quadros não puderam ser carregados"
+            [description]="boardsLoadError()"
+            [headingLevel]="3"
+          >
+            <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="retry()">
+              Tentar novamente
+            </button>
+          </dt-feedback-state>
+        } @else if (boards().length === 0) {
+          <dt-feedback-state
+            class="boards-feedback"
+            state="empty"
+            title="Nenhum quadro disponível"
+            description="Quando um quadro for criado para este projeto, ele aparecerá nesta seção."
+            [headingLevel]="3"
+          />
+        } @else {
+          <div class="boards-grid">
+            @for (board of boards(); track board.id) {
+              <article class="board-card" [attr.aria-labelledby]="'board-title-' + board.id">
+                <header>
+                  <span class="board-card__icon" aria-hidden="true">▦</span>
+                  <span class="board-card__id">BOARD / #{{ board.id }}</span>
+                </header>
+                <h3 [id]="'board-title-' + board.id">{{ board.name }}</h3>
+                <p>Quadro vinculado ao projeto #{{ board.projectId }}.</p>
+                <a
+                  dtButton
+                  variant="ghost"
+                  size="sm"
+                  routerLink="/app/kanban"
+                  [queryParams]="boardQueryParams(board)"
+                  [attr.aria-label]="'Abrir o quadro ' + board.name + ' no Kanban'"
+                >
+                  Abrir quadro
+                  <span aria-hidden="true">→</span>
+                </a>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  }
+</section>
