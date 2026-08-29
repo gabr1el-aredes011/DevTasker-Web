@@ -1,0 +1,55 @@
+<dt-dialog-frame
+  eyebrow="BOARDS 2.0"
+  [title]="title()"
+  [description]="description()"
+  [tone]="isArchive ? 'danger' : 'default'"
+  (dismiss)="close()"
+>
+  @if (isArchive && data.mode === 'archive') {
+    <div class="archive-summary">
+      <span aria-hidden="true">!</span>
+      <div>
+        <strong>{{ data.board.name }}</strong>
+        <p>Links antigos para este quadro deixarão de funcionar após o arquivamento.</p>
+      </div>
+    </div>
+  } @else {
+    <dt-field
+      label="Nome do quadro"
+      forId="board-name"
+      [required]="true"
+      [counter]="name.value.length + '/120'"
+      [error]="fieldError()"
+      hint="Use um nome curto que identifique o fluxo ou a equipe."
+    >
+      <input
+        id="board-name"
+        type="text"
+        maxlength="120"
+        autocomplete="off"
+        [formControl]="name"
+        [attr.aria-describedby]="'board-name-message'"
+        [attr.aria-invalid]="fieldError() ? 'true' : null"
+      />
+    </dt-field>
+  }
+
+  @if (submitError()) {
+    <p class="submit-error" role="alert">{{ submitError() }}</p>
+  }
+
+  <div dtDialogActions>
+    <button dtButton variant="secondary" type="button" [disabled]="submitting()" (click)="close()">
+      Cancelar
+    </button>
+    <button
+      dtButton
+      [variant]="isArchive ? 'danger' : 'primary'"
+      type="button"
+      [loading]="submitting()"
+      (click)="submit()"
+    >
+      {{ isArchive ? 'Arquivar quadro' : data.mode === 'create' ? 'Criar quadro' : 'Salvar nome' }}
+    </button>
+  </div>
+</dt-dialog-frame>

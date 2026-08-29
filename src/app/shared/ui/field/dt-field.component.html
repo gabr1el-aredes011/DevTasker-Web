@@ -1,0 +1,25 @@
+<div class="dt-field__heading">
+  <label [for]="forId()">
+    {{ label() }}
+    @if (required()) {
+      <span aria-hidden="true">*</span>
+      <span class="dt-field__required">obrigatório</span>
+    }
+  </label>
+
+  @if (counter()) {
+    <span class="dt-field__counter" aria-hidden="true">{{ counter() }}</span>
+  }
+</div>
+
+<div class="dt-field__control" [class.dt-field__control--invalid]="error()">
+  <ng-content />
+</div>
+
+@if (error()) {
+  <p class="dt-field__message dt-field__message--error" [id]="messageId()" role="alert">
+    {{ error() }}
+  </p>
+} @else if (hint()) {
+  <p class="dt-field__message" [id]="messageId()">{{ hint() }}</p>
+}

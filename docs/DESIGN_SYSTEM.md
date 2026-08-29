@@ -41,6 +41,11 @@ Primeira sequência de consolidação:
 6. Skeleton para carregamentos estruturais.
 7. Toast para feedback global que pode sobreviver à navegação.
 
+Field e Dialog foram introduzidos na primeira fatia de Boards 2.0. Eles já
+possuem associação acessível, estados de erro, gerenciamento de foco e testes,
+mas permanecem em consolidação até substituírem pelo menos dois usos reais em
+features diferentes.
+
 Cards de projeto, métricas do Dashboard, colunas e tarefas Kanban permanecem
 componentes de suas features. Não haverá um componente-base abstrato para toda
 superfície do produto.

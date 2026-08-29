@@ -8,6 +8,7 @@ import {
   CreateProjectRequest,
   ProjectDetails,
   ProjectSummary,
+  SaveBoardRequest,
   UpdateProjectRequest,
 } from '../models/project.models';
 
@@ -44,5 +45,20 @@ export class ProjectService {
     return this.http.get<readonly BoardSummary[]>(
       `${environment.apiUrl}/projects/${projectId}/boards`,
     );
+  }
+
+  createBoard(projectId: number, request: SaveBoardRequest): Observable<BoardSummary> {
+    return this.http.post<BoardSummary>(
+      `${environment.apiUrl}/projects/${projectId}/boards`,
+      request,
+    );
+  }
+
+  updateBoard(boardId: number, request: SaveBoardRequest): Observable<BoardSummary> {
+    return this.http.put<BoardSummary>(`${environment.apiUrl}/boards/${boardId}`, request);
+  }
+
+  archiveBoard(boardId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/boards/${boardId}`);
   }
 }

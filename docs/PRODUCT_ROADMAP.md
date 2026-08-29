@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 20 de agosto de 2026.
+Última atualização: 29 de agosto de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -55,8 +55,8 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Primitive de botão com variantes, tamanhos, loading e bloqueio acessível
 - ✅ Badge semântico reutilizável
 - ✅ Estados reutilizáveis de carregamento, vazio e erro
-- 🧭 Field com label, hint, erro e associação ARIA
-- 🧭 Dialog/Drawer com gerenciamento de foco pelo Angular CDK
+- 🚧 Field com label, hint, erro e associação ARIA, introduzido em Boards 2.0
+- 🚧 Dialog com gerenciamento de foco pelo Angular CDK, introduzido em Boards 2.0
 - 🧭 Skeleton e Toast
 
 ### Projetos
@@ -75,7 +75,11 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 
 - ✅ Listagem
 - ✅ Navegação Projeto → Boards
-- 🧭 Administração completa
+- ✅ Criação com fluxo padrão de cinco colunas
+- ✅ Renomeação e arquivamento lógico
+- ✅ Permissões de gestão para `OWNER` e `ADMIN`
+- ✅ Exclusão de quadros arquivados do Projeto, Kanban e Dashboard
+- 🚧 Administração completa
 
 ### Kanban
 
@@ -131,10 +135,10 @@ Critérios de aceite:
 
 ### Boards 2.0
 
-- 🧭 Criar, editar e arquivar boards
+- ✅ Criar, editar e arquivar boards
 - 🧭 Escolher board padrão
-- 🧭 Cards e permissões
-- 🧭 Base para customizações futuras
+- ✅ Cards e permissões
+- ✅ Base para customizações futuras
 
 ### Tasks 2.0
 

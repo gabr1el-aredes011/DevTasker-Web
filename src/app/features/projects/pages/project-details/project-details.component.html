@@ -151,11 +151,25 @@
             <h2>Quadros do projeto</h2>
             <p>Escolha um quadro para continuar o trabalho no Kanban.</p>
           </div>
-          @if (boardsLoadError()) {
-            <span role="status">Contagem indisponível</span>
-          } @else {
-            <span role="status">{{ boards().length }} disponíveis</span>
-          }
+          <div class="boards-header__actions">
+            @if (boardsLoadError()) {
+              <span role="status">Contagem indisponível</span>
+            } @else {
+              <span role="status">{{ boards().length }} disponíveis</span>
+            }
+            @if (canManageBoards()) {
+              <button
+                dtButton
+                variant="primary"
+                size="sm"
+                type="button"
+                (click)="openCreateBoardDialog()"
+              >
+                <span aria-hidden="true">+</span>
+                Novo quadro
+              </button>
+            }
+          </div>
         </header>
 
         @if (boardsLoadError()) {
@@ -188,17 +202,39 @@
                 </header>
                 <h3 [id]="'board-title-' + board.id">{{ board.name }}</h3>
                 <p>Quadro vinculado ao projeto #{{ board.projectId }}.</p>
-                <a
-                  dtButton
-                  variant="ghost"
-                  size="sm"
-                  routerLink="/app/kanban"
-                  [queryParams]="boardQueryParams(board)"
-                  [attr.aria-label]="'Abrir o quadro ' + board.name + ' no Kanban'"
-                >
-                  Abrir quadro
-                  <span aria-hidden="true">→</span>
-                </a>
+                <footer class="board-card__actions">
+                  <a
+                    dtButton
+                    variant="ghost"
+                    size="sm"
+                    routerLink="/app/kanban"
+                    [queryParams]="boardQueryParams(board)"
+                    [attr.aria-label]="'Abrir o quadro ' + board.name + ' no Kanban'"
+                  >
+                    Abrir quadro
+                    <span aria-hidden="true">→</span>
+                  </a>
+                  @if (canManageBoards()) {
+                    <button
+                      dtButton
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      (click)="openEditBoardDialog(board)"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      dtButton
+                      variant="danger"
+                      size="sm"
+                      type="button"
+                      (click)="openArchiveBoardDialog(board)"
+                    >
+                      Arquivar
+                    </button>
+                  }
+                </footer>
               </article>
             }
           </div>
