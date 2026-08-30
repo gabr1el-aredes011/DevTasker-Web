@@ -645,7 +645,13 @@
                 <header class="board-card__header">
                   <span class="board-icon" aria-hidden="true"> ▦ </span>
 
-                  <span class="project-id"> #{{ board.id }} </span>
+                  <span class="board-card__meta">
+                    @if (board.defaultBoard) {
+                      <span class="board-default">Padrão</span>
+                    }
+
+                    <span class="project-id"> #{{ board.id }} </span>
+                  </span>
                 </header>
 
                 <h3>{{ board.name }}</h3>

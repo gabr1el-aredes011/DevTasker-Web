@@ -278,6 +278,19 @@
   margin-top: var(--dt-space-6);
 }
 
+.board-action-message {
+  margin: var(--dt-space-4) 0 0;
+  font-size: var(--dt-text-sm);
+}
+
+.board-action-message--success {
+  color: var(--dt-color-success);
+}
+
+.board-action-message--error {
+  color: var(--dt-color-danger);
+}
+
 .board-card {
   display: flex;
   min-width: 0;
@@ -343,6 +356,12 @@
   color: var(--dt-color-text-disabled);
   font-family: var(--dt-font-mono);
   font-size: var(--dt-text-xs);
+}
+
+.board-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--dt-space-2);
 }
 
 .boards-feedback {

@@ -55,6 +55,10 @@ export class BoardManagementDialogComponent {
       return 'Atualize o nome sem alterar as colunas e tarefas existentes.';
     }
 
+    if (this.data.board.defaultBoard) {
+      return 'O quadro deixará de aparecer sem apagar seus dados, e outro quadro ativo será definido como padrão.';
+    }
+
     return 'O quadro deixará de aparecer no projeto e no Dashboard, sem apagar seus dados.';
   });
 

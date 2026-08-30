@@ -26,6 +26,7 @@ describe('ProjectService', () => {
     id: 11,
     projectId: 7,
     name: 'Desenvolvimento',
+    defaultBoard: true,
   };
 
   let service: ProjectService;
@@ -133,5 +134,16 @@ describe('ProjectService', () => {
     const request = http.expectOne(`${environment.apiUrl}/boards/11`);
     expect(request.request.method).toBe('DELETE');
     request.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('should set a board as the project default', () => {
+    service.setDefaultBoard(11).subscribe((result) => {
+      expect(result.defaultBoard).toBe(true);
+    });
+
+    const request = http.expectOne(`${environment.apiUrl}/boards/11/default`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toBeNull();
+    request.flush(board);
   });
 });

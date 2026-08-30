@@ -61,4 +61,8 @@ export class ProjectService {
   archiveBoard(boardId: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/boards/${boardId}`);
   }
+
+  setDefaultBoard(boardId: number): Observable<BoardSummary> {
+    return this.http.put<BoardSummary>(`${environment.apiUrl}/boards/${boardId}/default`, null);
+  }
 }

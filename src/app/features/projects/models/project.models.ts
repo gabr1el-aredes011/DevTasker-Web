@@ -28,6 +28,7 @@ export interface BoardSummary {
   readonly id: number;
   readonly projectId: number;
   readonly name: string;
+  readonly defaultBoard: boolean;
 }
 
 export interface SaveBoardRequest {
