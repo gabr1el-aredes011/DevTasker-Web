@@ -76,9 +76,7 @@ export class LoginComponent {
       )
       .subscribe({
         next: () => {
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/kanban';
-
-          void this.router.navigateByUrl(returnUrl);
+          void this.router.navigateByUrl(this.resolveAuthenticatedDestination());
         },
 
         error: (error: unknown) => {
@@ -93,6 +91,18 @@ export class LoginComponent {
           this.apiError.set(this.extractErrorMessage(error));
         },
       });
+  }
+
+  private resolveAuthenticatedDestination(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim();
+    const isInternalAppDestination =
+      returnUrl === '/app' || returnUrl?.startsWith('/app/') || returnUrl?.startsWith('/app?');
+
+    if (isInternalAppDestination && returnUrl) {
+      return returnUrl;
+    }
+
+    return '/app/dashboard';
   }
 
   goToEmailVerification(): void {
