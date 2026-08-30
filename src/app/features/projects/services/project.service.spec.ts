@@ -3,7 +3,12 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../../../../environments/environment';
-import { BoardSummary, ProjectDetails, ProjectSummary } from '../models/project.models';
+import {
+  BoardSummary,
+  ProjectDetails,
+  ProjectMemberSummary,
+  ProjectSummary,
+} from '../models/project.models';
 import { ProjectService } from './project.service';
 
 describe('ProjectService', () => {
@@ -27,6 +32,17 @@ describe('ProjectService', () => {
     projectId: 7,
     name: 'Desenvolvimento',
     defaultBoard: true,
+  };
+
+  const member: ProjectMemberSummary = {
+    id: 15,
+    userId: 3,
+    name: 'Dev User',
+    email: 'dev@example.com',
+    profileImageUrl: null,
+    role: 'OWNER',
+    joinedAt: '2026-08-20T12:00:00Z',
+    currentUser: true,
   };
 
   let service: ProjectService;
@@ -77,6 +93,14 @@ describe('ProjectService', () => {
     const request = http.expectOne(`${environment.apiUrl}/projects/7/boards`);
     expect(request.request.method).toBe('GET');
     request.flush([board]);
+  });
+
+  it('should list the members that belong to a project', () => {
+    service.findMembersByProjectId(7).subscribe((members) => expect(members).toEqual([member]));
+
+    const request = http.expectOne(`${environment.apiUrl}/projects/7/members`);
+    expect(request.request.method).toBe('GET');
+    request.flush([member]);
   });
 
   it('should create a project with a nullable description', () => {

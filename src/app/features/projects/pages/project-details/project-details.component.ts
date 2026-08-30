@@ -37,11 +37,15 @@ import {
   BoardManagementDialogData,
   BoardManagementDialogResult,
 } from '../../components/board-management-dialog/board-management-dialog.component';
-import { BoardSummary, ProjectDetails as ProjectDetailsModel } from '../../models/project.models';
+import {
+  BoardSummary,
+  ProjectDetails as ProjectDetailsModel,
+  ProjectMemberSummary,
+} from '../../models/project.models';
 import { projectRoleLabel, projectRoleTone } from '../../presentation/project-role.presentation';
 import { ProjectService } from '../../services/project.service';
 
-type ProjectDetailsTab = 'overview' | 'boards';
+type ProjectDetailsTab = 'overview' | 'boards' | 'members';
 
 @Component({
   selector: 'app-project-details',
@@ -63,6 +67,8 @@ export class ProjectDetailsComponent implements OnInit {
   readonly project = signal<ProjectDetailsModel | null>(null);
   readonly boards = signal<readonly BoardSummary[]>([]);
   readonly boardsLoadError = signal<string | null>(null);
+  readonly members = signal<readonly ProjectMemberSummary[]>([]);
+  readonly membersLoadError = signal<string | null>(null);
   readonly settingDefaultBoardId = signal<number | null>(null);
   readonly boardActionError = signal<string | null>(null);
   readonly boardActionSuccess = signal<string | null>(null);
@@ -79,6 +85,7 @@ export class ProjectDetailsComponent implements OnInit {
   readonly tabs: readonly { readonly id: ProjectDetailsTab; readonly label: string }[] = [
     { id: 'overview', label: 'Visão geral' },
     { id: 'boards', label: 'Quadros' },
+    { id: 'members', label: 'Membros' },
   ];
 
   ngOnInit(): void {
@@ -96,9 +103,10 @@ export class ProjectDetailsComponent implements OnInit {
         switchMap((projectId) => this.loadProject(projectId)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ project, boards }) => {
+      .subscribe(({ project, boards, members }) => {
         this.project.set(project);
         this.boards.set(boards);
+        this.members.set(members);
       });
   }
 
@@ -142,6 +150,15 @@ export class ProjectDetailsComponent implements OnInit {
       projectId: board.projectId,
       boardId: board.id,
     };
+  }
+
+  memberInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+
+    return parts
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
   }
 
   openCreateBoardDialog(): void {
@@ -293,6 +310,8 @@ export class ProjectDetailsComponent implements OnInit {
     this.project.set(null);
     this.boards.set([]);
     this.boardsLoadError.set(null);
+    this.members.set([]);
+    this.membersLoadError.set(null);
     this.boardActionError.set(null);
     this.boardActionSuccess.set(null);
     this.loadError.set(null);
@@ -313,6 +332,14 @@ export class ProjectDetailsComponent implements OnInit {
             this.extractErrorMessage(error, 'Não foi possível carregar os quadros do projeto.'),
           );
           return of([] as readonly BoardSummary[]);
+        }),
+      ),
+      members: this.projectService.findMembersByProjectId(projectId).pipe(
+        catchError((error: unknown) => {
+          this.membersLoadError.set(
+            this.extractErrorMessage(error, 'Não foi possível carregar os membros do projeto.'),
+          );
+          return of([] as readonly ProjectMemberSummary[]);
         }),
       ),
     }).pipe(
@@ -336,7 +363,7 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   private parseTab(rawTab: string | null): ProjectDetailsTab {
-    return rawTab === 'boards' ? 'boards' : 'overview';
+    return rawTab === 'boards' || rawTab === 'members' ? rawTab : 'overview';
   }
 
   private writeTabToUrl(tab: ProjectDetailsTab, replaceUrl = false): Promise<boolean> {

@@ -80,6 +80,12 @@
               >
                 {{ boardsLoadError() ? '—' : boards().length }}
               </span>
+            } @else if (tab.id === 'members') {
+              <span
+                [attr.aria-label]="membersLoadError() ? 'Contagem de membros indisponível' : null"
+              >
+                {{ membersLoadError() ? '—' : members().length }}
+              </span>
             }
           </button>
         }
@@ -264,6 +270,91 @@
                     </button>
                   }
                 </footer>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <section
+        id="project-panel-members"
+        class="tab-panel"
+        role="tabpanel"
+        aria-labelledby="project-tab-members"
+        tabindex="0"
+        [hidden]="activeTab() !== 'members'"
+      >
+        <header class="members-header">
+          <div>
+            <p class="details-eyebrow">COLABORAÇÃO</p>
+            <h2>Pessoas do projeto</h2>
+            <p>Conheça quem participa deste workspace e o nível de acesso de cada pessoa.</p>
+          </div>
+          @if (membersLoadError()) {
+            <span role="status">Contagem indisponível</span>
+          } @else {
+            <span role="status">
+              {{ members().length }} {{ members().length === 1 ? 'integrante' : 'integrantes' }}
+            </span>
+          }
+        </header>
+
+        @if (membersLoadError()) {
+          <dt-feedback-state
+            class="members-feedback"
+            state="error"
+            title="Os membros não puderam ser carregados"
+            [description]="membersLoadError()"
+            [headingLevel]="3"
+          >
+            <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="retry()">
+              Tentar novamente
+            </button>
+          </dt-feedback-state>
+        } @else if (members().length === 0) {
+          <dt-feedback-state
+            class="members-feedback"
+            state="empty"
+            title="Nenhum membro disponível"
+            description="As pessoas que participarem deste projeto aparecerão nesta seção."
+            [headingLevel]="3"
+          />
+        } @else {
+          <div class="members-list" role="list" aria-label="Membros do projeto">
+            @for (member of members(); track member.id) {
+              <article
+                class="member-card"
+                role="listitem"
+                [attr.aria-labelledby]="'member-name-' + member.id"
+              >
+                <span class="member-avatar" aria-hidden="true">
+                  {{ memberInitials(member.name) }}
+                </span>
+
+                <div class="member-identity">
+                  <div>
+                    <h3 [id]="'member-name-' + member.id">{{ member.name }}</h3>
+                    @if (member.currentUser) {
+                      <dt-badge tone="brand">Você</dt-badge>
+                    }
+                  </div>
+                  <p>{{ member.email }}</p>
+                </div>
+
+                <dl class="member-metadata">
+                  <div>
+                    <dt>Função</dt>
+                    <dd>
+                      <dt-badge [tone]="projectRoleTone(member.role)">
+                        {{ projectRoleLabel(member.role) }}
+                      </dt-badge>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Participa desde</dt>
+                    <dd>{{ member.joinedAt | date: 'dd/MM/yyyy' }}</dd>
+                  </div>
+                </dl>
               </article>
             }
           </div>

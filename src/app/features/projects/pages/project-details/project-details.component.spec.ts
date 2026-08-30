@@ -5,7 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of, throwError } from 'rxjs';
 
-import { BoardSummary, ProjectDetails } from '../../models/project.models';
+import { BoardSummary, ProjectDetails, ProjectMemberSummary } from '../../models/project.models';
 import { ProjectService } from '../../services/project.service';
 import { ProjectDetailsComponent } from './project-details.component';
 
@@ -26,9 +26,33 @@ describe('ProjectDetailsComponent', () => {
     { id: 8, projectId: 42, name: 'Descoberta', defaultBoard: false },
   ];
 
+  const members: readonly ProjectMemberSummary[] = [
+    {
+      id: 21,
+      userId: 7,
+      name: 'Gabriel Silva',
+      email: 'gabriel@example.com',
+      profileImageUrl: null,
+      role: 'ADMIN',
+      joinedAt: '2026-08-18T10:00:00Z',
+      currentUser: true,
+    },
+    {
+      id: 22,
+      userId: 8,
+      name: 'Bianca Costa',
+      email: 'bianca@example.com',
+      profileImageUrl: null,
+      role: 'MEMBER',
+      joinedAt: '2026-08-19T10:00:00Z',
+      currentUser: false,
+    },
+  ];
+
   const projectService = {
     findById: vi.fn(),
     findBoardsByProjectId: vi.fn(),
+    findMembersByProjectId: vi.fn(),
     createBoard: vi.fn(),
     updateBoard: vi.fn(),
     archiveBoard: vi.fn(),
@@ -43,6 +67,7 @@ describe('ProjectDetailsComponent', () => {
     vi.clearAllMocks();
     projectService.findById.mockReturnValue(of(project));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+    projectService.findMembersByProjectId.mockReturnValue(of(members));
     dialog.open.mockReturnValue({ closed: of(undefined) });
 
     await TestBed.configureTestingModule({
@@ -65,12 +90,25 @@ describe('ProjectDetailsComponent', () => {
 
     expect(projectService.findById).toHaveBeenCalledWith(42);
     expect(projectService.findBoardsByProjectId).toHaveBeenCalledWith(42);
+    expect(projectService.findMembersByProjectId).toHaveBeenCalledWith(42);
     expect(component.project()).toEqual(project);
     expect(component.boards()).toEqual(boards);
     expect(element.querySelector('h1')?.textContent).toContain('DevTasker Web');
     expect(element.querySelector('dt-badge')?.textContent).toContain('Administrador');
     expect(element.querySelector('dt-badge')?.getAttribute('data-tone')).toBe('info');
     expect(element.querySelector('.owner-profile')?.textContent).toContain('Gabriel Silva');
+  });
+
+  it('should preserve a members deep link and render the project directory', async () => {
+    const { component, element } = await renderPage('/app/projetos/42?tab=members');
+
+    expect(component.activeTab()).toBe('members');
+    expect(component.members()).toEqual(members);
+    expect((element.querySelector('#project-panel-members') as HTMLElement).hidden).toBe(false);
+    expect((element.querySelector('#project-panel-overview') as HTMLElement).hidden).toBe(true);
+    expect(element.querySelector('.members-list')?.textContent).toContain('Gabriel Silva');
+    expect(element.querySelector('.members-list')?.textContent).toContain('gabriel@example.com');
+    expect(element.querySelector('.members-list')?.textContent).toContain('Você');
   });
 
   it('should preserve a boards deep link and build Kanban links with projectId and boardId', async () => {
@@ -220,11 +258,33 @@ describe('ProjectDetailsComponent', () => {
     expect(component.project()).toEqual(project);
   });
 
+  it('should preserve project details when members fail', async () => {
+    projectService.findMembersByProjectId.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 503,
+            error: { message: 'Diretório temporariamente indisponível.' },
+          }),
+      ),
+    );
+
+    const { component, element } = await renderPage('/app/projetos/42?tab=members');
+
+    expect(component.loadError()).toBeNull();
+    expect(component.membersLoadError()).toBe('Diretório temporariamente indisponível.');
+    expect(component.project()).toEqual(project);
+    expect(
+      element.querySelector('#project-panel-members dt-feedback-state[data-state="error"]'),
+    ).toBeTruthy();
+  });
+
   it('should reject an invalid projectId without calling the API', async () => {
     const { component, element } = await renderPage('/app/projetos/not-a-number');
 
     expect(projectService.findById).not.toHaveBeenCalled();
     expect(projectService.findBoardsByProjectId).not.toHaveBeenCalled();
+    expect(projectService.findMembersByProjectId).not.toHaveBeenCalled();
     expect(component.loadError()).toContain('identificador');
     expect(element.querySelector('dt-feedback-state[data-state="error"]')).toBeTruthy();
   });

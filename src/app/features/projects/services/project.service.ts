@@ -7,6 +7,7 @@ import {
   BoardSummary,
   CreateProjectRequest,
   ProjectDetails,
+  ProjectMemberSummary,
   ProjectSummary,
   SaveBoardRequest,
   UpdateProjectRequest,
@@ -44,6 +45,12 @@ export class ProjectService {
   findBoardsByProjectId(projectId: number): Observable<readonly BoardSummary[]> {
     return this.http.get<readonly BoardSummary[]>(
       `${environment.apiUrl}/projects/${projectId}/boards`,
+    );
+  }
+
+  findMembersByProjectId(projectId: number): Observable<readonly ProjectMemberSummary[]> {
+    return this.http.get<readonly ProjectMemberSummary[]>(
+      `${environment.apiUrl}/projects/${projectId}/members`,
     );
   }
 
