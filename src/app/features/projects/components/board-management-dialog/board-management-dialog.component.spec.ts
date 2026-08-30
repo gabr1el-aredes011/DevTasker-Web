@@ -10,7 +10,7 @@ import {
 } from './board-management-dialog.component';
 
 describe('BoardManagementDialogComponent', () => {
-  const board = { id: 11, projectId: 7, name: 'Roadmap' };
+  const board = { id: 11, projectId: 7, name: 'Roadmap', defaultBoard: true };
   const projectService = {
     createBoard: vi.fn(),
     updateBoard: vi.fn(),

@@ -22,8 +22,8 @@ describe('ProjectDetailsComponent', () => {
   };
 
   const boards: readonly BoardSummary[] = [
-    { id: 5, projectId: 42, name: 'Quadro Principal' },
-    { id: 8, projectId: 42, name: 'Descoberta' },
+    { id: 5, projectId: 42, name: 'Quadro Principal', defaultBoard: true },
+    { id: 8, projectId: 42, name: 'Descoberta', defaultBoard: false },
   ];
 
   const projectService = {
@@ -32,6 +32,7 @@ describe('ProjectDetailsComponent', () => {
     createBoard: vi.fn(),
     updateBoard: vi.fn(),
     archiveBoard: vi.fn(),
+    setDefaultBoard: vi.fn(),
   };
 
   const dialog = {
@@ -98,7 +99,12 @@ describe('ProjectDetailsComponent', () => {
   });
 
   it('should open board creation for managers and apply the returned board locally', async () => {
-    const createdBoard: BoardSummary = { id: 13, projectId: 42, name: 'Entrega' };
+    const createdBoard: BoardSummary = {
+      id: 13,
+      projectId: 42,
+      name: 'Entrega',
+      defaultBoard: false,
+    };
     dialog.open.mockReturnValueOnce({
       closed: of({ action: 'created', board: createdBoard }),
     });
@@ -116,6 +122,21 @@ describe('ProjectDetailsComponent', () => {
       }),
     );
     expect(component.boards()).toEqual([...boards, createdBoard]);
+  });
+
+  it('should set a managed board as the project default', async () => {
+    projectService.setDefaultBoard.mockReturnValue(of({ ...boards[1], defaultBoard: true }));
+
+    const { component } = await renderPage('/app/projetos/42?tab=boards');
+
+    component.setDefaultBoard(boards[1]);
+
+    expect(projectService.setDefaultBoard).toHaveBeenCalledWith(8);
+    expect(component.boards()).toEqual([
+      { ...boards[1], defaultBoard: true },
+      { ...boards[0], defaultBoard: false },
+    ]);
+    expect(component.boardActionSuccess()).toContain('Descoberta');
   });
 
   it('should hide board management actions from viewers', async () => {

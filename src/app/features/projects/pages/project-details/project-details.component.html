@@ -172,6 +172,17 @@
           </div>
         </header>
 
+        @if (boardActionSuccess()) {
+          <p class="board-action-message board-action-message--success" role="status">
+            {{ boardActionSuccess() }}
+          </p>
+        }
+        @if (boardActionError()) {
+          <p class="board-action-message board-action-message--error" role="alert">
+            {{ boardActionError() }}
+          </p>
+        }
+
         @if (boardsLoadError()) {
           <dt-feedback-state
             class="boards-feedback"
@@ -198,7 +209,12 @@
               <article class="board-card" [attr.aria-labelledby]="'board-title-' + board.id">
                 <header>
                   <span class="board-card__icon" aria-hidden="true">▦</span>
-                  <span class="board-card__id">BOARD / #{{ board.id }}</span>
+                  <div class="board-card__meta">
+                    @if (board.defaultBoard) {
+                      <dt-badge tone="brand">Padrão</dt-badge>
+                    }
+                    <span class="board-card__id">BOARD / #{{ board.id }}</span>
+                  </div>
                 </header>
                 <h3 [id]="'board-title-' + board.id">{{ board.name }}</h3>
                 <p>Quadro vinculado ao projeto #{{ board.projectId }}.</p>
@@ -215,6 +231,19 @@
                     <span aria-hidden="true">→</span>
                   </a>
                   @if (canManageBoards()) {
+                    @if (!board.defaultBoard) {
+                      <button
+                        dtButton
+                        variant="secondary"
+                        size="sm"
+                        type="button"
+                        [loading]="settingDefaultBoardId() === board.id"
+                        [disabled]="settingDefaultBoardId() !== null"
+                        (click)="setDefaultBoard(board)"
+                      >
+                        Tornar padrão
+                      </button>
+                    }
                     <button
                       dtButton
                       variant="secondary"

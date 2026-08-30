@@ -63,6 +63,9 @@ export class ProjectDetailsComponent implements OnInit {
   readonly project = signal<ProjectDetailsModel | null>(null);
   readonly boards = signal<readonly BoardSummary[]>([]);
   readonly boardsLoadError = signal<string | null>(null);
+  readonly settingDefaultBoardId = signal<number | null>(null);
+  readonly boardActionError = signal<string | null>(null);
+  readonly boardActionSuccess = signal<string | null>(null);
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
   readonly activeTab = signal<ProjectDetailsTab>('overview');
@@ -167,6 +170,38 @@ export class ProjectDetailsComponent implements OnInit {
     this.openBoardDialog({ mode: 'archive', projectId: board.projectId, board });
   }
 
+  setDefaultBoard(board: BoardSummary): void {
+    if (!this.canManageBoards() || board.defaultBoard || this.settingDefaultBoardId() !== null) {
+      return;
+    }
+
+    this.settingDefaultBoardId.set(board.id);
+    this.boardActionError.set(null);
+    this.boardActionSuccess.set(null);
+
+    this.projectService
+      .setDefaultBoard(board.id)
+      .pipe(finalize(() => this.settingDefaultBoardId.set(null)))
+      .subscribe({
+        next: (defaultBoard) => {
+          this.boards.update((boards) =>
+            this.sortBoards(
+              boards.map((currentBoard) => ({
+                ...currentBoard,
+                defaultBoard: currentBoard.id === defaultBoard.id,
+              })),
+            ),
+          );
+          this.boardActionSuccess.set(`${defaultBoard.name} agora é o quadro padrão do projeto.`);
+        },
+        error: (error: unknown) => {
+          this.boardActionError.set(
+            this.extractErrorMessage(error, 'Não foi possível definir o quadro padrão.'),
+          );
+        },
+      });
+  }
+
   private observeTab(): void {
     this.route.queryParamMap
       .pipe(
@@ -185,6 +220,9 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   private openBoardDialog(data: BoardManagementDialogData): void {
+    this.boardActionError.set(null);
+    this.boardActionSuccess.set(null);
+
     this.dialog
       .open<BoardManagementDialogResult>(BoardManagementDialogComponent, {
         data,
@@ -199,7 +237,23 @@ export class ProjectDetailsComponent implements OnInit {
         }
 
         if (result.action === 'archived') {
-          this.boards.update((boards) => boards.filter((board) => board.id !== result.boardId));
+          this.boards.update((boards) => {
+            const archivedBoard = boards.find((board) => board.id === result.boardId);
+            const remainingBoards = boards.filter((board) => board.id !== result.boardId);
+
+            if (archivedBoard?.defaultBoard && remainingBoards.length > 0) {
+              const fallbackId = Math.min(...remainingBoards.map((board) => board.id));
+
+              return this.sortBoards(
+                remainingBoards.map((board) => ({
+                  ...board,
+                  defaultBoard: board.id === fallbackId,
+                })),
+              );
+            }
+
+            return this.sortBoards(remainingBoards);
+          });
           return;
         }
 
@@ -209,9 +263,19 @@ export class ProjectDetailsComponent implements OnInit {
               ? [...boards, result.board]
               : boards.map((board) => (board.id === result.board.id ? result.board : board));
 
-          return [...nextBoards].sort((left, right) => left.id - right.id);
+          return this.sortBoards(nextBoards);
         });
       });
+  }
+
+  private sortBoards(boards: readonly BoardSummary[]): readonly BoardSummary[] {
+    return [...boards].sort((left, right) => {
+      if (left.defaultBoard !== right.defaultBoard) {
+        return left.defaultBoard ? -1 : 1;
+      }
+
+      return left.id - right.id;
+    });
   }
 
   private boardDialogLabel(data: BoardManagementDialogData): string {
@@ -229,6 +293,8 @@ export class ProjectDetailsComponent implements OnInit {
     this.project.set(null);
     this.boards.set([]);
     this.boardsLoadError.set(null);
+    this.boardActionError.set(null);
+    this.boardActionSuccess.set(null);
     this.loadError.set(null);
 
     if (projectId === null) {

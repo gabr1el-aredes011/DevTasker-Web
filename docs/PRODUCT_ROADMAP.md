@@ -136,7 +136,7 @@ Critérios de aceite:
 ### Boards 2.0
 
 - ✅ Criar, editar e arquivar boards
-- 🧭 Escolher board padrão
+- ✅ Escolher board padrão com abertura automática no Kanban
 - ✅ Cards e permissões
 - ✅ Base para customizações futuras
 

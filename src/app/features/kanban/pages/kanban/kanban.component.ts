@@ -783,11 +783,24 @@ export class KanbanComponent implements OnInit {
         next: (boards) => {
           this.boards.set(boards);
 
-          /*
-           * Se não existe boardId na URL,
-           * paramos aqui normalmente.
-           */
           if (requestedBoardId === null) {
+            const defaultBoard =
+              boards.find((currentBoard) => currentBoard.defaultBoard) ?? boards[0];
+
+            if (!defaultBoard) {
+              return;
+            }
+
+            this.selectedBoard.set(defaultBoard);
+
+            this.updateNavigationState({
+              projectId,
+              boardId: defaultBoard.id,
+              taskId: null,
+            });
+
+            this.loadKanban(defaultBoard.id, requestedTaskId);
+
             return;
           }
 
