@@ -1,3 +1,4 @@
+import { Dialog } from '@angular/cdk/dialog';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -5,6 +6,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -30,6 +32,11 @@ import {
   DtButtonDirective,
   DtFeedbackStateComponent,
 } from '../../../../shared/ui';
+import {
+  BoardManagementDialogComponent,
+  BoardManagementDialogData,
+  BoardManagementDialogResult,
+} from '../../components/board-management-dialog/board-management-dialog.component';
 import { BoardSummary, ProjectDetails as ProjectDetailsModel } from '../../models/project.models';
 import { projectRoleLabel, projectRoleTone } from '../../presentation/project-role.presentation';
 import { ProjectService } from '../../services/project.service';
@@ -48,6 +55,7 @@ export class ProjectDetailsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
+  private readonly dialog = inject(Dialog);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reload = new Subject<void>();
 
@@ -60,6 +68,10 @@ export class ProjectDetailsComponent implements OnInit {
   readonly activeTab = signal<ProjectDetailsTab>('overview');
   readonly projectRoleLabel = projectRoleLabel;
   readonly projectRoleTone = projectRoleTone;
+  readonly canManageBoards = computed(() => {
+    const role = this.project()?.membershipRole;
+    return role === 'OWNER' || role === 'ADMIN';
+  });
 
   readonly tabs: readonly { readonly id: ProjectDetailsTab; readonly label: string }[] = [
     { id: 'overview', label: 'Visão geral' },
@@ -129,6 +141,32 @@ export class ProjectDetailsComponent implements OnInit {
     };
   }
 
+  openCreateBoardDialog(): void {
+    const projectId = this.projectId();
+
+    if (projectId === null || !this.canManageBoards()) {
+      return;
+    }
+
+    this.openBoardDialog({ mode: 'create', projectId });
+  }
+
+  openEditBoardDialog(board: BoardSummary): void {
+    if (!this.canManageBoards()) {
+      return;
+    }
+
+    this.openBoardDialog({ mode: 'edit', projectId: board.projectId, board });
+  }
+
+  openArchiveBoardDialog(board: BoardSummary): void {
+    if (!this.canManageBoards()) {
+      return;
+    }
+
+    this.openBoardDialog({ mode: 'archive', projectId: board.projectId, board });
+  }
+
   private observeTab(): void {
     this.route.queryParamMap
       .pipe(
@@ -144,6 +182,46 @@ export class ProjectDetailsComponent implements OnInit {
           void this.writeTabToUrl(tab, true);
         }
       });
+  }
+
+  private openBoardDialog(data: BoardManagementDialogData): void {
+    this.dialog
+      .open<BoardManagementDialogResult>(BoardManagementDialogComponent, {
+        data,
+        ariaLabel: this.boardDialogLabel(data),
+        panelClass: 'dt-dialog-panel',
+        backdropClass: 'dt-dialog-backdrop',
+      })
+      .closed.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+
+        if (result.action === 'archived') {
+          this.boards.update((boards) => boards.filter((board) => board.id !== result.boardId));
+          return;
+        }
+
+        this.boards.update((boards) => {
+          const nextBoards =
+            result.action === 'created'
+              ? [...boards, result.board]
+              : boards.map((board) => (board.id === result.board.id ? result.board : board));
+
+          return [...nextBoards].sort((left, right) => left.id - right.id);
+        });
+      });
+  }
+
+  private boardDialogLabel(data: BoardManagementDialogData): string {
+    if (data.mode === 'create') {
+      return 'Criar novo quadro';
+    }
+
+    return data.mode === 'edit'
+      ? `Renomear o quadro ${data.board.name}`
+      : `Arquivar o quadro ${data.board.name}`;
   }
 
   private loadProject(projectId: number | null) {

@@ -1,0 +1,25 @@
+<section class="dt-dialog" [attr.data-tone]="tone()">
+  <header class="dt-dialog__header">
+    <div>
+      @if (eyebrow()) {
+        <p>{{ eyebrow() }}</p>
+      }
+      <h2>{{ title() }}</h2>
+      @if (description()) {
+        <span>{{ description() }}</span>
+      }
+    </div>
+
+    <button type="button" class="dt-dialog__close" aria-label="Fechar" (click)="dismiss.emit()">
+      ×
+    </button>
+  </header>
+
+  <div class="dt-dialog__body">
+    <ng-content />
+  </div>
+
+  <footer class="dt-dialog__actions">
+    <ng-content select="[dtDialogActions]" />
+  </footer>
+</section>

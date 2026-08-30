@@ -1,4 +1,14 @@
 @use './app/shared/ui/button/dt-button';
+@import '@angular/cdk/overlay-prebuilt.css';
+
+.dt-dialog-backdrop {
+  background: var(--dt-color-overlay);
+  backdrop-filter: blur(8px);
+}
+
+.dt-dialog-panel {
+  max-width: calc(100vw - 1rem) !important;
+}
 
 /* =========================================================
    DEVTASKER DESIGN SYSTEM

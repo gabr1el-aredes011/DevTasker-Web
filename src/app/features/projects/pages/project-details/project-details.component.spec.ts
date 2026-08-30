@@ -1,3 +1,4 @@
+import { Dialog } from '@angular/cdk/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
@@ -28,12 +29,20 @@ describe('ProjectDetailsComponent', () => {
   const projectService = {
     findById: vi.fn(),
     findBoardsByProjectId: vi.fn(),
+    createBoard: vi.fn(),
+    updateBoard: vi.fn(),
+    archiveBoard: vi.fn(),
+  };
+
+  const dialog = {
+    open: vi.fn(),
   };
 
   beforeEach(async () => {
     vi.clearAllMocks();
     projectService.findById.mockReturnValue(of(project));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+    dialog.open.mockReturnValue({ closed: of(undefined) });
 
     await TestBed.configureTestingModule({
       imports: [ProjectDetailsComponent],
@@ -45,6 +54,7 @@ describe('ProjectDetailsComponent', () => {
           },
         ]),
         { provide: ProjectService, useValue: projectService },
+        { provide: Dialog, useValue: dialog },
       ],
     }).compileComponents();
   });
@@ -85,6 +95,39 @@ describe('ProjectDetailsComponent', () => {
 
     expect(emptyState).toBeTruthy();
     expect(emptyState.textContent).toContain('Nenhum quadro disponível');
+  });
+
+  it('should open board creation for managers and apply the returned board locally', async () => {
+    const createdBoard: BoardSummary = { id: 13, projectId: 42, name: 'Entrega' };
+    dialog.open.mockReturnValueOnce({
+      closed: of({ action: 'created', board: createdBoard }),
+    });
+
+    const { component } = await renderPage('/app/projetos/42?tab=boards');
+
+    component.openCreateBoardDialog();
+
+    expect(dialog.open).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        data: { mode: 'create', projectId: 42 },
+        panelClass: 'dt-dialog-panel',
+        backdropClass: 'dt-dialog-backdrop',
+      }),
+    );
+    expect(component.boards()).toEqual([...boards, createdBoard]);
+  });
+
+  it('should hide board management actions from viewers', async () => {
+    projectService.findById.mockReturnValue(of({ ...project, membershipRole: 'VIEWER' }));
+
+    const { component, element } = await renderPage('/app/projetos/42?tab=boards');
+
+    component.openCreateBoardDialog();
+
+    expect(component.canManageBoards()).toBe(false);
+    expect(dialog.open).not.toHaveBeenCalled();
+    expect(element.querySelector('.board-card__actions button')).toBeNull();
   });
 
   it('should update the tab query param and support keyboard tab navigation', async () => {

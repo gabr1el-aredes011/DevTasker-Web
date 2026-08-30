@@ -106,4 +106,32 @@ describe('ProjectService', () => {
     expect(request.request.method).toBe('DELETE');
     request.flush(null, { status: 204, statusText: 'No Content' });
   });
+
+  it('should create a board inside a project', () => {
+    service.createBoard(7, { name: 'Desenvolvimento' }).subscribe((result) => {
+      expect(result).toEqual(board);
+    });
+
+    const request = http.expectOne(`${environment.apiUrl}/projects/7/boards`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ name: 'Desenvolvimento' });
+    request.flush(board);
+  });
+
+  it('should rename a board using PUT', () => {
+    service.updateBoard(11, { name: 'Entrega' }).subscribe();
+
+    const request = http.expectOne(`${environment.apiUrl}/boards/11`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ name: 'Entrega' });
+    request.flush({ ...board, name: 'Entrega' });
+  });
+
+  it('should archive a board using DELETE', () => {
+    service.archiveBoard(11).subscribe();
+
+    const request = http.expectOne(`${environment.apiUrl}/boards/11`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });

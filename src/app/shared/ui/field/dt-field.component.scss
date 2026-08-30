@@ -1,0 +1,82 @@
+:host {
+  display: grid;
+  gap: var(--dt-space-2);
+}
+
+.dt-field__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dt-space-3);
+}
+
+label {
+  color: var(--dt-color-text-primary);
+  font-size: var(--dt-text-sm);
+  font-weight: var(--dt-weight-semibold);
+}
+
+label > span[aria-hidden='true'] {
+  color: var(--dt-color-danger);
+}
+
+.dt-field__required {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.dt-field__counter,
+.dt-field__message {
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+  font-size: var(--dt-text-xs);
+}
+
+.dt-field__message {
+  margin: 0;
+}
+
+.dt-field__message--error {
+  color: var(--dt-color-danger);
+}
+
+.dt-field__control {
+  display: grid;
+}
+
+:host ::ng-deep :is(input, textarea, select) {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid var(--dt-color-border-default);
+  border-radius: var(--dt-radius-md);
+  outline: none;
+  background: var(--dt-color-canvas-soft);
+  color: var(--dt-color-text-primary);
+  font: inherit;
+  transition:
+    border-color var(--dt-duration-fast) var(--dt-ease-standard),
+    box-shadow var(--dt-duration-fast) var(--dt-ease-standard);
+}
+
+:host ::ng-deep input {
+  padding: 0 var(--dt-space-4);
+}
+
+:host ::ng-deep textarea {
+  min-height: 7rem;
+  padding: var(--dt-space-3) var(--dt-space-4);
+  resize: vertical;
+}
+
+:host ::ng-deep :is(input, textarea, select):focus-visible {
+  border-color: var(--dt-color-brand-400);
+  box-shadow: var(--dt-shadow-focus);
+}
+
+.dt-field__control--invalid ::ng-deep :is(input, textarea, select) {
+  border-color: var(--dt-color-border-danger);
+}

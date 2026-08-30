@@ -29,3 +29,7 @@ export interface BoardSummary {
   readonly projectId: number;
   readonly name: string;
 }
+
+export interface SaveBoardRequest {
+  readonly name: string;
+}
