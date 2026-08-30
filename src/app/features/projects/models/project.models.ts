@@ -31,6 +31,17 @@ export interface BoardSummary {
   readonly defaultBoard: boolean;
 }
 
+export interface ProjectMemberSummary {
+  readonly id: number;
+  readonly userId: number;
+  readonly name: string;
+  readonly email: string;
+  readonly profileImageUrl: string | null;
+  readonly role: ProjectMembershipRole;
+  readonly joinedAt: string;
+  readonly currentUser: boolean;
+}
+
 export interface SaveBoardRequest {
   readonly name: string;
 }

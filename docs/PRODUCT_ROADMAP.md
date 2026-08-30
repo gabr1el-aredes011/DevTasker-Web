@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 29 de agosto de 2026.
+Última atualização: 30 de agosto de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -69,7 +69,8 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Navegação protegida de Projeto → Kanban
 - ✅ Página de detalhes com visão geral e quadros reais
 - ✅ Abas acessíveis e deep link do estado da página
-- 🚧 Filtros e gestão de membros
+- ✅ Diretório de membros com funções e identificação da conta atual
+- 🚧 Filtros, convites e gestão de membros
 
 ### Boards
 
@@ -124,7 +125,7 @@ Critérios de aceite:
 
 ### Entrega 2 — Membros e permissões
 
-- 🧭 Listar membros
+- ✅ Listar membros
 - 🧭 Convidar membro
 - 🧭 Alterar função entre `ADMIN`, `MEMBER` e `VIEWER`
 - 🧭 Remover membro
