@@ -1,0 +1,43 @@
+<section class="invitation-page">
+  @if (loading()) {
+    <dt-feedback-state
+      state="loading"
+      title="Validando convite"
+      description="Confirmando sua identidade e preparando o acesso ao projeto."
+      [headingLevel]="1"
+    />
+  } @else if (acceptance(); as result) {
+    <dt-feedback-state
+      state="empty"
+      title="Convite aceito com sucesso"
+      [description]="
+        'Agora você participa do projeto ' +
+        result.projectName +
+        '. Seu novo workspace já está disponível.'
+      "
+      [headingLevel]="1"
+    >
+      <a
+        dtButton
+        dtFeedbackAction
+        variant="primary"
+        [routerLink]="['/app/projetos', result.projectId]"
+        [queryParams]="{ tab: 'members' }"
+      >
+        Abrir projeto
+        <span aria-hidden="true">→</span>
+      </a>
+    </dt-feedback-state>
+  } @else {
+    <dt-feedback-state
+      state="error"
+      title="Não foi possível aceitar o convite"
+      [description]="error() || 'O convite não está disponível.'"
+      [headingLevel]="1"
+    >
+      <a dtButton dtFeedbackAction variant="secondary" routerLink="/app/dashboard"
+        >Ir para o Dashboard</a
+      >
+    </dt-feedback-state>
+  }
+</section>

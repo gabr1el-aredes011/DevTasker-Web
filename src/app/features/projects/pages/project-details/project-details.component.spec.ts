@@ -5,7 +5,12 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of, throwError } from 'rxjs';
 
-import { BoardSummary, ProjectDetails, ProjectMemberSummary } from '../../models/project.models';
+import {
+  BoardSummary,
+  ProjectDetails,
+  ProjectInvitationSummary,
+  ProjectMemberSummary,
+} from '../../models/project.models';
 import { ProjectService } from '../../services/project.service';
 import { ProjectDetailsComponent } from './project-details.component';
 
@@ -49,10 +54,22 @@ describe('ProjectDetailsComponent', () => {
     },
   ];
 
+  const invitations: readonly ProjectInvitationSummary[] = [
+    {
+      id: 31,
+      invitedEmail: 'carla@example.com',
+      role: 'VIEWER',
+      invitedByName: 'Gabriel Silva',
+      createdAt: '2026-08-20T10:00:00Z',
+      expiresAt: '2026-08-23T10:00:00Z',
+    },
+  ];
+
   const projectService = {
     findById: vi.fn(),
     findBoardsByProjectId: vi.fn(),
     findMembersByProjectId: vi.fn(),
+    findPendingInvitations: vi.fn(),
     createBoard: vi.fn(),
     updateBoard: vi.fn(),
     archiveBoard: vi.fn(),
@@ -68,6 +85,7 @@ describe('ProjectDetailsComponent', () => {
     projectService.findById.mockReturnValue(of(project));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
     projectService.findMembersByProjectId.mockReturnValue(of(members));
+    projectService.findPendingInvitations.mockReturnValue(of(invitations));
     dialog.open.mockReturnValue({ closed: of(undefined) });
 
     await TestBed.configureTestingModule({
@@ -91,6 +109,7 @@ describe('ProjectDetailsComponent', () => {
     expect(projectService.findById).toHaveBeenCalledWith(42);
     expect(projectService.findBoardsByProjectId).toHaveBeenCalledWith(42);
     expect(projectService.findMembersByProjectId).toHaveBeenCalledWith(42);
+    expect(projectService.findPendingInvitations).toHaveBeenCalledWith(42);
     expect(component.project()).toEqual(project);
     expect(component.boards()).toEqual(boards);
     expect(element.querySelector('h1')?.textContent).toContain('DevTasker Web');
@@ -109,6 +128,9 @@ describe('ProjectDetailsComponent', () => {
     expect(element.querySelector('.members-list')?.textContent).toContain('Gabriel Silva');
     expect(element.querySelector('.members-list')?.textContent).toContain('gabriel@example.com');
     expect(element.querySelector('.members-list')?.textContent).toContain('Você');
+    expect(element.querySelector('.pending-invitations')?.textContent).toContain(
+      'carla@example.com',
+    );
   });
 
   it('should preserve a boards deep link and build Kanban links with projectId and boardId', async () => {

@@ -1,0 +1,88 @@
+<dt-dialog-frame
+  eyebrow="COLABORAÇÃO"
+  [title]="title()"
+  [description]="description()"
+  [tone]="destructive() ? 'danger' : 'default'"
+  (dismiss)="close()"
+>
+  @if (data.mode === 'invite') {
+    <div class="collaboration-form">
+      <dt-field
+        label="E-mail da conta DevTasker"
+        forId="invitation-email"
+        [required]="true"
+        [error]="emailError()"
+        hint="A conta precisa existir e estar com o e-mail verificado."
+      >
+        <input
+          id="invitation-email"
+          type="email"
+          maxlength="255"
+          autocomplete="email"
+          [formControl]="form.controls.email"
+          [attr.aria-invalid]="emailError() ? 'true' : null"
+        />
+      </dt-field>
+
+      <dt-field label="Função inicial" forId="invitation-role" [required]="true">
+        <select id="invitation-role" [formControl]="form.controls.role">
+          @for (role of roles(); track role) {
+            <option [value]="role">{{ projectRoleLabel(role) }}</option>
+          }
+        </select>
+      </dt-field>
+    </div>
+  } @else if (data.mode === 'role') {
+    <div class="member-summary">
+      <span aria-hidden="true">{{ data.member.name.charAt(0).toUpperCase() }}</span>
+      <div>
+        <strong>{{ data.member.name }}</strong>
+        <p>{{ data.member.email }}</p>
+      </div>
+    </div>
+    <dt-field label="Nova função" forId="member-role" [required]="true">
+      <select id="member-role" [formControl]="form.controls.role">
+        @for (role of roles(); track role) {
+          <option [value]="role">{{ projectRoleLabel(role) }}</option>
+        }
+      </select>
+    </dt-field>
+  } @else if (data.mode === 'remove') {
+    <div class="danger-summary">
+      <span aria-hidden="true">!</span>
+      <strong>{{ data.member.email }}</strong>
+    </div>
+  } @else {
+    <div class="danger-summary">
+      <span aria-hidden="true">!</span>
+      <strong>{{ data.invitation.invitedEmail }}</strong>
+    </div>
+  }
+
+  @if (submitError()) {
+    <p class="submit-error" role="alert">{{ submitError() }}</p>
+  }
+
+  <div dtDialogActions>
+    <button dtButton variant="secondary" type="button" [disabled]="submitting()" (click)="close()">
+      Cancelar
+    </button>
+    <button
+      dtButton
+      [variant]="destructive() ? 'danger' : 'primary'"
+      type="button"
+      [loading]="submitting()"
+      (click)="submit()"
+    >
+      {{
+        data.mode === 'invite'
+          ? 'Enviar convite'
+          : data.mode === 'role'
+            ? 'Salvar função'
+            : data.mode === 'remove'
+              ? 'Remover membro'
+              : 'Revogar convite'
+      }}
+    </button>
+  </div>
+</dt-dialog-frame>

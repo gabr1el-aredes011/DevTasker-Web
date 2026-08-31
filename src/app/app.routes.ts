@@ -37,6 +37,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'convites/aceitar',
+    loadComponent: () =>
+      import('./features/projects/pages/accept-project-invitation/accept-project-invitation.component').then(
+        (component) => component.AcceptProjectInvitationComponent,
+      ),
+  },
+  {
     path: 'app',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -68,6 +75,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/projects/pages/project-details/project-details.component').then(
             (component) => component.ProjectDetailsComponent,
+          ),
+      },
+      {
+        path: 'convites/aceitar',
+        loadComponent: () =>
+          import('./features/projects/pages/accept-project-invitation/accept-project-invitation.component').then(
+            (component) => component.AcceptProjectInvitationComponent,
           ),
       },
       {

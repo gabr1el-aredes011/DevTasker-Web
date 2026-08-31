@@ -5,8 +5,12 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   BoardSummary,
+  AssignableProjectRole,
   CreateProjectRequest,
+  InviteProjectMemberRequest,
   ProjectDetails,
+  ProjectInvitationAcceptance,
+  ProjectInvitationSummary,
   ProjectMemberSummary,
   ProjectSummary,
   SaveBoardRequest,
@@ -51,6 +55,52 @@ export class ProjectService {
   findMembersByProjectId(projectId: number): Observable<readonly ProjectMemberSummary[]> {
     return this.http.get<readonly ProjectMemberSummary[]>(
       `${environment.apiUrl}/projects/${projectId}/members`,
+    );
+  }
+
+  findPendingInvitations(projectId: number): Observable<readonly ProjectInvitationSummary[]> {
+    return this.http.get<readonly ProjectInvitationSummary[]>(
+      `${environment.apiUrl}/projects/${projectId}/invitations`,
+    );
+  }
+
+  inviteMember(
+    projectId: number,
+    request: InviteProjectMemberRequest,
+  ): Observable<ProjectInvitationSummary> {
+    return this.http.post<ProjectInvitationSummary>(
+      `${environment.apiUrl}/projects/${projectId}/invitations`,
+      request,
+    );
+  }
+
+  revokeInvitation(projectId: number, invitationId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiUrl}/projects/${projectId}/invitations/${invitationId}`,
+    );
+  }
+
+  changeMemberRole(
+    projectId: number,
+    membershipId: number,
+    role: AssignableProjectRole,
+  ): Observable<ProjectMemberSummary> {
+    return this.http.put<ProjectMemberSummary>(
+      `${environment.apiUrl}/projects/${projectId}/members/${membershipId}/role`,
+      { role },
+    );
+  }
+
+  removeMember(projectId: number, membershipId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiUrl}/projects/${projectId}/members/${membershipId}`,
+    );
+  }
+
+  acceptInvitation(token: string): Observable<ProjectInvitationAcceptance> {
+    return this.http.post<ProjectInvitationAcceptance>(
+      `${environment.apiUrl}/project-invitations/accept`,
+      { token },
     );
   }
 

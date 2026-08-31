@@ -38,8 +38,14 @@ import {
   BoardManagementDialogResult,
 } from '../../components/board-management-dialog/board-management-dialog.component';
 import {
+  ProjectCollaborationDialogComponent,
+  ProjectCollaborationDialogData,
+  ProjectCollaborationDialogResult,
+} from '../../components/project-collaboration-dialog/project-collaboration-dialog.component';
+import {
   BoardSummary,
   ProjectDetails as ProjectDetailsModel,
+  ProjectInvitationSummary,
   ProjectMemberSummary,
 } from '../../models/project.models';
 import { projectRoleLabel, projectRoleTone } from '../../presentation/project-role.presentation';
@@ -69,6 +75,10 @@ export class ProjectDetailsComponent implements OnInit {
   readonly boardsLoadError = signal<string | null>(null);
   readonly members = signal<readonly ProjectMemberSummary[]>([]);
   readonly membersLoadError = signal<string | null>(null);
+  readonly invitations = signal<readonly ProjectInvitationSummary[]>([]);
+  readonly invitationsLoadError = signal<string | null>(null);
+  readonly collaborationActionError = signal<string | null>(null);
+  readonly collaborationActionSuccess = signal<string | null>(null);
   readonly settingDefaultBoardId = signal<number | null>(null);
   readonly boardActionError = signal<string | null>(null);
   readonly boardActionSuccess = signal<string | null>(null);
@@ -78,6 +88,10 @@ export class ProjectDetailsComponent implements OnInit {
   readonly projectRoleLabel = projectRoleLabel;
   readonly projectRoleTone = projectRoleTone;
   readonly canManageBoards = computed(() => {
+    const role = this.project()?.membershipRole;
+    return role === 'OWNER' || role === 'ADMIN';
+  });
+  readonly canManageMembers = computed(() => {
     const role = this.project()?.membershipRole;
     return role === 'OWNER' || role === 'ADMIN';
   });
@@ -103,10 +117,11 @@ export class ProjectDetailsComponent implements OnInit {
         switchMap((projectId) => this.loadProject(projectId)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ project, boards, members }) => {
+      .subscribe(({ project, boards, members, invitations }) => {
         this.project.set(project);
         this.boards.set(boards);
         this.members.set(members);
+        this.invitations.set(invitations);
       });
   }
 
@@ -159,6 +174,58 @@ export class ProjectDetailsComponent implements OnInit {
       .slice(0, 2)
       .map((part) => part.charAt(0).toUpperCase())
       .join('');
+  }
+
+  canManageMember(member: ProjectMemberSummary): boolean {
+    const actorRole = this.project()?.membershipRole;
+    if (!actorRole || member.currentUser || member.role === 'OWNER') {
+      return false;
+    }
+
+    return actorRole === 'OWNER' || (actorRole === 'ADMIN' && member.role !== 'ADMIN');
+  }
+
+  openInviteDialog(): void {
+    const project = this.project();
+    if (!project || !this.canManageMembers()) return;
+    this.openCollaborationDialog({
+      mode: 'invite',
+      projectId: project.id,
+      actorRole: project.membershipRole,
+    });
+  }
+
+  openChangeRoleDialog(member: ProjectMemberSummary): void {
+    const project = this.project();
+    if (!project || !this.canManageMember(member)) return;
+    this.openCollaborationDialog({
+      mode: 'role',
+      projectId: project.id,
+      actorRole: project.membershipRole,
+      member,
+    });
+  }
+
+  openRemoveMemberDialog(member: ProjectMemberSummary): void {
+    const project = this.project();
+    if (!project || !this.canManageMember(member)) return;
+    this.openCollaborationDialog({
+      mode: 'remove',
+      projectId: project.id,
+      actorRole: project.membershipRole,
+      member,
+    });
+  }
+
+  openRevokeInvitationDialog(invitation: ProjectInvitationSummary): void {
+    const project = this.project();
+    if (!project || !this.canManageMembers()) return;
+    this.openCollaborationDialog({
+      mode: 'revoke',
+      projectId: project.id,
+      actorRole: project.membershipRole,
+      invitation,
+    });
   }
 
   openCreateBoardDialog(): void {
@@ -285,6 +352,52 @@ export class ProjectDetailsComponent implements OnInit {
       });
   }
 
+  private openCollaborationDialog(data: ProjectCollaborationDialogData): void {
+    this.collaborationActionError.set(null);
+    this.collaborationActionSuccess.set(null);
+
+    this.dialog
+      .open<ProjectCollaborationDialogResult>(ProjectCollaborationDialogComponent, {
+        data,
+        ariaLabel: this.collaborationDialogLabel(data),
+        panelClass: 'dt-dialog-panel',
+        backdropClass: 'dt-dialog-backdrop',
+      })
+      .closed.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) return;
+
+        switch (result.action) {
+          case 'invited':
+            this.invitations.update((items) => [result.invitation, ...items]);
+            this.collaborationActionSuccess.set(
+              `Convite enviado para ${result.invitation.invitedEmail}.`,
+            );
+            break;
+          case 'updated':
+            this.members.update((items) =>
+              items.map((member) => (member.id === result.member.id ? result.member : member)),
+            );
+            this.collaborationActionSuccess.set(
+              `A função de ${result.member.name} foi atualizada.`,
+            );
+            break;
+          case 'removed':
+            this.members.update((items) =>
+              items.filter((member) => member.id !== result.membershipId),
+            );
+            this.collaborationActionSuccess.set('O membro foi removido do projeto.');
+            break;
+          case 'revoked':
+            this.invitations.update((items) =>
+              items.filter((item) => item.id !== result.invitationId),
+            );
+            this.collaborationActionSuccess.set('O convite pendente foi revogado.');
+            break;
+        }
+      });
+  }
+
   private sortBoards(boards: readonly BoardSummary[]): readonly BoardSummary[] {
     return [...boards].sort((left, right) => {
       if (left.defaultBoard !== right.defaultBoard) {
@@ -305,6 +418,19 @@ export class ProjectDetailsComponent implements OnInit {
       : `Arquivar o quadro ${data.board.name}`;
   }
 
+  private collaborationDialogLabel(data: ProjectCollaborationDialogData): string {
+    switch (data.mode) {
+      case 'invite':
+        return 'Convidar pessoa para o projeto';
+      case 'role':
+        return `Alterar função de ${data.member.name}`;
+      case 'remove':
+        return `Remover ${data.member.name} do projeto`;
+      case 'revoke':
+        return `Revogar convite de ${data.invitation.invitedEmail}`;
+    }
+  }
+
   private loadProject(projectId: number | null) {
     this.projectId.set(projectId);
     this.project.set(null);
@@ -312,6 +438,10 @@ export class ProjectDetailsComponent implements OnInit {
     this.boardsLoadError.set(null);
     this.members.set([]);
     this.membersLoadError.set(null);
+    this.invitations.set([]);
+    this.invitationsLoadError.set(null);
+    this.collaborationActionError.set(null);
+    this.collaborationActionSuccess.set(null);
     this.boardActionError.set(null);
     this.boardActionSuccess.set(null);
     this.loadError.set(null);
@@ -324,25 +454,42 @@ export class ProjectDetailsComponent implements OnInit {
 
     this.loading.set(true);
 
-    return forkJoin({
-      project: this.projectService.findById(projectId),
-      boards: this.projectService.findBoardsByProjectId(projectId).pipe(
-        catchError((error: unknown) => {
-          this.boardsLoadError.set(
-            this.extractErrorMessage(error, 'Não foi possível carregar os quadros do projeto.'),
-          );
-          return of([] as readonly BoardSummary[]);
+    return this.projectService.findById(projectId).pipe(
+      switchMap((project) =>
+        forkJoin({
+          project: of(project),
+          boards: this.projectService.findBoardsByProjectId(projectId).pipe(
+            catchError((error: unknown) => {
+              this.boardsLoadError.set(
+                this.extractErrorMessage(error, 'Não foi possível carregar os quadros do projeto.'),
+              );
+              return of([] as readonly BoardSummary[]);
+            }),
+          ),
+          members: this.projectService.findMembersByProjectId(projectId).pipe(
+            catchError((error: unknown) => {
+              this.membersLoadError.set(
+                this.extractErrorMessage(error, 'Não foi possível carregar os membros do projeto.'),
+              );
+              return of([] as readonly ProjectMemberSummary[]);
+            }),
+          ),
+          invitations:
+            project.membershipRole === 'OWNER' || project.membershipRole === 'ADMIN'
+              ? this.projectService.findPendingInvitations(projectId).pipe(
+                  catchError((error: unknown) => {
+                    this.invitationsLoadError.set(
+                      this.extractErrorMessage(
+                        error,
+                        'Não foi possível carregar os convites pendentes.',
+                      ),
+                    );
+                    return of([] as readonly ProjectInvitationSummary[]);
+                  }),
+                )
+              : of([] as readonly ProjectInvitationSummary[]),
         }),
       ),
-      members: this.projectService.findMembersByProjectId(projectId).pipe(
-        catchError((error: unknown) => {
-          this.membersLoadError.set(
-            this.extractErrorMessage(error, 'Não foi possível carregar os membros do projeto.'),
-          );
-          return of([] as readonly ProjectMemberSummary[]);
-        }),
-      ),
-    }).pipe(
       catchError((error: unknown) => {
         this.loadError.set(
           this.extractErrorMessage(error, 'Não foi possível carregar os detalhes do projeto.'),
