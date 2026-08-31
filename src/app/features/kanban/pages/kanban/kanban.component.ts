@@ -27,7 +27,11 @@ import { KanbanBoard, KanbanColumn, KanbanTask } from '../../models/kanban.model
 import { KanbanService } from '../../services/kanban.service';
 import { TaskService } from '../../../tasks/services/task.service';
 import { ApiError } from '../../../../core/http/api-error.model';
-import { BoardSummary, ProjectSummary } from '../../../projects/models/project.models';
+import {
+  BoardSummary,
+  ProjectMemberSummary,
+  ProjectSummary,
+} from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -54,6 +58,10 @@ export class KanbanComponent implements OnInit {
   readonly boards = signal<readonly BoardSummary[]>([]);
 
   readonly selectedBoard = signal<BoardSummary | null>(null);
+
+  readonly assignableMembers = signal<readonly ProjectMemberSummary[]>([]);
+  readonly loadingAssignableMembers = signal(false);
+  readonly assignableMembersError = signal<string | null>(null);
 
   readonly kanban = signal<KanbanBoard | null>(null);
 
@@ -103,6 +111,8 @@ export class KanbanComponent implements OnInit {
     priority: ['MEDIUM' as TaskPriority, [Validators.required]],
 
     dueDate: [''],
+
+    assigneeId: [null as number | null],
   });
 
   readonly editTaskForm = this.formBuilder.nonNullable.group({
@@ -113,6 +123,8 @@ export class KanbanComponent implements OnInit {
     priority: ['MEDIUM' as TaskPriority, [Validators.required]],
 
     dueDate: [''],
+
+    assigneeId: [null as number | null],
   });
 
   readonly archiveConfirmationOpen = signal(false);
@@ -159,6 +171,8 @@ export class KanbanComponent implements OnInit {
   selectProject(project: ProjectSummary): void {
     this.selectedProject.set(project);
 
+    this.loadAssignableMembers(project);
+
     this.selectedBoard.set(null);
     this.kanban.set(null);
     this.kanbanLoadError.set(null);
@@ -177,6 +191,8 @@ export class KanbanComponent implements OnInit {
 
   backToProjects(): void {
     this.selectedProject.set(null);
+
+    this.resetAssignableMembers();
 
     this.boards.set([]);
     this.boardsLoadError.set(null);
@@ -365,6 +381,7 @@ export class KanbanComponent implements OnInit {
       description: '',
       priority: 'MEDIUM',
       dueDate: '',
+      assigneeId: null,
     });
     this.taskFormOpen.set(true);
   }
@@ -384,6 +401,7 @@ export class KanbanComponent implements OnInit {
       description: task.description ?? '',
       priority: task.priority,
       dueDate: task.dueDate ?? '',
+      assigneeId: task.assignee?.id ?? null,
     });
 
     this.editingTask.set(true);
@@ -437,6 +455,7 @@ export class KanbanComponent implements OnInit {
       priority: formValue.priority,
 
       dueDate: formValue.dueDate || null,
+      assigneeId: formValue.assigneeId,
     };
 
     this.updatingTask.set(true);
@@ -525,6 +544,7 @@ export class KanbanComponent implements OnInit {
       priority: formValue.priority,
 
       dueDate: formValue.dueDate || null,
+      assigneeId: formValue.assigneeId,
     };
 
     this.creatingTask.set(true);
@@ -737,6 +757,8 @@ export class KanbanComponent implements OnInit {
     this.projects.set([]);
     this.selectedProject.set(null);
 
+    this.resetAssignableMembers();
+
     this.boards.set([]);
     this.boardsLoadError.set(null);
 
@@ -790,6 +812,8 @@ export class KanbanComponent implements OnInit {
     }
 
     this.selectedProject.set(project);
+
+    this.loadAssignableMembers(project);
 
     this.loadBoards(project.id, boardId, taskId);
   }
@@ -854,6 +878,46 @@ export class KanbanComponent implements OnInit {
           this.boardsLoadError.set('Não foi possível carregar os quadros deste projeto.');
         },
       });
+  }
+
+  private loadAssignableMembers(project: ProjectSummary): void {
+    this.resetAssignableMembers();
+
+    if (project.membershipRole === 'VIEWER') {
+      return;
+    }
+
+    this.loadingAssignableMembers.set(true);
+
+    this.projectService
+      .findMembersByProjectId(project.id)
+      .pipe(
+        finalize(() => {
+          this.loadingAssignableMembers.set(false);
+        }),
+      )
+      .subscribe({
+        next: (members) => {
+          if (this.selectedProject()?.id !== project.id) {
+            return;
+          }
+
+          this.assignableMembers.set(members.filter((member) => member.role !== 'VIEWER'));
+        },
+        error: () => {
+          if (this.selectedProject()?.id !== project.id) {
+            return;
+          }
+
+          this.assignableMembersError.set('Não foi possível carregar os responsáveis disponíveis.');
+        },
+      });
+  }
+
+  private resetAssignableMembers(): void {
+    this.assignableMembers.set([]);
+    this.loadingAssignableMembers.set(false);
+    this.assignableMembersError.set(null);
   }
 
   private loadKanban(boardId: number, requestedTaskId: number | null = null): void {

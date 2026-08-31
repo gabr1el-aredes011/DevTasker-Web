@@ -27,6 +27,7 @@ describe('KanbanComponent', () => {
   const projectService = {
     findAll: vi.fn(),
     findBoardsByProjectId: vi.fn(),
+    findMembersByProjectId: vi.fn(),
   };
   const kanbanService = {
     findByBoardId: vi.fn(),
@@ -55,6 +56,7 @@ describe('KanbanComponent', () => {
     queryParams.clear();
     projectService.findAll.mockReturnValue(of([]));
     projectService.findBoardsByProjectId.mockReturnValue(of([]));
+    projectService.findMembersByProjectId.mockReturnValue(of([]));
     kanbanService.findByBoardId.mockReturnValue(
       of({ id: 12, projectId: 7, name: 'Entrega', columns: [] }),
     );
@@ -169,6 +171,7 @@ describe('KanbanComponent', () => {
     expect(component.isReadOnly()).toBe(true);
     expect(component.canWriteTasks()).toBe(false);
     expect(component.taskMovementDisabled()).toBe(true);
+    expect(projectService.findMembersByProjectId).not.toHaveBeenCalled();
     expect(element.querySelector('.read-only-badge')?.textContent).toContain('Somente leitura');
     expect(element.querySelector('.new-task-button')).toBeNull();
     expect(element.querySelector('.task-drag-handle')).toBeNull();
@@ -204,4 +207,72 @@ describe('KanbanComponent', () => {
       expect(component.isReadOnly()).toBe(false);
     },
   );
+
+  it('should load operational members and send the selected assignee when creating a task', () => {
+    queryParams.set('projectId', '7');
+    projectService.findAll.mockReturnValue(of([project]));
+    projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+    projectService.findMembersByProjectId.mockReturnValue(
+      of([
+        {
+          id: 41,
+          userId: 3,
+          name: 'Bianca',
+          email: 'bianca@example.com',
+          profileImageUrl: null,
+          role: 'MEMBER' as const,
+          joinedAt: '2026-08-31T10:00:00Z',
+          currentUser: false,
+        },
+        {
+          id: 42,
+          userId: 4,
+          name: 'Visitante',
+          email: 'viewer@example.com',
+          profileImageUrl: null,
+          role: 'VIEWER' as const,
+          joinedAt: '2026-08-31T10:00:00Z',
+          currentUser: false,
+        },
+      ]),
+    );
+    kanbanService.findByBoardId.mockReturnValue(
+      of({
+        id: 12,
+        projectId: 7,
+        name: 'Entrega',
+        columns: [
+          {
+            id: 31,
+            name: 'Backlog',
+            category: 'BACKLOG' as const,
+            position: 0,
+            tasks: [],
+          },
+        ],
+      }),
+    );
+    taskService.create.mockReturnValue(of({}));
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.assignableMembers().map((member) => member.userId)).toEqual([3]);
+
+    component.openCreateTaskForm();
+    component.createTaskForm.patchValue({
+      title: 'Preparar publicação',
+      assigneeId: 3,
+    });
+    component.submitCreateTask();
+
+    expect(taskService.create).toHaveBeenCalledWith(
+      31,
+      expect.objectContaining({
+        title: 'Preparar publicação',
+        assigneeId: 3,
+      }),
+    );
+  });
 });
