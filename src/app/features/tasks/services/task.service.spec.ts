@@ -28,6 +28,7 @@ describe('TaskService', () => {
         priority: 'HIGH',
         dueDate: null,
         assigneeId: 3,
+        labels: ['Backend', 'Urgente'],
       })
       .subscribe();
 
@@ -35,6 +36,7 @@ describe('TaskService', () => {
 
     expect(request.request.method).toBe('POST');
     expect(request.request.body.assigneeId).toBe(3);
+    expect(request.request.body.labels).toEqual(['Backend', 'Urgente']);
     request.flush({});
   });
 
@@ -46,6 +48,7 @@ describe('TaskService', () => {
         priority: 'MEDIUM',
         dueDate: null,
         assigneeId: null,
+        labels: [],
       })
       .subscribe();
 
@@ -53,6 +56,7 @@ describe('TaskService', () => {
 
     expect(request.request.method).toBe('PUT');
     expect(request.request.body.assigneeId).toBeNull();
+    expect(request.request.body.labels).toEqual([]);
     request.flush({});
   });
 });

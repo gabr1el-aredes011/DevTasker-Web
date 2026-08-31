@@ -71,6 +71,7 @@ describe('KanbanComponent', () => {
         position: 0,
         creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
         assignee: null,
+        labels: ['Backend'],
         createdAt: '2026-08-31T10:00:00Z',
         updatedAt: '2026-08-31T10:00:00Z',
       }),
@@ -156,6 +157,7 @@ describe('KanbanComponent', () => {
                 position: 0,
                 assigneeId: null,
                 assigneeName: null,
+                labels: ['Permissões'],
               },
             ],
           },
@@ -264,6 +266,7 @@ describe('KanbanComponent', () => {
     component.createTaskForm.patchValue({
       title: 'Preparar publicação',
       assigneeId: 3,
+      labelsText: ' Backend, urgente, backend ',
     });
     component.submitCreateTask();
 
@@ -272,6 +275,7 @@ describe('KanbanComponent', () => {
       expect.objectContaining({
         title: 'Preparar publicação',
         assigneeId: 3,
+        labels: ['Backend', 'urgente'],
       }),
     );
   });

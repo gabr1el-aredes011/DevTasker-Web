@@ -6,7 +6,14 @@ import {
   CdkDropListGroup,
 } from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import {
   CreateTaskRequest,
   TaskPriority,
@@ -34,6 +41,37 @@ import {
 } from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
+
+const TASK_LABELS_VALIDATOR: ValidatorFn = (
+  control: AbstractControl<string>,
+): ValidationErrors | null => {
+  const labels = parseTaskLabels(control.value);
+
+  if (labels.length > 5) {
+    return { maximumLabels: true };
+  }
+
+  if (labels.some((label) => label.length > 30)) {
+    return { maximumLabelLength: true };
+  }
+
+  return null;
+};
+
+function parseTaskLabels(value: string): string[] {
+  const uniqueLabels = new Map<string, string>();
+
+  for (const rawLabel of value.split(',')) {
+    const label = rawLabel.trim();
+    const normalizedLabel = label.toLocaleLowerCase();
+
+    if (label && !uniqueLabels.has(normalizedLabel)) {
+      uniqueLabels.set(normalizedLabel, label);
+    }
+  }
+
+  return [...uniqueLabels.values()];
+}
 
 @Component({
   selector: 'app-kanban',
@@ -113,6 +151,8 @@ export class KanbanComponent implements OnInit {
     dueDate: [''],
 
     assigneeId: [null as number | null],
+
+    labelsText: ['', [TASK_LABELS_VALIDATOR]],
   });
 
   readonly editTaskForm = this.formBuilder.nonNullable.group({
@@ -125,6 +165,8 @@ export class KanbanComponent implements OnInit {
     dueDate: [''],
 
     assigneeId: [null as number | null],
+
+    labelsText: ['', [TASK_LABELS_VALIDATOR]],
   });
 
   readonly archiveConfirmationOpen = signal(false);
@@ -382,6 +424,7 @@ export class KanbanComponent implements OnInit {
       priority: 'MEDIUM',
       dueDate: '',
       assigneeId: null,
+      labelsText: '',
     });
     this.taskFormOpen.set(true);
   }
@@ -402,6 +445,7 @@ export class KanbanComponent implements OnInit {
       priority: task.priority,
       dueDate: task.dueDate ?? '',
       assigneeId: task.assignee?.id ?? null,
+      labelsText: task.labels.join(', '),
     });
 
     this.editingTask.set(true);
@@ -456,6 +500,7 @@ export class KanbanComponent implements OnInit {
 
       dueDate: formValue.dueDate || null,
       assigneeId: formValue.assigneeId,
+      labels: parseTaskLabels(formValue.labelsText),
     };
 
     this.updatingTask.set(true);
@@ -545,6 +590,7 @@ export class KanbanComponent implements OnInit {
 
       dueDate: formValue.dueDate || null,
       assigneeId: formValue.assigneeId,
+      labels: parseTaskLabels(formValue.labelsText),
     };
 
     this.creatingTask.set(true);

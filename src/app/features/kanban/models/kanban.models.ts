@@ -1,9 +1,4 @@
-export type KanbanColumnCategory =
-  | 'BACKLOG'
-  | 'TODO'
-  | 'DOING'
-  | 'REVIEW'
-  | 'DONE';
+export type KanbanColumnCategory = 'BACKLOG' | 'TODO' | 'DOING' | 'REVIEW' | 'DONE';
 
 export interface KanbanTask {
   readonly id: number;
@@ -13,6 +8,7 @@ export interface KanbanTask {
   readonly position: number;
   readonly assigneeId: number | null;
   readonly assigneeName: string | null;
+  readonly labels: readonly string[];
 }
 
 export interface KanbanColumn {
