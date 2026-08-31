@@ -1,14 +1,11 @@
-export type TaskPriority =
-  | 'LOW'
-  | 'MEDIUM'
-  | 'HIGH'
-  | 'URGENT';
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface CreateTaskRequest {
   readonly title: string;
   readonly description: string | null;
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
+  readonly assigneeId: number | null;
 }
 
 export interface UpdateTaskRequest {
@@ -16,6 +13,7 @@ export interface UpdateTaskRequest {
   readonly description: string | null;
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
+  readonly assigneeId: number | null;
 }
 
 export interface MoveTaskRequest {

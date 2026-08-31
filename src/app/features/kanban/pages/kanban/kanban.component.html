@@ -142,6 +142,28 @@
                 ></textarea>
               </div>
 
+              <div class="task-form-field">
+                <label for="task-assignee"> Responsável </label>
+
+                <select id="task-assignee" formControlName="assigneeId">
+                  <option [ngValue]="null">Sem responsável</option>
+
+                  @for (member of assignableMembers(); track member.userId) {
+                    <option [ngValue]="member.userId">{{ member.name }} · {{ member.role }}</option>
+                  }
+                </select>
+
+                @if (loadingAssignableMembers()) {
+                  <small>Carregando participantes disponíveis...</small>
+                } @else if (assignableMembersError()) {
+                  <small role="alert">{{ assignableMembersError() }}</small>
+                } @else {
+                  <small
+                    >Somente participantes com permissão operacional podem ser responsáveis.</small
+                  >
+                }
+              </div>
+
               <div class="task-form-row">
                 <div class="task-form-field">
                   <label for="task-column"> Coluna </label>
@@ -277,6 +299,26 @@
                         rows="5"
                         placeholder="Descreva o objetivo da tarefa"
                       ></textarea>
+                    </div>
+
+                    <div class="task-form-field">
+                      <label for="edit-task-assignee"> Responsável </label>
+
+                      <select id="edit-task-assignee" formControlName="assigneeId">
+                        <option [ngValue]="null">Sem responsável</option>
+
+                        @for (member of assignableMembers(); track member.userId) {
+                          <option [ngValue]="member.userId">
+                            {{ member.name }} · {{ member.role }}
+                          </option>
+                        }
+                      </select>
+
+                      @if (loadingAssignableMembers()) {
+                        <small>Carregando participantes disponíveis...</small>
+                      } @else if (assignableMembersError()) {
+                        <small role="alert">{{ assignableMembersError() }}</small>
+                      }
                     </div>
 
                     <div class="task-form-row">

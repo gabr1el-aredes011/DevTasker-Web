@@ -93,6 +93,8 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Persistência no backend
 - ✅ Deep links de projeto, board e tarefa
 - ✅ Estado refletido na URL
+- ✅ Atribuição de responsável entre participantes com permissão operacional
+- ✅ Limpeza automática da atribuição ao remover ou tornar um membro `VIEWER`
 
 ## Marco atual — Projetos 2.0
 
@@ -147,7 +149,8 @@ Critérios de aceite:
 ### Tasks 2.0
 
 - 🧭 Descrição avançada
-- 🧭 Responsável e labels
+- ✅ Responsável com validação de participação e permissões
+- 🧭 Labels
 - 🧭 Subtarefas e checklist
 - 🧭 Comentários e histórico
 - 🧭 Anexos
