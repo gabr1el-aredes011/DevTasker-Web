@@ -59,6 +59,19 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - 🚧 Dialog com gerenciamento de foco pelo Angular CDK, introduzido em Boards 2.0
 - 🧭 Skeleton e Toast
 
+### Profissionalização visual e experiência
+
+- 🧭 Criar um sistema global e acessível de feedback para ações, com mensagens
+  consistentes de sucesso, erro, alerta e informação, como “Membro removido com
+  sucesso”.
+- 🧭 Padronizar duração, posição, prioridade, animação e comportamento responsivo
+  dessas mensagens em toda a plataforma.
+- 🧭 Centralizar a geração de iniciais e avatares para que a mesma pessoa seja
+  representada de forma idêntica na sidebar, projetos, membros, tarefas e demais
+  páginas.
+- 🧭 Substituir progressivamente os feedbacks provisórios embutidos nas páginas
+  pelos componentes definitivos do design system.
+
 ### Projetos
 
 - ✅ Membership e funções `OWNER`, `ADMIN`, `MEMBER` e `VIEWER`
@@ -95,6 +108,7 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Estado refletido na URL
 - ✅ Atribuição de responsável entre participantes com permissão operacional
 - ✅ Limpeza automática da atribuição ao remover ou tornar um membro `VIEWER`
+- ✅ Labels textuais persistentes, normalizadas e exibidas nos cartões e detalhes
 
 ## Marco atual — Projetos 2.0
 
@@ -150,7 +164,8 @@ Critérios de aceite:
 
 - 🧭 Descrição avançada
 - ✅ Responsável com validação de participação e permissões
-- 🧭 Labels
+- ✅ Labels textuais com limites, normalização e prevenção de duplicidades
+- 🧭 Catálogo de labels por projeto com cores, filtros e gestão reutilizável
 - 🧭 Subtarefas e checklist
 - 🧭 Comentários e histórico
 - 🧭 Anexos

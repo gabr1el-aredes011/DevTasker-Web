@@ -499,6 +499,26 @@
   font-size: 0.7rem;
 }
 
+.task-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.task-label {
+  max-width: 100%;
+  padding: 0.25rem 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(77, 166, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(77, 166, 255, 0.08);
+  color: #9fcbff;
+  font-size: 0.66rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .task-metadata {
   display: grid;
   margin: 0;
@@ -667,6 +687,10 @@
   small {
     color: #ff8f8f;
     font-size: 0.75rem;
+  }
+
+  .task-form-hint {
+    color: #71847a;
   }
 }
 

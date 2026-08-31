@@ -164,6 +164,25 @@
                 }
               </div>
 
+              <div class="task-form-field">
+                <label for="task-labels"> Labels </label>
+
+                <input
+                  id="task-labels"
+                  type="text"
+                  formControlName="labelsText"
+                  placeholder="Ex.: backend, urgente, melhoria"
+                />
+
+                @if (createTaskForm.controls.labelsText.hasError('maximumLabels')) {
+                  <small>Use no máximo 5 labels.</small>
+                } @else if (createTaskForm.controls.labelsText.hasError('maximumLabelLength')) {
+                  <small>Cada label deve possuir no máximo 30 caracteres.</small>
+                } @else {
+                  <small class="task-form-hint">Separe as labels por vírgulas.</small>
+                }
+              </div>
+
               <div class="task-form-row">
                 <div class="task-form-field">
                   <label for="task-column"> Coluna </label>
@@ -321,6 +340,25 @@
                       }
                     </div>
 
+                    <div class="task-form-field">
+                      <label for="edit-task-labels"> Labels </label>
+
+                      <input
+                        id="edit-task-labels"
+                        type="text"
+                        formControlName="labelsText"
+                        placeholder="Ex.: backend, urgente, melhoria"
+                      />
+
+                      @if (editTaskForm.controls.labelsText.hasError('maximumLabels')) {
+                        <small>Use no máximo 5 labels.</small>
+                      } @else if (editTaskForm.controls.labelsText.hasError('maximumLabelLength')) {
+                        <small>Cada label deve possuir no máximo 30 caracteres.</small>
+                      } @else {
+                        <small class="task-form-hint">Separe as labels por vírgulas.</small>
+                      }
+                    </div>
+
                     <div class="task-form-row">
                       <div class="task-form-field">
                         <label for="edit-task-priority"> Prioridade </label>
@@ -377,6 +415,14 @@
                     </div>
 
                     <h4>{{ task.title }}</h4>
+
+                    @if (task.labels.length > 0) {
+                      <div class="task-labels" aria-label="Labels da tarefa">
+                        @for (label of task.labels; track label) {
+                          <span class="task-label">{{ label }}</span>
+                        }
+                      </div>
+                    }
 
                     <p>
                       {{ task.description ?? 'Esta tarefa não possui descrição.' }}
@@ -597,6 +643,14 @@
                           </header>
 
                           <h4>{{ task.title }}</h4>
+
+                          @if (task.labels.length > 0) {
+                            <div class="task-labels" aria-label="Labels da tarefa">
+                              @for (label of task.labels; track label) {
+                                <span class="task-label">{{ label }}</span>
+                              }
+                            </div>
+                          }
 
                           <dl class="task-metadata">
                             <div>

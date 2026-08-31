@@ -6,6 +6,7 @@ export interface CreateTaskRequest {
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
   readonly assigneeId: number | null;
+  readonly labels: readonly string[];
 }
 
 export interface UpdateTaskRequest {
@@ -14,6 +15,7 @@ export interface UpdateTaskRequest {
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
   readonly assigneeId: number | null;
+  readonly labels: readonly string[];
 }
 
 export interface MoveTaskRequest {
@@ -37,6 +39,7 @@ export interface TaskResponse {
   readonly position: number;
   readonly creator: TaskUserSummary;
   readonly assignee: TaskUserSummary | null;
+  readonly labels: readonly string[];
   readonly createdAt: string;
   readonly updatedAt: string;
 }
