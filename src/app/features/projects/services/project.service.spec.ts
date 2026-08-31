@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import {
   BoardSummary,
   ProjectDetails,
+  ProjectInvitationSummary,
   ProjectMemberSummary,
   ProjectSummary,
 } from '../models/project.models';
@@ -43,6 +44,15 @@ describe('ProjectService', () => {
     role: 'OWNER',
     joinedAt: '2026-08-20T12:00:00Z',
     currentUser: true,
+  };
+
+  const invitation: ProjectInvitationSummary = {
+    id: 19,
+    invitedEmail: 'bianca@example.com',
+    role: 'MEMBER',
+    invitedByName: 'Dev User',
+    expiresAt: '2026-08-23T12:00:00Z',
+    createdAt: '2026-08-20T12:00:00Z',
   };
 
   let service: ProjectService;
@@ -101,6 +111,43 @@ describe('ProjectService', () => {
     const request = http.expectOne(`${environment.apiUrl}/projects/7/members`);
     expect(request.request.method).toBe('GET');
     request.flush([member]);
+  });
+
+  it('should manage project invitations', () => {
+    service.findPendingInvitations(7).subscribe((items) => expect(items).toEqual([invitation]));
+    http.expectOne(`${environment.apiUrl}/projects/7/invitations`).flush([invitation]);
+
+    service.inviteMember(7, { email: 'bianca@example.com', role: 'MEMBER' }).subscribe();
+    const create = http.expectOne(`${environment.apiUrl}/projects/7/invitations`);
+    expect(create.request.method).toBe('POST');
+    expect(create.request.body).toEqual({ email: 'bianca@example.com', role: 'MEMBER' });
+    create.flush(invitation);
+
+    service.revokeInvitation(7, 19).subscribe();
+    const revoke = http.expectOne(`${environment.apiUrl}/projects/7/invitations/19`);
+    expect(revoke.request.method).toBe('DELETE');
+    revoke.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('should update and remove project memberships', () => {
+    service.changeMemberRole(7, 15, 'ADMIN').subscribe();
+    const update = http.expectOne(`${environment.apiUrl}/projects/7/members/15/role`);
+    expect(update.request.method).toBe('PUT');
+    expect(update.request.body).toEqual({ role: 'ADMIN' });
+    update.flush({ ...member, role: 'ADMIN' });
+
+    service.removeMember(7, 15).subscribe();
+    const remove = http.expectOne(`${environment.apiUrl}/projects/7/members/15`);
+    expect(remove.request.method).toBe('DELETE');
+    remove.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('should accept an invitation without exposing the token in the URL', () => {
+    service.acceptInvitation('secret-token').subscribe();
+    const request = http.expectOne(`${environment.apiUrl}/project-invitations/accept`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ token: 'secret-token' });
+    request.flush({ projectId: 7, projectName: 'Plataforma mobile', membership: member });
   });
 
   it('should create a project with a nullable description', () => {

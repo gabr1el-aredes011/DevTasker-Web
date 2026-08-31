@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 30 de agosto de 2026.
+Última atualização: 31 de agosto de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -70,7 +70,8 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Página de detalhes com visão geral e quadros reais
 - ✅ Abas acessíveis e deep link do estado da página
 - ✅ Diretório de membros com funções e identificação da conta atual
-- 🚧 Filtros, convites e gestão de membros
+- 🚧 Filtros
+- ✅ Convites seguros por e-mail e gestão de membros
 
 ### Boards
 
@@ -126,11 +127,13 @@ Critérios de aceite:
 ### Entrega 2 — Membros e permissões
 
 - ✅ Listar membros
-- 🧭 Convidar membro
-- 🧭 Alterar função entre `ADMIN`, `MEMBER` e `VIEWER`
-- 🧭 Remover membro
-- 🧭 Aplicar permissões por função na API e na interface
-- 🧭 Impedir ações que deixem um projeto sem `OWNER`
+- ✅ Convidar contas existentes e verificadas por e-mail
+- ✅ Aceitar convite autenticado com token temporário
+- ✅ Expirar e revogar convites pendentes
+- ✅ Alterar função entre `ADMIN`, `MEMBER` e `VIEWER`
+- ✅ Remover membro
+- ✅ Aplicar permissões por função na API e na interface
+- ✅ Impedir ações que deixem um projeto sem `OWNER`
 
 ## Próximos marcos
 
@@ -152,8 +155,8 @@ Critérios de aceite:
 
 ### Colaboração
 
-- 🧭 Convites
-- 🧭 Membros, funções e permissões
+- ✅ Convites
+- ✅ Membros, funções e permissões
 - 🧭 Atividade colaborativa
 
 ### Perfil e conta

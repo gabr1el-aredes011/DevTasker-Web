@@ -42,6 +42,28 @@ export interface ProjectMemberSummary {
   readonly currentUser: boolean;
 }
 
+export type AssignableProjectRole = Exclude<ProjectMembershipRole, 'OWNER'>;
+
+export interface ProjectInvitationSummary {
+  readonly id: number;
+  readonly invitedEmail: string;
+  readonly role: AssignableProjectRole;
+  readonly invitedByName: string;
+  readonly expiresAt: string;
+  readonly createdAt: string;
+}
+
+export interface InviteProjectMemberRequest {
+  readonly email: string;
+  readonly role: AssignableProjectRole;
+}
+
+export interface ProjectInvitationAcceptance {
+  readonly projectId: number;
+  readonly projectName: string;
+  readonly membership: ProjectMemberSummary;
+}
+
 export interface SaveBoardRequest {
   readonly name: string;
 }

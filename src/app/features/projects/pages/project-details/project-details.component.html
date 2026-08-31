@@ -290,14 +290,39 @@
             <h2>Pessoas do projeto</h2>
             <p>Conheça quem participa deste workspace e o nível de acesso de cada pessoa.</p>
           </div>
-          @if (membersLoadError()) {
-            <span role="status">Contagem indisponível</span>
-          } @else {
-            <span role="status">
-              {{ members().length }} {{ members().length === 1 ? 'integrante' : 'integrantes' }}
-            </span>
-          }
+          <div class="members-header__actions">
+            @if (membersLoadError()) {
+              <span role="status">Contagem indisponível</span>
+            } @else {
+              <span role="status">
+                {{ members().length }} {{ members().length === 1 ? 'integrante' : 'integrantes' }}
+              </span>
+            }
+            @if (canManageMembers()) {
+              <button
+                dtButton
+                variant="primary"
+                size="sm"
+                type="button"
+                (click)="openInviteDialog()"
+              >
+                <span aria-hidden="true">+</span>
+                Convidar pessoa
+              </button>
+            }
+          </div>
         </header>
+
+        @if (collaborationActionSuccess()) {
+          <p class="member-action-message member-action-message--success" role="status">
+            {{ collaborationActionSuccess() }}
+          </p>
+        }
+        @if (collaborationActionError()) {
+          <p class="member-action-message member-action-message--error" role="alert">
+            {{ collaborationActionError() }}
+          </p>
+        }
 
         @if (membersLoadError()) {
           <dt-feedback-state
@@ -355,9 +380,76 @@
                     <dd>{{ member.joinedAt | date: 'dd/MM/yyyy' }}</dd>
                   </div>
                 </dl>
+
+                @if (canManageMember(member)) {
+                  <div class="member-actions">
+                    <button
+                      dtButton
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      (click)="openChangeRoleDialog(member)"
+                    >
+                      Alterar função
+                    </button>
+                    <button
+                      dtButton
+                      variant="danger"
+                      size="sm"
+                      type="button"
+                      (click)="openRemoveMemberDialog(member)"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                }
               </article>
             }
           </div>
+        }
+
+        @if (canManageMembers()) {
+          <section class="pending-invitations" aria-labelledby="pending-invitations-title">
+            <header>
+              <div>
+                <p class="details-eyebrow">CONVITES</p>
+                <h3 id="pending-invitations-title">Aguardando resposta</h3>
+              </div>
+              <span>{{ invitations().length }} pendentes</span>
+            </header>
+
+            @if (invitationsLoadError()) {
+              <p class="pending-invitations__error" role="alert">{{ invitationsLoadError() }}</p>
+            } @else if (invitations().length === 0) {
+              <p class="pending-invitations__empty">Não há convites pendentes neste projeto.</p>
+            } @else {
+              <div class="invitation-list" role="list" aria-label="Convites pendentes">
+                @for (invitation of invitations(); track invitation.id) {
+                  <article class="invitation-card" role="listitem">
+                    <div>
+                      <strong>{{ invitation.invitedEmail }}</strong>
+                      <p>
+                        {{ projectRoleLabel(invitation.role) }} · enviado por
+                        {{ invitation.invitedByName }}
+                      </p>
+                    </div>
+                    <span
+                      >Expira em {{ invitation.expiresAt | date: "dd/MM/yyyy 'às' HH:mm" }}</span
+                    >
+                    <button
+                      dtButton
+                      variant="danger"
+                      size="sm"
+                      type="button"
+                      (click)="openRevokeInvitationDialog(invitation)"
+                    >
+                      Revogar
+                    </button>
+                  </article>
+                }
+              </div>
+            }
+          </section>
         }
       </section>
     </div>

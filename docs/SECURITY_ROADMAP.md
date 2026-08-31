@@ -62,3 +62,31 @@ tela e, dependendo da infraestrutura, em logs e ferramentas de análise.
   público.
 - Evoluir o envio assíncrono em memória para uma outbox persistente caso a
   garantia de entrega após reinícios seja necessária.
+
+## SEC-003 — Convites para projetos
+
+- **Status:** implementado na branch `feature/project-member-management`
+- **Prioridade:** alta
+- **Área:** colaboração e autorização
+
+### Controles adotados
+
+- Token aleatório de 256 bits armazenado no banco somente como hash SHA-256.
+- Token transportado no fragmento do link e removido imediatamente da barra do
+  navegador antes de qualquer redirecionamento.
+- Preservação do token apenas em memória durante o login, sem `localStorage`,
+  `sessionStorage` ou parâmetro de consulta.
+- Aceite permitido somente pela conta verificada correspondente ao e-mail do
+  convite.
+- Expiração em 72 horas, uso único e revogação pelo gerenciamento do projeto.
+- Restrição de um convite pendente por projeto e e-mail também no banco.
+- `OWNER` não pode ser concedido, alterado ou removido por operações de membros.
+- Administradores não podem promover, remover ou revogar acesso administrativo.
+
+### Antes de produção
+
+- Configurar `FRONTEND_BASE_URL` com a origem HTTPS pública do frontend.
+- Garantir que a infraestrutura não registre fragmentos por instrumentação do
+  navegador e revisar políticas de ferramentas de analytics.
+- Evoluir o envio para outbox persistente caso convites precisem de garantia de
+  entrega após reinícios.
