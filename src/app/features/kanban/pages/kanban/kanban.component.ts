@@ -128,8 +128,17 @@ export class KanbanComponent implements OnInit {
 
   readonly moveTaskSuccess = signal<string | null>(null);
 
+  readonly canWriteTasks = computed(() => {
+    const project = this.selectedProject();
+
+    return project !== null && project.membershipRole !== 'VIEWER';
+  });
+
+  readonly isReadOnly = computed(() => this.selectedProject()?.membershipRole === 'VIEWER');
+
   readonly taskMovementDisabled = computed(
     () =>
+      !this.canWriteTasks() ||
       this.loadingKanban() ||
       this.movingTask() ||
       this.creatingTask() ||
@@ -331,6 +340,10 @@ export class KanbanComponent implements OnInit {
       });
   }
   openCreateTaskForm(): void {
+    if (!this.canWriteTasks()) {
+      return;
+    }
+
     const board = this.kanban();
     const firstColumn = board?.columns[0];
 
@@ -359,7 +372,7 @@ export class KanbanComponent implements OnInit {
   startTaskEdit(): void {
     const task = this.selectedTask();
 
-    if (!task || this.loadingTaskDetails()) {
+    if (!this.canWriteTasks() || !task || this.loadingTaskDetails()) {
       return;
     }
 
@@ -386,6 +399,10 @@ export class KanbanComponent implements OnInit {
   }
 
   submitTaskUpdate(): void {
+    if (!this.canWriteTasks()) {
+      return;
+    }
+
     if (this.editTaskForm.invalid) {
       this.editTaskForm.markAllAsTouched();
       return;
@@ -469,6 +486,10 @@ export class KanbanComponent implements OnInit {
   }
 
   submitCreateTask(): void {
+    if (!this.canWriteTasks()) {
+      return;
+    }
+
     if (this.createTaskForm.invalid) {
       this.createTaskForm.markAllAsTouched();
       return;
@@ -533,7 +554,13 @@ export class KanbanComponent implements OnInit {
   requestTaskArchive(): void {
     const task = this.selectedTask();
 
-    if (!task || this.loadingTaskDetails() || this.updatingTask() || this.archivingTask()) {
+    if (
+      !this.canWriteTasks() ||
+      !task ||
+      this.loadingTaskDetails() ||
+      this.updatingTask() ||
+      this.archivingTask()
+    ) {
       return;
     }
 
@@ -552,6 +579,10 @@ export class KanbanComponent implements OnInit {
   }
 
   confirmTaskArchive(): void {
+    if (!this.canWriteTasks()) {
+      return;
+    }
+
     const task = this.selectedTask();
     const board = this.selectedBoard();
 

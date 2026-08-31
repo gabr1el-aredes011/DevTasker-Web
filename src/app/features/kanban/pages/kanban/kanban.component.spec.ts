@@ -16,6 +16,10 @@ describe('KanbanComponent', () => {
     createdAt: '2026-08-20T10:00:00Z',
     updatedAt: '2026-08-20T10:00:00Z',
   };
+  const viewerProject = {
+    ...project,
+    membershipRole: 'VIEWER' as const,
+  };
   const boards = [
     { id: 11, projectId: 7, name: 'Descoberta', defaultBoard: false },
     { id: 12, projectId: 7, name: 'Entrega', defaultBoard: true },
@@ -26,6 +30,13 @@ describe('KanbanComponent', () => {
   };
   const kanbanService = {
     findByBoardId: vi.fn(),
+  };
+  const taskService = {
+    create: vi.fn(),
+    update: vi.fn(),
+    archive: vi.fn(),
+    move: vi.fn(),
+    findById: vi.fn(),
   };
   const router = {
     navigate: vi.fn().mockResolvedValue(true),
@@ -47,19 +58,32 @@ describe('KanbanComponent', () => {
     kanbanService.findByBoardId.mockReturnValue(
       of({ id: 12, projectId: 7, name: 'Entrega', columns: [] }),
     );
+    taskService.findById.mockReturnValue(
+      of({
+        id: 19,
+        columnId: 31,
+        title: 'Revisar permissões',
+        description: 'Validar a experiência do visualizador.',
+        priority: 'MEDIUM' as const,
+        dueDate: null,
+        position: 0,
+        creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
+        assignee: null,
+        createdAt: '2026-08-31T10:00:00Z',
+        updatedAt: '2026-08-31T10:00:00Z',
+      }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [KanbanComponent],
       providers: [
         { provide: ProjectService, useValue: projectService },
         { provide: KanbanService, useValue: kanbanService },
-        { provide: TaskService, useValue: {} },
+        { provide: TaskService, useValue: taskService },
         { provide: Router, useValue: router },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
-    })
-      .overrideComponent(KanbanComponent, { set: { template: '' } })
-      .compileComponents();
+    }).compileComponents();
   });
 
   it('should create', () => {
@@ -105,4 +129,79 @@ describe('KanbanComponent', () => {
     expect(fixture.componentInstance.selectedBoard()).toEqual(boards[0]);
     expect(kanbanService.findByBoardId).toHaveBeenCalledWith(11);
   });
+
+  it('should present a viewer board as read-only', () => {
+    queryParams.set('projectId', '7');
+    projectService.findAll.mockReturnValue(of([viewerProject]));
+    projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+    kanbanService.findByBoardId.mockReturnValue(
+      of({
+        id: 12,
+        projectId: 7,
+        name: 'Entrega',
+        columns: [
+          {
+            id: 31,
+            name: 'Backlog',
+            category: 'BACKLOG' as const,
+            position: 0,
+            tasks: [
+              {
+                id: 19,
+                title: 'Revisar permissões',
+                priority: 'MEDIUM',
+                dueDate: null,
+                position: 0,
+                assigneeId: null,
+                assigneeName: null,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(component.isReadOnly()).toBe(true);
+    expect(component.canWriteTasks()).toBe(false);
+    expect(component.taskMovementDisabled()).toBe(true);
+    expect(element.querySelector('.read-only-badge')?.textContent).toContain('Somente leitura');
+    expect(element.querySelector('.new-task-button')).toBeNull();
+    expect(element.querySelector('.task-drag-handle')).toBeNull();
+
+    component.openCreateTaskForm();
+    component.submitCreateTask();
+
+    expect(component.taskFormOpen()).toBe(false);
+    expect(taskService.create).not.toHaveBeenCalled();
+
+    component.openTaskDetails(19);
+    fixture.detectChanges();
+
+    expect(element.querySelector('.task-details-actions')).toBeNull();
+    component.startTaskEdit();
+    component.requestTaskArchive();
+
+    expect(component.editingTask()).toBe(false);
+    expect(component.archiveConfirmationOpen()).toBe(false);
+    expect(taskService.update).not.toHaveBeenCalled();
+    expect(taskService.archive).not.toHaveBeenCalled();
+  });
+
+  it.each(['OWNER', 'ADMIN', 'MEMBER'] as const)(
+    'should retain task write access for the %s role',
+    (membershipRole) => {
+      const fixture = TestBed.createComponent(KanbanComponent);
+      const component = fixture.componentInstance;
+
+      component.selectedProject.set({ ...project, membershipRole });
+
+      expect(component.canWriteTasks()).toBe(true);
+      expect(component.isReadOnly()).toBe(false);
+    },
+  );
 });

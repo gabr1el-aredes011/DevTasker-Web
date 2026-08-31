@@ -37,14 +37,21 @@
 
         <div class="section-header">
           <div>
-            <button
-              class="new-task-button"
-              type="button"
-              [disabled]="loadingKanban() || !kanban()"
-              (click)="openCreateTaskForm()"
-            >
-              + Nova tarefa
-            </button>
+            @if (canWriteTasks()) {
+              <button
+                class="new-task-button"
+                type="button"
+                [disabled]="loadingKanban() || !kanban()"
+                (click)="openCreateTaskForm()"
+              >
+                + Nova tarefa
+              </button>
+            } @else if (isReadOnly()) {
+              <span class="read-only-badge">
+                <span aria-hidden="true">●</span>
+                Somente leitura
+              </span>
+            }
 
             <p class="eyebrow">Quadro selecionado</p>
 
@@ -380,70 +387,72 @@
                     </div>
                   </dl>
 
-                  <footer class="task-details-actions">
-                    <button type="button" (click)="startTaskEdit()">Editar tarefa</button>
+                  @if (canWriteTasks()) {
+                    <footer class="task-details-actions">
+                      <button type="button" (click)="startTaskEdit()">Editar tarefa</button>
 
-                    <button
-                      class="danger-button"
-                      type="button"
-                      [disabled]="updatingTask() || archivingTask()"
-                      (click)="requestTaskArchive()"
-                    >
-                      Arquivar tarefa
-                    </button>
-                  </footer>
+                      <button
+                        class="danger-button"
+                        type="button"
+                        [disabled]="updatingTask() || archivingTask()"
+                        (click)="requestTaskArchive()"
+                      >
+                        Arquivar tarefa
+                      </button>
+                    </footer>
 
-                  @if (archiveConfirmationOpen()) {
-                    <section
-                      class="archive-confirmation"
-                      role="alertdialog"
-                      aria-labelledby="archive-confirmation-title"
-                      aria-describedby="archive-confirmation-description"
-                    >
-                      <div class="archive-confirmation__content">
-                        <span class="archive-confirmation__icon"> ! </span>
+                    @if (archiveConfirmationOpen()) {
+                      <section
+                        class="archive-confirmation"
+                        role="alertdialog"
+                        aria-labelledby="archive-confirmation-title"
+                        aria-describedby="archive-confirmation-description"
+                      >
+                        <div class="archive-confirmation__content">
+                          <span class="archive-confirmation__icon"> ! </span>
 
-                        <div>
-                          <h4 id="archive-confirmation-title">Arquivar esta tarefa?</h4>
+                          <div>
+                            <h4 id="archive-confirmation-title">Arquivar esta tarefa?</h4>
 
-                          <p id="archive-confirmation-description">
-                            A tarefa
-                            <strong>{{ task.title }}</strong>
-                            deixará de aparecer no Kanban, mas continuará armazenada no sistema.
-                          </p>
+                            <p id="archive-confirmation-description">
+                              A tarefa
+                              <strong>{{ task.title }}</strong>
+                              deixará de aparecer no Kanban, mas continuará armazenada no sistema.
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      @if (archiveTaskError()) {
-                        <div class="task-form-error" role="alert">
-                          {{ archiveTaskError() }}
-                        </div>
-                      }
+                        @if (archiveTaskError()) {
+                          <div class="task-form-error" role="alert">
+                            {{ archiveTaskError() }}
+                          </div>
+                        }
 
-                      <footer class="archive-confirmation__actions">
-                        <button
-                          class="secondary-button"
-                          type="button"
-                          [disabled]="archivingTask()"
-                          (click)="cancelTaskArchive()"
-                        >
-                          Cancelar
-                        </button>
+                        <footer class="archive-confirmation__actions">
+                          <button
+                            class="secondary-button"
+                            type="button"
+                            [disabled]="archivingTask()"
+                            (click)="cancelTaskArchive()"
+                          >
+                            Cancelar
+                          </button>
 
-                        <button
-                          class="danger-button"
-                          type="button"
-                          [disabled]="archivingTask()"
-                          (click)="confirmTaskArchive()"
-                        >
-                          @if (archivingTask()) {
-                            Arquivando...
-                          } @else {
-                            Confirmar arquivamento
-                          }
-                        </button>
-                      </footer>
-                    </section>
+                          <button
+                            class="danger-button"
+                            type="button"
+                            [disabled]="archivingTask()"
+                            (click)="confirmTaskArchive()"
+                          >
+                            @if (archivingTask()) {
+                              Arquivando...
+                            } @else {
+                              Confirmar arquivamento
+                            }
+                          </button>
+                        </footer>
+                      </section>
+                    }
                   }
                 }
               </div>
@@ -530,16 +539,18 @@
                             <div class="task-card__header-actions">
                               <span class="task-id"> #{{ task.id }} </span>
 
-                              <button
-                                class="task-drag-handle"
-                                type="button"
-                                cdkDragHandle
-                                [disabled]="taskMovementDisabled()"
-                                [attr.aria-label]="'Mover tarefa ' + task.title"
-                                title="Arrastar tarefa"
-                              >
-                                ⠿
-                              </button>
+                              @if (canWriteTasks()) {
+                                <button
+                                  class="task-drag-handle"
+                                  type="button"
+                                  cdkDragHandle
+                                  [disabled]="taskMovementDisabled()"
+                                  [attr.aria-label]="'Mover tarefa ' + task.title"
+                                  title="Arrastar tarefa"
+                                >
+                                  ⠿
+                                </button>
+                              }
                             </div>
                           </header>
 

@@ -166,6 +166,21 @@ Critérios de aceite:
 - 🧭 Preferências
 - 🧭 Segurança da conta
 
+### Administração global da plataforma
+
+> Este marco deverá começar após a entrega de **Perfil e conta**. A função
+> global `UserRole.ADMIN` é independente das funções `ProjectMemberRole` de
+> cada projeto.
+
+- 🧭 Criar uma UX dedicada e preferencial para o administrador global
+- 🧭 Criar área administrativa separada, protegida por `ROLE_ADMIN`
+- 🧭 Gerenciar o ciclo de vida das contas e oferecer ferramentas de suporte
+- 🧭 Exibir métricas operacionais e informações de saúde da plataforma
+- 🧭 Registrar ações administrativas críticas em trilha de auditoria
+- 🧭 Preservar a privacidade dos projetos, sem conceder acesso implícito ao
+  conteúdo privado de usuários
+- 🧭 Implementar serviços e endpoints administrativos com autorização explícita
+
 ### Notificações
 
 - 🧭 Prazo próximo ou vencido

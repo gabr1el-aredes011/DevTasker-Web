@@ -572,6 +572,26 @@
   }
 }
 
+.read-only-badge {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.7rem;
+  padding: 0 0.9rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(129, 173, 154, 0.24);
+  border-radius: 999px;
+  background: rgba(129, 173, 154, 0.07);
+  color: #b7c5be;
+  font-size: 0.78rem;
+  font-weight: 750;
+
+  span {
+    color: #65f790;
+    font-size: 0.55rem;
+  }
+}
+
 .task-form-panel {
   padding: 1.25rem;
   border: 1px solid rgba(47, 255, 105, 0.24);
