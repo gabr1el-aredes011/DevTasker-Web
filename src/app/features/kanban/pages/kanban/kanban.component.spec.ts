@@ -38,6 +38,9 @@ describe('KanbanComponent', () => {
     archive: vi.fn(),
     move: vi.fn(),
     findById: vi.fn(),
+    addChecklistItem: vi.fn(),
+    updateChecklistItem: vi.fn(),
+    removeChecklistItem: vi.fn(),
   };
   const router = {
     navigate: vi.fn().mockResolvedValue(true),
@@ -72,6 +75,16 @@ describe('KanbanComponent', () => {
         creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
         assignee: null,
         labels: ['Backend'],
+        checklistItems: [
+          {
+            id: 8,
+            title: 'Validar cenário de permissão',
+            completed: false,
+            position: 0,
+            createdAt: '2026-08-31T10:00:00Z',
+            updatedAt: '2026-08-31T10:00:00Z',
+          },
+        ],
         createdAt: '2026-08-31T10:00:00Z',
         updatedAt: '2026-08-31T10:00:00Z',
       }),
@@ -158,6 +171,8 @@ describe('KanbanComponent', () => {
                 assigneeId: null,
                 assigneeName: null,
                 labels: ['Permissões'],
+                completedChecklistItems: 0,
+                totalChecklistItems: 0,
               },
             ],
           },
@@ -188,13 +203,21 @@ describe('KanbanComponent', () => {
     fixture.detectChanges();
 
     expect(element.querySelector('.task-details-actions')).toBeNull();
+    expect(element.querySelector('.task-checklist__form')).toBeNull();
+    expect(
+      (element.querySelector('.task-checklist__items input') as HTMLInputElement).disabled,
+    ).toBe(true);
     component.startTaskEdit();
     component.requestTaskArchive();
+    component.toggleChecklistItem(component.selectedTask()!.checklistItems[0]);
+    component.removeChecklistItem(component.selectedTask()!.checklistItems[0]);
 
     expect(component.editingTask()).toBe(false);
     expect(component.archiveConfirmationOpen()).toBe(false);
     expect(taskService.update).not.toHaveBeenCalled();
     expect(taskService.archive).not.toHaveBeenCalled();
+    expect(taskService.updateChecklistItem).not.toHaveBeenCalled();
+    expect(taskService.removeChecklistItem).not.toHaveBeenCalled();
   });
 
   it.each(['OWNER', 'ADMIN', 'MEMBER'] as const)(

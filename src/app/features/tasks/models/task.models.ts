@@ -29,6 +29,24 @@ export interface TaskUserSummary {
   readonly profileImageUrl: string | null;
 }
 
+export interface TaskChecklistItem {
+  readonly id: number;
+  readonly title: string;
+  readonly completed: boolean;
+  readonly position: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface CreateTaskChecklistItemRequest {
+  readonly title: string;
+}
+
+export interface UpdateTaskChecklistItemRequest {
+  readonly title: string;
+  readonly completed: boolean;
+}
+
 export interface TaskResponse {
   readonly id: number;
   readonly columnId: number;
@@ -40,6 +58,7 @@ export interface TaskResponse {
   readonly creator: TaskUserSummary;
   readonly assignee: TaskUserSummary | null;
   readonly labels: readonly string[];
+  readonly checklistItems: readonly TaskChecklistItem[];
   readonly createdAt: string;
   readonly updatedAt: string;
 }

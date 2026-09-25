@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 31 de agosto de 2026.
+Última atualização: 3 de setembro de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -109,6 +109,7 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Atribuição de responsável entre participantes com permissão operacional
 - ✅ Limpeza automática da atribuição ao remover ou tornar um membro `VIEWER`
 - ✅ Labels textuais persistentes, normalizadas e exibidas nos cartões e detalhes
+- ✅ Checklist de subtarefas com progresso nos cartões e modo somente leitura para `VIEWER`
 
 ## Marco atual — Projetos 2.0
 
@@ -166,7 +167,7 @@ Critérios de aceite:
 - ✅ Responsável com validação de participação e permissões
 - ✅ Labels textuais com limites, normalização e prevenção de duplicidades
 - 🧭 Catálogo de labels por projeto com cores, filtros e gestão reutilizável
-- 🧭 Subtarefas e checklist
+- ✅ Subtarefas e checklist persistentes, com conclusão, remoção e progresso agregado
 - 🧭 Comentários e histórico
 - 🧭 Anexos
 - 🧭 Evolução de prioridade, prazo e atividade

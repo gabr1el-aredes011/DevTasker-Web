@@ -59,4 +59,28 @@ describe('TaskService', () => {
     expect(request.request.body.labels).toEqual([]);
     request.flush({});
   });
+
+  it('should manage checklist items through task-scoped endpoints', () => {
+    service.addChecklistItem(19, { title: 'Validar publicação' }).subscribe();
+
+    const createRequest = http.expectOne(`${environment.apiUrl}/tasks/19/checklist-items`);
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual({ title: 'Validar publicação' });
+    createRequest.flush({});
+
+    service
+      .updateChecklistItem(19, 8, { title: 'Validar publicação', completed: true })
+      .subscribe();
+
+    const updateRequest = http.expectOne(`${environment.apiUrl}/tasks/19/checklist-items/8`);
+    expect(updateRequest.request.method).toBe('PATCH');
+    expect(updateRequest.request.body.completed).toBe(true);
+    updateRequest.flush({});
+
+    service.removeChecklistItem(19, 8).subscribe();
+
+    const deleteRequest = http.expectOne(`${environment.apiUrl}/tasks/19/checklist-items/8`);
+    expect(deleteRequest.request.method).toBe('DELETE');
+    deleteRequest.flush({});
+  });
 });

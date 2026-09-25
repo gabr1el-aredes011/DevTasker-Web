@@ -16,6 +16,7 @@ import {
 } from '@angular/forms';
 import {
   CreateTaskRequest,
+  TaskChecklistItem,
   TaskPriority,
   TaskResponse,
   UpdateTaskRequest,
@@ -137,6 +138,14 @@ export class KanbanComponent implements OnInit {
 
   readonly updateTaskSuccess = signal<string | null>(null);
 
+  readonly managingChecklist = signal(false);
+  readonly checklistError = signal<string | null>(null);
+  readonly checklistSuccess = signal<string | null>(null);
+
+  readonly checklistCompletedCount = computed(
+    () => this.selectedTask()?.checklistItems.filter((item) => item.completed).length ?? 0,
+  );
+
   readonly priorities: readonly TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
   readonly createTaskForm = this.formBuilder.nonNullable.group({
@@ -167,6 +176,10 @@ export class KanbanComponent implements OnInit {
     assigneeId: [null as number | null],
 
     labelsText: ['', [TASK_LABELS_VALIDATOR]],
+  });
+
+  readonly checklistItemForm = this.formBuilder.nonNullable.group({
+    title: ['', [Validators.required, Validators.maxLength(180)]],
   });
 
   readonly archiveConfirmationOpen = signal(false);
@@ -540,6 +553,133 @@ export class KanbanComponent implements OnInit {
       });
   }
 
+  addChecklistItem(): void {
+    const task = this.selectedTask();
+
+    if (!this.canWriteTasks() || !task || this.managingChecklist()) {
+      return;
+    }
+
+    if (this.checklistItemForm.invalid) {
+      this.checklistItemForm.markAllAsTouched();
+      return;
+    }
+
+    const title = this.checklistItemForm.controls.title.value.trim();
+
+    if (!title) {
+      this.checklistItemForm.controls.title.setErrors({ required: true });
+      this.checklistItemForm.controls.title.markAsTouched();
+      return;
+    }
+
+    this.managingChecklist.set(true);
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+
+    this.taskService
+      .addChecklistItem(task.id, { title })
+      .pipe(finalize(() => this.managingChecklist.set(false)))
+      .subscribe({
+        next: (updatedTask) => {
+          this.applyChecklistUpdate(updatedTask);
+          this.checklistItemForm.reset({ title: '' });
+          this.checklistSuccess.set('Item adicionado à checklist.');
+        },
+        error: (error: unknown) => {
+          this.checklistError.set(
+            this.extractApiError(error, 'Não foi possível adicionar o item.'),
+          );
+        },
+      });
+  }
+
+  toggleChecklistItem(item: TaskChecklistItem): void {
+    const task = this.selectedTask();
+
+    if (!this.canWriteTasks() || !task || this.managingChecklist()) {
+      return;
+    }
+
+    this.managingChecklist.set(true);
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+
+    this.taskService
+      .updateChecklistItem(task.id, item.id, {
+        title: item.title,
+        completed: !item.completed,
+      })
+      .pipe(finalize(() => this.managingChecklist.set(false)))
+      .subscribe({
+        next: (updatedTask) => {
+          this.applyChecklistUpdate(updatedTask);
+          this.checklistSuccess.set(
+            item.completed ? 'Item reaberto.' : 'Item concluído.',
+          );
+        },
+        error: (error: unknown) => {
+          this.checklistError.set(
+            this.extractApiError(error, 'Não foi possível atualizar o item.'),
+          );
+        },
+      });
+  }
+
+  removeChecklistItem(item: TaskChecklistItem): void {
+    const task = this.selectedTask();
+
+    if (!this.canWriteTasks() || !task || this.managingChecklist()) {
+      return;
+    }
+
+    this.managingChecklist.set(true);
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+
+    this.taskService
+      .removeChecklistItem(task.id, item.id)
+      .pipe(finalize(() => this.managingChecklist.set(false)))
+      .subscribe({
+        next: (updatedTask) => {
+          this.applyChecklistUpdate(updatedTask);
+          this.checklistSuccess.set('Item removido da checklist.');
+        },
+        error: (error: unknown) => {
+          this.checklistError.set(
+            this.extractApiError(error, 'Não foi possível remover o item.'),
+          );
+        },
+      });
+  }
+
+  private applyChecklistUpdate(updatedTask: TaskResponse): void {
+    this.selectedTask.set(updatedTask);
+
+    const board = this.kanban();
+
+    if (!board) {
+      return;
+    }
+
+    const totalChecklistItems = updatedTask.checklistItems.length;
+    const completedChecklistItems = updatedTask.checklistItems.filter(
+      (item) => item.completed,
+    ).length;
+
+    this.kanban.set({
+      ...board,
+      columns: board.columns.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) =>
+          task.id === updatedTask.id
+            ? { ...task, totalChecklistItems, completedChecklistItems }
+            : task,
+        ),
+      })),
+    });
+  }
+
   closeCreateTaskForm(): void {
     if (this.creatingTask()) {
       return;
@@ -735,6 +875,9 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+    this.checklistItemForm.reset({ title: '' });
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
 
     this.taskDetailsOpen.set(true);
     this.selectedTaskId.set(taskId);
@@ -776,7 +919,12 @@ export class KanbanComponent implements OnInit {
   }
 
   closeTaskDetails(): void {
-    if (this.loadingTaskDetails() || this.updatingTask() || this.archivingTask()) {
+    if (
+      this.loadingTaskDetails() ||
+      this.updatingTask() ||
+      this.archivingTask() ||
+      this.managingChecklist()
+    ) {
       return;
     }
     this.taskDetailsOpen.set(false);
@@ -787,6 +935,9 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+    this.checklistItemForm.reset({ title: '' });
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
@@ -1145,6 +1296,9 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+    this.checklistItemForm.reset({ title: '' });
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);

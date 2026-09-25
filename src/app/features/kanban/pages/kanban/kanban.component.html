@@ -257,7 +257,12 @@
               <button
                 type="button"
                 aria-label="Fechar detalhes da tarefa"
-                [disabled]="loadingTaskDetails() || updatingTask() || archivingTask()"
+                [disabled]="
+                  loadingTaskDetails() ||
+                  updatingTask() ||
+                  archivingTask() ||
+                  managingChecklist()
+                "
                 (click)="closeTaskDetails()"
               >
                 ×
@@ -543,6 +548,122 @@
                     }
                   }
                 }
+
+                <section class="task-checklist" aria-labelledby="task-checklist-title">
+                  <header class="task-checklist__header">
+                    <div>
+                      <p class="eyebrow">Execução</p>
+                      <h4 id="task-checklist-title">Checklist da tarefa</h4>
+                    </div>
+
+                    <strong>
+                      {{ checklistCompletedCount() }} / {{ task.checklistItems.length }}
+                    </strong>
+                  </header>
+
+                  @if (task.checklistItems.length > 0) {
+                    <progress
+                      class="task-checklist__progress"
+                      [value]="checklistCompletedCount()"
+                      [max]="task.checklistItems.length"
+                      [attr.aria-label]="
+                        checklistCompletedCount() +
+                        ' de ' +
+                        task.checklistItems.length +
+                        ' itens concluídos'
+                      "
+                    ></progress>
+                  }
+
+                  @if (canWriteTasks()) {
+                    <form
+                      class="task-form task-checklist__form"
+                      [formGroup]="checklistItemForm"
+                      (ngSubmit)="addChecklistItem()"
+                      novalidate
+                    >
+                      <div class="task-form-field">
+                        <label for="task-checklist-item">Nova subtarefa</label>
+                        <input
+                          id="task-checklist-item"
+                          type="text"
+                          maxlength="180"
+                          formControlName="title"
+                          placeholder="Ex.: Validar cenário de cadastro"
+                        />
+                      </div>
+
+                      <button
+                        class="primary-button"
+                        type="submit"
+                        [disabled]="managingChecklist() || task.checklistItems.length >= 50"
+                      >
+                        Adicionar
+                      </button>
+                    </form>
+
+                    @if (
+                      checklistItemForm.controls.title.touched &&
+                      checklistItemForm.controls.title.hasError('required')
+                    ) {
+                      <small class="task-checklist__validation">Informe o título da subtarefa.</small>
+                    } @else if (checklistItemForm.controls.title.hasError('maxlength')) {
+                      <small class="task-checklist__validation">
+                        Use no máximo 180 caracteres.
+                      </small>
+                    }
+                  }
+
+                  @if (checklistError()) {
+                    <div class="task-checklist__message task-checklist__message--error" role="alert">
+                      {{ checklistError() }}
+                    </div>
+                  } @else if (checklistSuccess()) {
+                    <div class="task-checklist__message" role="status">
+                      {{ checklistSuccess() }}
+                    </div>
+                  }
+
+                  @if (task.checklistItems.length === 0) {
+                    <p class="task-checklist__empty">
+                      Nenhuma subtarefa adicionada. Use a checklist para dividir a entrega em passos
+                      menores.
+                    </p>
+                  } @else {
+                    <ul class="task-checklist__items">
+                      @for (item of task.checklistItems; track item.id) {
+                        <li [class.task-checklist__item--completed]="item.completed">
+                          <label>
+                            <input
+                              type="checkbox"
+                              [checked]="item.completed"
+                              [disabled]="!canWriteTasks() || managingChecklist()"
+                              (change)="toggleChecklistItem(item)"
+                            />
+                            <span>{{ item.title }}</span>
+                          </label>
+
+                          @if (canWriteTasks()) {
+                            <button
+                              type="button"
+                              [disabled]="managingChecklist()"
+                              [attr.aria-label]="'Remover subtarefa ' + item.title"
+                              (click)="removeChecklistItem(item)"
+                            >
+                              Remover
+                            </button>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+
+                  @if (isReadOnly()) {
+                    <p class="task-checklist__readonly">
+                      Visualizadores acompanham o progresso, sem alterar a checklist.
+                    </p>
+                  }
+                </section>
               </div>
             }
           </section>
@@ -649,6 +770,16 @@
                               @for (label of task.labels; track label) {
                                 <span class="task-label">{{ label }}</span>
                               }
+                            </div>
+                          }
+
+                          @if (task.totalChecklistItems > 0) {
+                            <div class="task-card__checklist">
+                              <span aria-hidden="true">✓</span>
+                              <span>
+                                {{ task.completedChecklistItems }} / {{ task.totalChecklistItems }}
+                                subtarefas
+                              </span>
                             </div>
                           }
 
