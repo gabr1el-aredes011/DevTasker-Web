@@ -28,6 +28,7 @@ import {
   Component,
   computed,
   inject,
+  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
@@ -46,6 +47,11 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
 import { DtToastService } from '../../../../shared/ui';
+import { BoardRealtimeService } from '../../services/board-realtime.service';
+import {
+  BoardRealtimeEvent,
+  BoardRealtimeStatus,
+} from '../../models/board-realtime.models';
 
 type LabelFilterMode = 'ANY' | 'ALL';
 type DueDateFilter = 'ALL' | 'OVERDUE' | 'TODAY' | 'NEXT_7_DAYS' | 'NO_DATE';
@@ -70,7 +76,7 @@ interface AssigneeFilterOption {
   styleUrl: './kanban.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class KanbanComponent implements OnInit {
+export class KanbanComponent implements OnInit, OnDestroy {
   private readonly projectService = inject(ProjectService);
   private readonly kanbanService = inject(KanbanService);
   private readonly formBuilder = inject(FormBuilder);
@@ -78,6 +84,7 @@ export class KanbanComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(DtToastService);
+  private readonly boardRealtimeService = inject(BoardRealtimeService);
 
   readonly projects = signal<readonly ProjectSummary[]>([]);
 
@@ -98,6 +105,17 @@ export class KanbanComponent implements OnInit {
   readonly selectedPriorityFilters = signal<readonly TaskPriority[]>([]);
   readonly selectedAssigneeFilters = signal<readonly (number | null)[]>([]);
   readonly dueDateFilter = signal<DueDateFilter>('ALL');
+  readonly realtimeStatus = this.boardRealtimeService.status;
+  readonly realtimeStatusLabel = computed(() => {
+    const labels: Readonly<Record<BoardRealtimeStatus, string>> = {
+      disconnected: 'Tempo real indisponível',
+      connecting: 'Conectando em tempo real...',
+      connected: 'Atualizações em tempo real',
+      reconnecting: 'Reconectando em tempo real...',
+    };
+
+    return labels[this.realtimeStatus()];
+  });
 
   readonly kanban = signal<KanbanBoard | null>(null);
 
@@ -370,9 +388,15 @@ export class KanbanComponent implements OnInit {
 
   private projectLabelsReady = false;
   private kanbanReady = false;
+  private realtimeBoardId: number | null = null;
+  private stopRealtimeConnection: (() => void) | null = null;
 
   ngOnInit(): void {
     this.loadPageData();
+  }
+
+  ngOnDestroy(): void {
+    this.disconnectRealtime();
   }
 
   retry(): void {
@@ -380,6 +404,7 @@ export class KanbanComponent implements OnInit {
   }
 
   selectProject(project: ProjectSummary): void {
+    this.disconnectRealtime();
     this.selectedProject.set(project);
 
     this.resetFilters(false);
@@ -408,6 +433,7 @@ export class KanbanComponent implements OnInit {
   }
 
   backToProjects(): void {
+    this.disconnectRealtime();
     this.selectedProject.set(null);
 
     this.resetFilters(false);
@@ -468,6 +494,7 @@ export class KanbanComponent implements OnInit {
   }
 
   backToBoards(): void {
+    this.disconnectRealtime();
     this.selectedBoard.set(null);
 
     this.kanban.set(null);
@@ -1760,21 +1787,29 @@ export class KanbanComponent implements OnInit {
     this.projectLabelsReady = false;
   }
 
-  private loadKanban(boardId: number, requestedTaskId: number | null = null): void {
-    this.loadingKanban.set(true);
+  private loadKanban(
+    boardId: number,
+    requestedTaskId: number | null = null,
+    preserveCurrentBoard = false,
+  ): void {
+    this.ensureRealtimeConnection(boardId);
+
+    if (!preserveCurrentBoard) this.loadingKanban.set(true);
     this.kanbanLoadError.set(null);
-    this.kanban.set(null);
+    if (!preserveCurrentBoard) this.kanban.set(null);
     this.kanbanReady = false;
 
     this.kanbanService
       .findByBoardId(boardId)
       .pipe(
         finalize(() => {
-          this.loadingKanban.set(false);
+          if (!preserveCurrentBoard) this.loadingKanban.set(false);
         }),
       )
       .subscribe({
         next: (kanban) => {
+          if (this.selectedBoard()?.id !== boardId) return;
+
           this.kanban.set(kanban);
           this.kanbanReady = true;
           this.reconcileFilters();
@@ -1805,11 +1840,61 @@ export class KanbanComponent implements OnInit {
         },
 
         error: () => {
+          if (this.selectedBoard()?.id !== boardId) return;
+
           this.kanbanReady = true;
           this.reconcileFilters();
-          this.kanbanLoadError.set('Não foi possível carregar o Kanban deste quadro.');
+          if (preserveCurrentBoard) {
+            this.toast.warning(
+              'Uma atualização em tempo real não pôde ser aplicada. Atualize o quadro.',
+            );
+          } else {
+            this.kanbanLoadError.set('Não foi possível carregar o Kanban deste quadro.');
+          }
         },
       });
+  }
+
+  private ensureRealtimeConnection(boardId: number): void {
+    if (this.realtimeBoardId === boardId) return;
+
+    this.disconnectRealtime();
+    this.realtimeBoardId = boardId;
+    this.stopRealtimeConnection = this.boardRealtimeService.connect(boardId, (event) => {
+      this.handleRealtimeEvent(event);
+    });
+  }
+
+  private handleRealtimeEvent(event: BoardRealtimeEvent): void {
+    if (this.selectedBoard()?.id !== event.boardId) return;
+
+    if (event.type === 'TASK_ARCHIVED' && this.selectedTaskId() === event.taskId) {
+      this.closeTaskDetails();
+    } else if (
+      this.selectedTaskId() === event.taskId &&
+      !this.editingTask() &&
+      !this.updatingTask()
+    ) {
+      this.refreshSelectedTaskFromRealtime(event.taskId);
+    }
+
+    this.loadKanban(event.boardId, null, true);
+  }
+
+  private refreshSelectedTaskFromRealtime(taskId: number): void {
+    this.taskService.findById(taskId).subscribe({
+      next: (task) => {
+        if (this.selectedTaskId() !== taskId) return;
+        this.selectedTask.set(task);
+        this.loadTaskCollaboration(taskId);
+      },
+    });
+  }
+
+  private disconnectRealtime(): void {
+    this.stopRealtimeConnection?.();
+    this.stopRealtimeConnection = null;
+    this.realtimeBoardId = null;
   }
 
   private moveTaskLocally(

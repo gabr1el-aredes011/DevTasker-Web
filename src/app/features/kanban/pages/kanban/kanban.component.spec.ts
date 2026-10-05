@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -7,6 +8,8 @@ import { TaskService } from '../../../tasks/services/task.service';
 import { KanbanService } from '../../services/kanban.service';
 import { KanbanComponent } from './kanban.component';
 import { DtToastService } from '../../../../shared/ui';
+import { BoardRealtimeService } from '../../services/board-realtime.service';
+import { BoardRealtimeEvent } from '../../models/board-realtime.models';
 
 describe('KanbanComponent', () => {
   const project = {
@@ -33,6 +36,14 @@ describe('KanbanComponent', () => {
   };
   const kanbanService = {
     findByBoardId: vi.fn(),
+  };
+  const stopRealtimeConnection = vi.fn();
+  const boardRealtimeService = {
+    status: signal<'disconnected' | 'connecting' | 'connected' | 'reconnecting'>('connected'),
+    connect: vi.fn(
+      (_boardId: number, _onEvent: (event: BoardRealtimeEvent) => void) =>
+        stopRealtimeConnection,
+    ),
   };
   const taskService = {
     create: vi.fn(),
@@ -66,6 +77,7 @@ describe('KanbanComponent', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    boardRealtimeService.status.set('connected');
     queryParams.clear();
     projectService.findAll.mockReturnValue(of([]));
     projectService.findBoardsByProjectId.mockReturnValue(of([]));
@@ -120,6 +132,7 @@ describe('KanbanComponent', () => {
       providers: [
         { provide: ProjectService, useValue: projectService },
         { provide: KanbanService, useValue: kanbanService },
+        { provide: BoardRealtimeService, useValue: boardRealtimeService },
         { provide: TaskService, useValue: taskService },
         { provide: Router, useValue: router },
         { provide: ActivatedRoute, useValue: activatedRoute },
@@ -145,6 +158,7 @@ describe('KanbanComponent', () => {
     expect(projectService.findBoardsByProjectId).toHaveBeenCalledWith(7);
     expect(component.selectedBoard()).toEqual(boards[1]);
     expect(kanbanService.findByBoardId).toHaveBeenCalledWith(12);
+    expect(boardRealtimeService.connect).toHaveBeenCalledWith(12, expect.any(Function));
     expect(router.navigate).toHaveBeenCalledWith(
       [],
       expect.objectContaining({
@@ -153,6 +167,30 @@ describe('KanbanComponent', () => {
         replaceUrl: true,
       }),
     );
+  });
+
+  it('should silently refresh the selected board after a realtime event', () => {
+    queryParams.set('projectId', '7');
+    projectService.findAll.mockReturnValue(of([project]));
+    projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    fixture.detectChanges();
+    const onEvent = boardRealtimeService.connect.mock.calls[0][1] as (
+      event: BoardRealtimeEvent,
+    ) => void;
+
+    onEvent({
+      eventId: 'event-1',
+      boardId: 12,
+      taskId: 19,
+      actorUserId: 3,
+      type: 'TASK_MOVED',
+      occurredAt: '2026-10-05T20:00:00Z',
+    });
+
+    expect(kanbanService.findByBoardId).toHaveBeenCalledTimes(2);
+    expect(fixture.componentInstance.loadingKanban()).toBe(false);
   });
 
   it('should keep an explicit board deep link authoritative', () => {
