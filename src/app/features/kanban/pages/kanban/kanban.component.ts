@@ -45,6 +45,7 @@ import {
 } from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
 
 const TASK_LABELS_VALIDATOR: ValidatorFn = (
   control: AbstractControl<string>,
@@ -80,7 +81,14 @@ function parseTaskLabels(value: string): string[] {
 @Component({
   selector: 'app-kanban',
   standalone: true,
-  imports: [ReactiveFormsModule, CdkDropListGroup, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [
+    ReactiveFormsModule,
+    CdkDropListGroup,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+    TaskMarkdownComponent,
+  ],
   templateUrl: './kanban.component.html',
   styleUrl: './kanban.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -123,6 +131,7 @@ export class KanbanComponent implements OnInit {
   readonly creatingTask = signal(false);
 
   readonly createTaskError = signal<string | null>(null);
+  readonly createDescriptionPreview = signal(false);
 
   readonly taskDetailsOpen = signal(false);
 
@@ -135,6 +144,7 @@ export class KanbanComponent implements OnInit {
   readonly taskDetailsError = signal<string | null>(null);
 
   readonly editingTask = signal(false);
+  readonly editDescriptionPreview = signal(false);
   readonly updatingTask = signal(false);
 
   readonly updateTaskError = signal<string | null>(null);
@@ -174,7 +184,7 @@ export class KanbanComponent implements OnInit {
 
     title: ['', [Validators.required]],
 
-    description: [''],
+    description: ['', [Validators.maxLength(4000)]],
 
     priority: ['MEDIUM' as TaskPriority, [Validators.required]],
 
@@ -188,7 +198,7 @@ export class KanbanComponent implements OnInit {
   readonly editTaskForm = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required]],
 
-    description: [''],
+    description: ['', [Validators.maxLength(4000)]],
 
     priority: ['MEDIUM' as TaskPriority, [Validators.required]],
 
@@ -468,6 +478,7 @@ export class KanbanComponent implements OnInit {
       assigneeId: null,
       labelsText: '',
     });
+    this.createDescriptionPreview.set(false);
     this.taskFormOpen.set(true);
   }
 
@@ -490,6 +501,7 @@ export class KanbanComponent implements OnInit {
       labelsText: task.labels.join(', '),
     });
 
+    this.editDescriptionPreview.set(false);
     this.editingTask.set(true);
   }
 
@@ -499,6 +511,7 @@ export class KanbanComponent implements OnInit {
     }
 
     this.editingTask.set(false);
+    this.editDescriptionPreview.set(false);
     this.updateTaskError.set(null);
   }
 
@@ -564,6 +577,7 @@ export class KanbanComponent implements OnInit {
            */
           this.selectedTask.set(updatedTask);
           this.editingTask.set(false);
+          this.editDescriptionPreview.set(false);
 
           this.updateTaskSuccess.set('Tarefa atualizada com sucesso.');
           this.loadTaskCollaboration(updatedTask.id);
@@ -1062,6 +1076,7 @@ export class KanbanComponent implements OnInit {
     }
 
     this.taskFormOpen.set(false);
+    this.createDescriptionPreview.set(false);
     this.createTaskError.set(null);
   }
 
