@@ -47,6 +47,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
 
 type LabelFilterMode = 'ANY' | 'ALL';
+type DueDateFilter = 'ALL' | 'OVERDUE' | 'TODAY' | 'NEXT_7_DAYS' | 'NO_DATE';
+
+interface AssigneeFilterOption {
+  readonly id: number | null;
+  readonly name: string;
+}
 
 @Component({
   selector: 'app-kanban',
@@ -87,6 +93,9 @@ export class KanbanComponent implements OnInit {
   readonly projectLabelsError = signal<string | null>(null);
   readonly selectedLabelFilterIds = signal<readonly number[]>([]);
   readonly labelFilterMode = signal<LabelFilterMode>('ANY');
+  readonly selectedPriorityFilters = signal<readonly TaskPriority[]>([]);
+  readonly selectedAssigneeFilters = signal<readonly (number | null)[]>([]);
+  readonly dueDateFilter = signal<DueDateFilter>('ALL');
 
   readonly kanban = signal<KanbanBoard | null>(null);
 
@@ -116,23 +125,81 @@ export class KanbanComponent implements OnInit {
     });
   });
 
+  readonly availableAssigneeFilters = computed<readonly AssigneeFilterOption[]>(() => {
+    const assigneesById = new Map<number, string>();
+    let hasUnassignedTasks = false;
+
+    for (const column of this.kanban()?.columns ?? []) {
+      for (const task of column.tasks) {
+        if (task.assigneeId === null) {
+          hasUnassignedTasks = true;
+        } else {
+          assigneesById.set(task.assigneeId, task.assigneeName ?? `Usuário #${task.assigneeId}`);
+        }
+      }
+    }
+
+    const options: AssigneeFilterOption[] = [...assigneesById.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    if (hasUnassignedTasks) options.push({ id: null, name: 'Sem responsável' });
+    return options;
+  });
+
   readonly hasActiveLabelFilters = computed(() => this.selectedLabelFilterIds().length > 0);
+  readonly hasActiveKanbanFilters = computed(
+    () =>
+      this.hasActiveLabelFilters() ||
+      this.selectedPriorityFilters().length > 0 ||
+      this.selectedAssigneeFilters().length > 0 ||
+      this.dueDateFilter() !== 'ALL',
+  );
+  readonly activeFilterCount = computed(
+    () =>
+      this.selectedLabelFilterIds().length +
+      this.selectedPriorityFilters().length +
+      this.selectedAssigneeFilters().length +
+      (this.dueDateFilter() === 'ALL' ? 0 : 1),
+  );
 
   readonly filteredKanban = computed<KanbanBoard | null>(() => {
     const board = this.kanban();
-    const selectedIds = this.selectedLabelFilterIds();
-    if (!board || selectedIds.length === 0) return board;
+    if (!board || !this.hasActiveKanbanFilters()) return board;
 
-    const mode = this.labelFilterMode();
+    const selectedLabelIds = this.selectedLabelFilterIds();
+    const selectedPriorities = this.selectedPriorityFilters();
+    const selectedAssignees = this.selectedAssigneeFilters();
+    const labelMode = this.labelFilterMode();
+    const dueDateFilter = this.dueDateFilter();
+    const today = this.toLocalDateKey(new Date());
+    const nextSevenDays = new Date();
+    nextSevenDays.setDate(nextSevenDays.getDate() + 7);
+    const nextSevenDaysKey = this.toLocalDateKey(nextSevenDays);
+
     return {
       ...board,
       columns: board.columns.map((column) => ({
         ...column,
         tasks: column.tasks.filter((task) => {
           const taskLabelIds = new Set(task.labels.map((label) => label.id));
-          return mode === 'ALL'
-            ? selectedIds.every((labelId) => taskLabelIds.has(labelId))
-            : selectedIds.some((labelId) => taskLabelIds.has(labelId));
+          const matchesLabels =
+            selectedLabelIds.length === 0 ||
+            (labelMode === 'ALL'
+              ? selectedLabelIds.every((labelId) => taskLabelIds.has(labelId))
+              : selectedLabelIds.some((labelId) => taskLabelIds.has(labelId)));
+          const matchesPriority =
+            selectedPriorities.length === 0 || selectedPriorities.includes(task.priority);
+          const matchesAssignee =
+            selectedAssignees.length === 0 || selectedAssignees.includes(task.assigneeId);
+          const matchesDueDate = this.matchesDueDateFilter(
+            task.dueDate,
+            dueDateFilter,
+            today,
+            nextSevenDaysKey,
+          );
+
+          return matchesLabels && matchesPriority && matchesAssignee && matchesDueDate;
         }),
       })),
     };
@@ -212,6 +279,25 @@ export class KanbanComponent implements OnInit {
   );
 
   readonly priorities: readonly TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+  readonly priorityFilterOptions: readonly {
+    readonly value: TaskPriority;
+    readonly label: string;
+  }[] = [
+    { value: 'LOW', label: 'Baixa' },
+    { value: 'MEDIUM', label: 'Média' },
+    { value: 'HIGH', label: 'Alta' },
+    { value: 'URGENT', label: 'Urgente' },
+  ];
+  readonly dueDateFilterOptions: readonly {
+    readonly value: DueDateFilter;
+    readonly label: string;
+  }[] = [
+    { value: 'ALL', label: 'Todos os prazos' },
+    { value: 'OVERDUE', label: 'Vencidas' },
+    { value: 'TODAY', label: 'Vencem hoje' },
+    { value: 'NEXT_7_DAYS', label: 'Próximos 7 dias' },
+    { value: 'NO_DATE', label: 'Sem prazo' },
+  ];
 
   readonly createTaskForm = this.formBuilder.nonNullable.group({
     columnId: [0, [Validators.required, Validators.min(1)]],
@@ -279,7 +365,7 @@ export class KanbanComponent implements OnInit {
   readonly taskMovementDisabled = computed(
     () =>
       !this.canWriteTasks() ||
-      this.hasActiveLabelFilters() ||
+      this.hasActiveKanbanFilters() ||
       this.loadingKanban() ||
       this.movingTask() ||
       this.creatingTask() ||
@@ -303,7 +389,7 @@ export class KanbanComponent implements OnInit {
   selectProject(project: ProjectSummary): void {
     this.selectedProject.set(project);
 
-    this.resetLabelFilters(false);
+    this.resetFilters(false);
 
     this.loadAssignableMembers(project);
     this.loadProjectLabels(project);
@@ -322,6 +408,9 @@ export class KanbanComponent implements OnInit {
       taskId: null,
       labels: null,
       labelMatch: null,
+      priorities: null,
+      assignees: null,
+      due: null,
     });
 
     this.loadBoards(project.id);
@@ -330,7 +419,7 @@ export class KanbanComponent implements OnInit {
   backToProjects(): void {
     this.selectedProject.set(null);
 
-    this.resetLabelFilters(false);
+    this.resetFilters(false);
 
     this.resetAssignableMembers();
     this.resetProjectLabels();
@@ -360,6 +449,9 @@ export class KanbanComponent implements OnInit {
       taskId: null,
       labels: null,
       labelMatch: null,
+      priorities: null,
+      assignees: null,
+      due: null,
     });
   }
 
@@ -1406,7 +1498,7 @@ export class KanbanComponent implements OnInit {
 
     this.resetAssignableMembers();
     this.resetProjectLabels();
-    this.resetLabelFilters(false);
+    this.resetFilters(false);
 
     this.boards.set([]);
     this.boardsLoadError.set(null);
@@ -1452,9 +1544,12 @@ export class KanbanComponent implements OnInit {
     if (projectId === null) {
       if (
         this.route.snapshot.queryParamMap.get('labels') ||
-        this.route.snapshot.queryParamMap.get('labelMatch')
+        this.route.snapshot.queryParamMap.get('labelMatch') ||
+        this.route.snapshot.queryParamMap.get('priorities') ||
+        this.route.snapshot.queryParamMap.get('assignees') ||
+        this.route.snapshot.queryParamMap.get('due')
       ) {
-        this.syncLabelFiltersToUrl();
+        this.syncFiltersToUrl();
       }
       return;
     }
@@ -1469,7 +1564,7 @@ export class KanbanComponent implements OnInit {
 
     this.selectedProject.set(project);
 
-    this.applyLabelFiltersFromUrl();
+    this.applyFiltersFromUrl();
 
     this.loadAssignableMembers(project);
     this.loadProjectLabels(project);
@@ -1617,17 +1712,61 @@ export class KanbanComponent implements OnInit {
       : [...selectedIds, labelId];
 
     this.selectedLabelFilterIds.set(nextIds);
-    this.syncLabelFiltersToUrl();
+    this.syncFiltersToUrl();
   }
 
   setLabelFilterMode(mode: LabelFilterMode): void {
     if (this.labelFilterMode() === mode) return;
     this.labelFilterMode.set(mode);
-    this.syncLabelFiltersToUrl();
+    this.syncFiltersToUrl();
   }
 
   clearLabelFilters(): void {
-    this.resetLabelFilters();
+    this.selectedLabelFilterIds.set([]);
+    this.labelFilterMode.set('ANY');
+    this.syncFiltersToUrl();
+  }
+
+  isPriorityFilterSelected(priority: TaskPriority): boolean {
+    return this.selectedPriorityFilters().includes(priority);
+  }
+
+  togglePriorityFilter(priority: TaskPriority): void {
+    const selectedPriorities = this.selectedPriorityFilters();
+    this.selectedPriorityFilters.set(
+      selectedPriorities.includes(priority)
+        ? selectedPriorities.filter((currentPriority) => currentPriority !== priority)
+        : [...selectedPriorities, priority],
+    );
+    this.syncFiltersToUrl();
+  }
+
+  isAssigneeFilterSelected(assigneeId: number | null): boolean {
+    return this.selectedAssigneeFilters().includes(assigneeId);
+  }
+
+  toggleAssigneeFilter(assigneeId: number | null): void {
+    const selectedAssignees = this.selectedAssigneeFilters();
+    this.selectedAssigneeFilters.set(
+      selectedAssignees.includes(assigneeId)
+        ? selectedAssignees.filter((currentId) => currentId !== assigneeId)
+        : [...selectedAssignees, assigneeId],
+    );
+    this.syncFiltersToUrl();
+  }
+
+  updateDueDateFilter(event: Event): void {
+    this.setDueDateFilter((event.target as HTMLSelectElement).value as DueDateFilter);
+  }
+
+  setDueDateFilter(filter: DueDateFilter): void {
+    if (this.dueDateFilter() === filter) return;
+    this.dueDateFilter.set(filter);
+    this.syncFiltersToUrl();
+  }
+
+  clearAllFilters(): void {
+    this.resetFilters();
   }
 
   private loadProjectLabels(project: ProjectSummary): void {
@@ -1642,13 +1781,13 @@ export class KanbanComponent implements OnInit {
           if (this.selectedProject()?.id !== project.id) return;
           this.projectLabels.set(labels);
           this.projectLabelsReady = true;
-          this.reconcileLabelFilters();
+          this.reconcileFilters();
         },
         error: () => {
           if (this.selectedProject()?.id === project.id) {
             this.projectLabelsError.set('Não foi possível carregar as labels disponíveis.');
             this.projectLabelsReady = true;
-            this.reconcileLabelFilters();
+            this.reconcileFilters();
           }
         },
       });
@@ -1678,7 +1817,7 @@ export class KanbanComponent implements OnInit {
         next: (kanban) => {
           this.kanban.set(kanban);
           this.kanbanReady = true;
-          this.reconcileLabelFilters();
+          this.reconcileFilters();
 
           if (requestedTaskId === null) {
             return;
@@ -1707,7 +1846,7 @@ export class KanbanComponent implements OnInit {
 
         error: () => {
           this.kanbanReady = true;
-          this.reconcileLabelFilters();
+          this.reconcileFilters();
           this.kanbanLoadError.set('Não foi possível carregar o Kanban deste quadro.');
         },
       });
@@ -1818,7 +1957,7 @@ export class KanbanComponent implements OnInit {
     return parsedValue;
   }
 
-  private applyLabelFiltersFromUrl(): void {
+  private applyFiltersFromUrl(): void {
     const rawLabelIds = this.route.snapshot.queryParamMap.get('labels');
     const labelIds = rawLabelIds
       ? [...new Set(
@@ -1829,38 +1968,104 @@ export class KanbanComponent implements OnInit {
         )]
       : [];
     const rawMode = this.route.snapshot.queryParamMap.get('labelMatch')?.toLowerCase();
+    const priorities = (this.route.snapshot.queryParamMap.get('priorities') ?? '')
+      .split(',')
+      .map((value) => value.toUpperCase())
+      .filter((value): value is TaskPriority =>
+        this.priorities.includes(value as TaskPriority),
+      );
+    const assignees = (this.route.snapshot.queryParamMap.get('assignees') ?? '')
+      .split(',')
+      .filter(Boolean)
+      .map((value) => (value.toLowerCase() === 'none' ? null : Number(value)))
+      .filter(
+        (value): value is number | null =>
+          value === null || (Number.isInteger(value) && value > 0),
+      );
+    const rawDueDateFilter = this.route.snapshot.queryParamMap.get('due')?.toUpperCase();
+    const dueDateFilter: DueDateFilter =
+      rawDueDateFilter === 'OVERDUE' ||
+      rawDueDateFilter === 'TODAY' ||
+      rawDueDateFilter === 'NEXT_7_DAYS' ||
+      rawDueDateFilter === 'NO_DATE'
+        ? rawDueDateFilter
+        : 'ALL';
 
     this.selectedLabelFilterIds.set(labelIds);
     this.labelFilterMode.set(rawMode === 'all' ? 'ALL' : 'ANY');
+    this.selectedPriorityFilters.set([...new Set(priorities)]);
+    this.selectedAssigneeFilters.set([...new Set(assignees)]);
+    this.dueDateFilter.set(dueDateFilter);
   }
 
-  private reconcileLabelFilters(): void {
+  private reconcileFilters(): void {
     if (!this.projectLabelsReady || !this.kanbanReady) return;
 
-    const selectedIds = this.selectedLabelFilterIds();
-    if (selectedIds.length === 0) return;
+    const selectedLabelIds = this.selectedLabelFilterIds();
+    const availableLabelIds = new Set(this.availableLabelFilters().map((label) => label.id));
+    const validLabelIds = selectedLabelIds.filter((labelId) => availableLabelIds.has(labelId));
+    const selectedAssignees = this.selectedAssigneeFilters();
+    const availableAssignees = this.availableAssigneeFilters().map((assignee) => assignee.id);
+    const validAssignees = selectedAssignees.filter((assigneeId) =>
+      availableAssignees.includes(assigneeId),
+    );
+    const filtersChanged =
+      validLabelIds.length !== selectedLabelIds.length ||
+      validAssignees.length !== selectedAssignees.length;
 
-    const availableIds = new Set(this.availableLabelFilters().map((label) => label.id));
-    const validIds = selectedIds.filter((labelId) => availableIds.has(labelId));
-    if (validIds.length === selectedIds.length) return;
+    if (!filtersChanged) return;
 
-    this.selectedLabelFilterIds.set(validIds);
-    this.syncLabelFiltersToUrl();
+    this.selectedLabelFilterIds.set(validLabelIds);
+    this.selectedAssigneeFilters.set(validAssignees);
+    this.syncFiltersToUrl();
   }
 
-  private resetLabelFilters(updateUrl = true): void {
+  private resetFilters(updateUrl = true): void {
     this.selectedLabelFilterIds.set([]);
     this.labelFilterMode.set('ANY');
+    this.selectedPriorityFilters.set([]);
+    this.selectedAssigneeFilters.set([]);
+    this.dueDateFilter.set('ALL');
 
-    if (updateUrl) this.syncLabelFiltersToUrl();
+    if (updateUrl) this.syncFiltersToUrl();
   }
 
-  private syncLabelFiltersToUrl(): void {
-    const selectedIds = this.selectedLabelFilterIds();
+  private syncFiltersToUrl(): void {
+    const selectedLabelIds = this.selectedLabelFilterIds();
+    const selectedPriorities = this.selectedPriorityFilters();
+    const selectedAssignees = this.selectedAssigneeFilters();
     this.updateNavigationState({
-      labels: selectedIds.length > 0 ? selectedIds.join(',') : null,
-      labelMatch: selectedIds.length > 0 ? this.labelFilterMode().toLowerCase() : null,
+      labels: selectedLabelIds.length > 0 ? selectedLabelIds.join(',') : null,
+      labelMatch:
+        selectedLabelIds.length > 0 ? this.labelFilterMode().toLowerCase() : null,
+      priorities: selectedPriorities.length > 0 ? selectedPriorities.join(',') : null,
+      assignees:
+        selectedAssignees.length > 0
+          ? selectedAssignees.map((assigneeId) => assigneeId ?? 'none').join(',')
+          : null,
+      due: this.dueDateFilter() === 'ALL' ? null : this.dueDateFilter().toLowerCase(),
     });
+  }
+
+  private matchesDueDateFilter(
+    dueDate: string | null,
+    filter: DueDateFilter,
+    today: string,
+    nextSevenDays: string,
+  ): boolean {
+    if (filter === 'ALL') return true;
+    if (filter === 'NO_DATE') return dueDate === null;
+    if (dueDate === null) return false;
+    if (filter === 'OVERDUE') return dueDate < today;
+    if (filter === 'TODAY') return dueDate === today;
+    return dueDate > today && dueDate <= nextSevenDays;
+  }
+
+  private toLocalDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private updateNavigationState(queryParams: {
@@ -1873,6 +2078,12 @@ export class KanbanComponent implements OnInit {
     labels?: string | null;
 
     labelMatch?: string | null;
+
+    priorities?: string | null;
+
+    assignees?: string | null;
+
+    due?: string | null;
   }): void {
     void this.router.navigate([], {
       relativeTo: this.route,

@@ -1,0 +1,204 @@
+.kanban-filters {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid rgba(129, 173, 154, 0.16);
+  border-radius: 0.9rem;
+  background: rgba(7, 18, 14, 0.72);
+}
+
+.kanban-filters__header,
+.kanban-filters__summary,
+.kanban-filters__label-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.kanban-filters__header {
+  justify-content: space-between;
+}
+
+.kanban-filters__header h3 {
+  margin: 0.25rem 0 0;
+  color: #edf5f1;
+  font-size: 1rem;
+}
+
+.kanban-filters__count {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid rgba(47, 255, 105, 0.18);
+  border-radius: 999px;
+  color: #8ca198;
+  font-family: monospace;
+  font-size: 0.7rem;
+}
+
+.kanban-filters__clear,
+.kanban-filters__label-mode button,
+.kanban-filter-chip,
+.kanban-label-filter {
+  border: 1px solid rgba(129, 173, 154, 0.2);
+  background: rgba(129, 173, 154, 0.04);
+  color: #aab9b2;
+  cursor: pointer;
+}
+
+.kanban-filters__clear,
+.kanban-filters__label-mode button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border-radius: 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.kanban-filters__clear {
+  color: #79f99c;
+}
+
+.kanban-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.kanban-filters__group {
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(129, 173, 154, 0.12);
+  border-radius: 0.7rem;
+  background: rgba(4, 13, 10, 0.46);
+}
+
+.kanban-filters__group legend,
+.kanban-filters__due > span {
+  padding: 0 0.25rem;
+  color: #91a59b;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.kanban-filters__group--labels {
+  grid-column: 1 / -1;
+}
+
+.kanban-filters__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.kanban-filter-chip,
+.kanban-label-filter {
+  display: inline-flex;
+  min-height: 2.15rem;
+  padding: 0 0.7rem;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.kanban-filter-chip.is-selected {
+  border-color: rgba(47, 255, 105, 0.42);
+  background: rgba(47, 255, 105, 0.1);
+  color: #8effae;
+  box-shadow: 0 0 0 2px rgba(47, 255, 105, 0.08);
+}
+
+.kanban-filter-chip[data-priority='LOW'].is-selected { color: #8ad9a0; }
+.kanban-filter-chip[data-priority='MEDIUM'].is-selected { color: #f4cf70; }
+.kanban-filter-chip[data-priority='HIGH'].is-selected { color: #ff9c72; }
+.kanban-filter-chip[data-priority='URGENT'].is-selected { color: #ff8585; }
+
+.kanban-filters__due {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.kanban-filters__due select {
+  width: 100%;
+  min-height: 2.3rem;
+  padding: 0 0.65rem;
+  border: 1px solid rgba(129, 173, 154, 0.22);
+  border-radius: 0.55rem;
+  outline: none;
+  background: #07110f;
+  color: #c7d5ce;
+}
+
+.kanban-filters__due select:focus-visible {
+  border-color: rgba(47, 255, 105, 0.58);
+  box-shadow: 0 0 0 3px rgba(47, 255, 105, 0.08);
+}
+
+.kanban-filters__label-mode {
+  margin-bottom: 0.7rem;
+}
+
+.kanban-filters__label-mode button.is-active {
+  border-color: rgba(47, 255, 105, 0.38);
+  background: rgba(47, 255, 105, 0.1);
+  color: #8effae;
+}
+
+.kanban-label-filter > span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--task-label-color, #aab9b2);
+}
+
+.kanban-label-filter small {
+  color: #71847a;
+  font-size: 0.6rem;
+}
+
+.kanban-label-filter.is-selected {
+  border-color: color-mix(in srgb, var(--task-label-color) 58%, transparent);
+  background: color-mix(in srgb, var(--task-label-color) 13%, transparent);
+  color: var(--task-label-color);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--task-label-color) 12%, transparent);
+}
+
+.kanban-filters__state,
+.kanban-filters__warning,
+.kanban-filters__hint {
+  margin: 0;
+  color: #71847a;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.kanban-filters__warning {
+  margin-bottom: 0.7rem;
+  color: #f4cf70;
+}
+
+.kanban-filters__hint {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(129, 173, 154, 0.1);
+}
+
+@media (max-width: 900px) {
+  .kanban-filters__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .kanban-filters__header,
+  .kanban-filters__summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .kanban-filters__clear {
+    width: 100%;
+  }
+}
