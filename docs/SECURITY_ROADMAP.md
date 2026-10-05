@@ -90,3 +90,29 @@ tela e, dependendo da infraestrutura, em logs e ferramentas de análise.
   navegador e revisar políticas de ferramentas de analytics.
 - Evoluir o envio para outbox persistente caso convites precisem de garantia de
   entrega após reinícios.
+
+## SEC-004 — Anexos de tarefas
+
+- **Status:** base funcional implementada na branch `feature/task-attachments`
+- **Prioridade:** alta antes da publicação
+- **Área:** tarefas, armazenamento e autorização
+
+### Controles adotados
+
+- Limite de 10 anexos ativos por tarefa e 10 MB por arquivo.
+- Lista explícita de tipos aceitos: PDF, PNG, JPEG, WebP, TXT, JSON e ZIP.
+- Nome físico aleatório e independente do nome original enviado pelo usuário.
+- Proteção contra travessia de diretórios no armazenamento local.
+- Leitura e download somente para participantes ativos do projeto.
+- `VIEWER` possui acesso somente de leitura; envio exige acesso operacional.
+- Exclusão pelo autor do envio ou moderação por `OWNER` e `ADMIN`.
+- Exclusão lógica no banco e remoção física somente após a confirmação da transação.
+- Limpeza do arquivo recém-enviado quando a transação do banco é revertida.
+
+### Antes de produção
+
+- Usar object storage privado compatível com S3/R2 e credenciais de privilégio mínimo.
+- Verificar a assinatura binária real, sem confiar somente no MIME declarado pelo cliente.
+- Executar varredura antimalware e manter o arquivo em quarentena até a aprovação.
+- Avaliar URLs assinadas de curta duração ou streaming autenticado conforme a infraestrutura.
+- Monitorar volume, falhas, abuso e executar reconciliação periódica de arquivos órfãos.

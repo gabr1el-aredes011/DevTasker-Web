@@ -45,6 +45,10 @@ describe('KanbanComponent', () => {
     addComment: vi.fn(),
     editComment: vi.fn(),
     removeComment: vi.fn(),
+    findAttachments: vi.fn(),
+    uploadAttachment: vi.fn(),
+    downloadAttachment: vi.fn(),
+    removeAttachment: vi.fn(),
   };
   const router = {
     navigate: vi.fn().mockResolvedValue(true),
@@ -94,6 +98,19 @@ describe('KanbanComponent', () => {
       }),
     );
     taskService.findCollaboration.mockReturnValue(of({ comments: [], activities: [] }));
+    taskService.findAttachments.mockReturnValue(
+      of([
+        {
+          id: 5,
+          originalFileName: 'evidencia.pdf',
+          contentType: 'application/pdf',
+          sizeBytes: 1024,
+          uploader: { id: 2, name: 'Gabriel', profileImageUrl: null },
+          canDelete: false,
+          createdAt: '2026-08-31T10:00:00Z',
+        },
+      ]),
+    );
 
     await TestBed.configureTestingModule({
       imports: [KanbanComponent],
@@ -210,6 +227,13 @@ describe('KanbanComponent', () => {
     expect(element.querySelector('.task-details-actions')).toBeNull();
     expect(element.querySelector('.task-checklist__form')).toBeNull();
     expect(element.querySelector('.task-comment-form')).toBeNull();
+    expect(element.querySelector('#task-attachment-file')).toBeNull();
+    expect(element.querySelector('.task-attachments__readonly')?.textContent).toContain(
+      'Visualizadores',
+    );
+    expect(element.querySelector('.task-attachments__metadata')?.textContent).toContain(
+      'evidencia.pdf',
+    );
     expect(
       (element.querySelector('.task-checklist__items input') as HTMLInputElement).disabled,
     ).toBe(true);

@@ -245,6 +245,169 @@
   color: var(--dt-color-text-primary);
 }
 
+.task-attachments {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--dt-color-border-subtle);
+  border-radius: var(--dt-radius-lg);
+  background: rgba(4, 16, 12, 0.64);
+}
+
+.task-attachments__header,
+.task-attachments__upload,
+.task-attachments__actions,
+.task-attachments__confirmation,
+.task-attachments__confirmation > div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.task-attachments__header {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.task-attachments__header h4,
+.task-attachments__header p {
+  margin: 0;
+}
+
+.task-attachments__header > div > p:last-child {
+  margin-top: 0.25rem;
+  color: var(--dt-color-text-muted);
+  font-size: var(--dt-text-sm);
+}
+
+.task-attachments__header > strong {
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--dt-color-border-default);
+  border-radius: var(--dt-radius-pill);
+  color: var(--dt-color-brand-300);
+  font-family: var(--dt-font-mono);
+  font-size: var(--dt-text-xs);
+}
+
+.task-attachments__upload {
+  flex-wrap: wrap;
+}
+
+.task-attachments__upload label,
+.task-attachments button {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--dt-color-border-default);
+  border-radius: var(--dt-radius-sm);
+  background: var(--dt-color-surface-2);
+  color: var(--dt-color-text-secondary);
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-weight-semibold);
+}
+
+.task-attachments__upload label {
+  border-color: var(--dt-color-brand-500);
+  background: var(--dt-color-brand-500);
+  color: var(--dt-color-text-inverse);
+  cursor: pointer;
+}
+
+.task-attachments__upload-label--disabled {
+  cursor: not-allowed !important;
+  opacity: 0.55;
+}
+
+.task-attachments__upload small,
+.task-attachments__metadata small {
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+  font-size: 0.68rem;
+}
+
+.task-attachments__message,
+.task-attachments__readonly,
+.task-attachments__state,
+.task-attachments__empty {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px dashed var(--dt-color-border-default);
+  border-radius: var(--dt-radius-md);
+  color: var(--dt-color-text-secondary);
+  font-size: var(--dt-text-sm);
+}
+
+.task-attachments__message {
+  border-style: solid;
+  border-color: rgba(52, 232, 115, 0.26);
+  background: var(--dt-color-success-soft);
+  color: var(--dt-color-success);
+}
+
+.task-attachments__message--error,
+.task-attachments__state--error,
+.task-attachments__remove {
+  color: var(--dt-color-danger) !important;
+}
+
+.task-attachments__state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.task-attachments__list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-attachments__list > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid var(--dt-color-border-subtle);
+  border-radius: var(--dt-radius-md);
+  background: var(--dt-color-surface-1);
+}
+
+.task-attachments__file-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--dt-color-border-strong);
+  border-radius: var(--dt-radius-sm);
+  background: var(--dt-color-brand-soft);
+  color: var(--dt-color-brand-300);
+}
+
+.task-attachments__metadata {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.task-attachments__metadata strong {
+  overflow: hidden;
+  color: var(--dt-color-text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-attachments__confirmation {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--dt-color-border-subtle);
+  color: var(--dt-color-text-secondary);
+  font-size: var(--dt-text-xs);
+}
+
 @media (max-width: 62rem) {
   .task-collaboration {
     grid-template-columns: 1fr;
@@ -262,5 +425,18 @@
   .task-comment__confirmation > div,
   .task-comment__confirmation button {
     width: 100%;
+  }
+
+  .task-attachments__list > li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .task-attachments__actions {
+    grid-column: 1 / -1;
+  }
+
+  .task-attachments__confirmation {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

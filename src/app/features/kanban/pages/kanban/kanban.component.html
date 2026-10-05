@@ -666,6 +666,133 @@
                   }
                 </section>
 
+                <section class="task-attachments" aria-labelledby="task-attachments-title">
+                  <header class="task-attachments__header">
+                    <div>
+                      <p class="eyebrow">Arquivos</p>
+                      <h4 id="task-attachments-title">Anexos da tarefa</h4>
+                      <p>Centralize evidências, documentos e materiais desta entrega.</p>
+                    </div>
+
+                    <strong>{{ taskAttachments().length }} / 10</strong>
+                  </header>
+
+                  @if (canWriteTasks()) {
+                    <div class="task-attachments__upload">
+                      <label
+                        for="task-attachment-file"
+                        [class.task-attachments__upload-label--disabled]="
+                          managingAttachment() || taskAttachments().length >= 10
+                        "
+                      >
+                        @if (managingAttachment()) {
+                          Enviando arquivo...
+                        } @else {
+                          Selecionar arquivo
+                        }
+                      </label>
+                      <input
+                        id="task-attachment-file"
+                        class="visually-hidden"
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.json,.zip"
+                        [disabled]="managingAttachment() || taskAttachments().length >= 10"
+                        (change)="uploadAttachment($event)"
+                      />
+                      <small>PDF, imagens, TXT, JSON ou ZIP · máximo de 10 MB</small>
+                    </div>
+                  } @else {
+                    <p class="task-attachments__readonly">
+                      Visualizadores podem consultar e baixar arquivos, sem adicionar ou remover.
+                    </p>
+                  }
+
+                  @if (attachmentActionError()) {
+                    <div class="task-attachments__message task-attachments__message--error" role="alert">
+                      {{ attachmentActionError() }}
+                    </div>
+                  } @else if (attachmentActionSuccess()) {
+                    <div class="task-attachments__message" role="status">
+                      {{ attachmentActionSuccess() }}
+                    </div>
+                  }
+
+                  @if (loadingTaskAttachments()) {
+                    <div class="task-attachments__state" role="status">Carregando anexos...</div>
+                  } @else if (taskAttachmentsError()) {
+                    <div class="task-attachments__state task-attachments__state--error" role="alert">
+                      <span>{{ taskAttachmentsError() }}</span>
+                      <button type="button" (click)="retryTaskAttachments()">Tentar novamente</button>
+                    </div>
+                  } @else if (taskAttachments().length === 0) {
+                    <p class="task-attachments__empty">Nenhum arquivo anexado a esta tarefa.</p>
+                  } @else {
+                    <ul class="task-attachments__list">
+                      @for (attachment of taskAttachments(); track attachment.id) {
+                        <li>
+                          <div class="task-attachments__file-icon" aria-hidden="true">↧</div>
+                          <div class="task-attachments__metadata">
+                            <strong>{{ attachment.originalFileName }}</strong>
+                            <small>
+                              {{ formatFileSize(attachment.sizeBytes) }} · enviado por
+                              {{ attachment.uploader.name }} ·
+                              {{ formatTaskTimestamp(attachment.createdAt) }}
+                            </small>
+                          </div>
+
+                          <div class="task-attachments__actions">
+                            <button
+                              type="button"
+                              [disabled]="downloadingAttachmentId() !== null"
+                              (click)="downloadAttachment(attachment)"
+                            >
+                              @if (downloadingAttachmentId() === attachment.id) {
+                                Baixando...
+                              } @else {
+                                Baixar
+                              }
+                            </button>
+
+                            @if (attachment.canDelete) {
+                              <button
+                                class="task-attachments__remove"
+                                type="button"
+                                [disabled]="managingAttachment()"
+                                (click)="requestAttachmentRemoval(attachment)"
+                              >
+                                Remover
+                              </button>
+                            }
+                          </div>
+
+                          @if (attachmentPendingDeletionId() === attachment.id) {
+                            <div class="task-attachments__confirmation">
+                              <span>Remover este anexo permanentemente?</span>
+                              <div>
+                                <button
+                                  type="button"
+                                  [disabled]="managingAttachment()"
+                                  (click)="cancelAttachmentRemoval()"
+                                >
+                                  Cancelar
+                                </button>
+                                <button
+                                  class="task-attachments__remove"
+                                  type="button"
+                                  [disabled]="managingAttachment()"
+                                  (click)="confirmAttachmentRemoval(attachment.id)"
+                                >
+                                  Confirmar
+                                </button>
+                              </div>
+                            </div>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+
                 <section class="task-collaboration" aria-labelledby="task-comments-title">
                   <div class="task-collaboration__column">
                     <header class="task-collaboration__header">

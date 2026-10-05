@@ -172,7 +172,7 @@ Critérios de aceite:
 - 🧭 Catálogo de labels por projeto com cores, filtros e gestão reutilizável
 - ✅ Subtarefas e checklist persistentes, com conclusão, remoção e progresso agregado
 - ✅ Comentários e histórico persistentes, com autorização por função e linha do tempo prospectiva
-- 🧭 Anexos
+- ✅ Anexos persistentes com upload, download, exclusão lógica, limites e permissões por função
 - 🧭 Evolução de prioridade, prazo e atividade
 
 ### Colaboração
@@ -214,6 +214,13 @@ Critérios de aceite:
 
 - 🧭 Busca global e filtros
 - 🧭 Atalhos de teclado
+
+### Hardening de anexos para produção
+
+- 🧭 Migrar o armazenamento local para object storage compatível com S3/R2
+- 🧭 Adicionar varredura antimalware antes de disponibilizar novos arquivos
+- 🧭 Validar a assinatura binária real do arquivo além do tipo informado pelo navegador
+- 🧭 Definir retenção, observabilidade e limpeza automatizada de arquivos órfãos
 - 🧭 Quick actions
 - 🧭 Command palette
 
