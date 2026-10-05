@@ -134,12 +134,65 @@
               <div class="task-form-field">
                 <label for="task-description"> Descrição </label>
 
-                <textarea
-                  id="task-description"
-                  formControlName="description"
-                  rows="4"
-                  placeholder="Descreva o objetivo da tarefa"
-                ></textarea>
+                <div class="task-description-editor">
+                  <div class="task-description-editor__tabs" role="tablist" aria-label="Modo da descrição">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-controls="create-task-description-panel"
+                      [attr.aria-selected]="!createDescriptionPreview()"
+                      [class.is-active]="!createDescriptionPreview()"
+                      (click)="createDescriptionPreview.set(false)"
+                    >
+                      Escrever
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-controls="create-task-description-panel"
+                      [attr.aria-selected]="createDescriptionPreview()"
+                      [class.is-active]="createDescriptionPreview()"
+                      (click)="createDescriptionPreview.set(true)"
+                    >
+                      Visualizar
+                    </button>
+                  </div>
+
+                  @if (createDescriptionPreview()) {
+                    <div
+                      id="create-task-description-panel"
+                      class="task-description-editor__preview"
+                      role="tabpanel"
+                    >
+                      @if (createTaskForm.controls.description.value.trim()) {
+                        <dt-task-markdown [source]="createTaskForm.controls.description.value" />
+                      } @else {
+                        <p>Nada para visualizar. Escreva uma descrição primeiro.</p>
+                      }
+                    </div>
+                  } @else {
+                    <div id="create-task-description-panel" role="tabpanel">
+                      <textarea
+                        id="task-description"
+                        formControlName="description"
+                        rows="7"
+                        maxlength="4000"
+                        placeholder="Use Markdown para organizar contexto, critérios e decisões..."
+                      ></textarea>
+                    </div>
+                  }
+                </div>
+
+                <div class="task-description-editor__footer">
+                  <small class="task-form-hint">
+                    Markdown: **negrito**, *itálico*, listas, links, citações e blocos de código.
+                  </small>
+                  <small>{{ createTaskForm.controls.description.value.length }} / 4000</small>
+                </div>
+
+                @if (createTaskForm.controls.description.hasError('maxlength')) {
+                  <small>A descrição deve possuir no máximo 4.000 caracteres.</small>
+                }
               </div>
 
               <div class="task-form-field">
@@ -318,12 +371,65 @@
                     <div class="task-form-field">
                       <label for="edit-task-description"> Descrição </label>
 
-                      <textarea
-                        id="edit-task-description"
-                        formControlName="description"
-                        rows="5"
-                        placeholder="Descreva o objetivo da tarefa"
-                      ></textarea>
+                      <div class="task-description-editor">
+                        <div class="task-description-editor__tabs" role="tablist" aria-label="Modo da descrição">
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-controls="edit-task-description-panel"
+                            [attr.aria-selected]="!editDescriptionPreview()"
+                            [class.is-active]="!editDescriptionPreview()"
+                            (click)="editDescriptionPreview.set(false)"
+                          >
+                            Escrever
+                          </button>
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-controls="edit-task-description-panel"
+                            [attr.aria-selected]="editDescriptionPreview()"
+                            [class.is-active]="editDescriptionPreview()"
+                            (click)="editDescriptionPreview.set(true)"
+                          >
+                            Visualizar
+                          </button>
+                        </div>
+
+                        @if (editDescriptionPreview()) {
+                          <div
+                            id="edit-task-description-panel"
+                            class="task-description-editor__preview"
+                            role="tabpanel"
+                          >
+                            @if (editTaskForm.controls.description.value.trim()) {
+                              <dt-task-markdown [source]="editTaskForm.controls.description.value" />
+                            } @else {
+                              <p>Nada para visualizar. Escreva uma descrição primeiro.</p>
+                            }
+                          </div>
+                        } @else {
+                          <div id="edit-task-description-panel" role="tabpanel">
+                            <textarea
+                              id="edit-task-description"
+                              formControlName="description"
+                              rows="8"
+                              maxlength="4000"
+                              placeholder="Use Markdown para organizar contexto, critérios e decisões..."
+                            ></textarea>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="task-description-editor__footer">
+                        <small class="task-form-hint">
+                          Markdown: **negrito**, *itálico*, listas, links, citações e blocos de código.
+                        </small>
+                        <small>{{ editTaskForm.controls.description.value.length }} / 4000</small>
+                      </div>
+
+                      @if (editTaskForm.controls.description.hasError('maxlength')) {
+                        <small>A descrição deve possuir no máximo 4.000 caracteres.</small>
+                      }
                     </div>
 
                     <div class="task-form-field">
@@ -430,9 +536,13 @@
                       </div>
                     }
 
-                    <p>
-                      {{ task.description ?? 'Esta tarefa não possui descrição.' }}
-                    </p>
+                    @if (task.description) {
+                      <div class="task-details-title__description">
+                        <dt-task-markdown [source]="task.description" />
+                      </div>
+                    } @else {
+                      <p>Esta tarefa não possui descrição.</p>
+                    }
                   </div>
 
                   <dl class="task-details-grid">

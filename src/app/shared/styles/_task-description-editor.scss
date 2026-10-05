@@ -1,0 +1,85 @@
+.task-description-editor {
+  overflow: hidden;
+  border: 1px solid var(--dt-color-border-default);
+  border-radius: var(--dt-radius-md);
+  background: var(--dt-color-canvas-soft);
+}
+
+.task-description-editor__tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border-bottom: 1px solid var(--dt-color-border-subtle);
+  background: var(--dt-color-surface-1);
+}
+
+.task-description-editor__tabs button {
+  padding: 0.4rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: var(--dt-radius-sm);
+  background: transparent;
+  color: var(--dt-color-text-muted);
+  font-size: var(--dt-text-xs);
+  font-weight: var(--dt-weight-semibold);
+}
+
+.task-description-editor__tabs button.is-active {
+  border-color: var(--dt-color-border-default);
+  background: var(--dt-color-brand-soft);
+  color: var(--dt-color-brand-300);
+}
+
+.task-description-editor textarea {
+  display: block;
+  width: 100%;
+  min-height: 10rem;
+  padding: 0.9rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--dt-color-text-primary);
+  font-family: var(--dt-font-mono);
+  font-size: var(--dt-text-sm);
+  line-height: var(--dt-line-relaxed);
+}
+
+.task-description-editor__preview {
+  min-height: 10rem;
+  padding: 0.9rem;
+}
+
+.task-description-editor__preview > p {
+  margin: 0;
+  color: var(--dt-color-text-muted);
+  font-size: var(--dt-text-sm);
+}
+
+.task-description-editor__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.task-description-editor__footer small:last-child {
+  flex: 0 0 auto;
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+}
+
+.task-details-title__description {
+  margin-top: 0.9rem;
+  padding: 0.9rem;
+  border: 1px solid var(--dt-color-border-subtle);
+  border-radius: var(--dt-radius-md);
+  background: rgba(4, 16, 12, 0.48);
+}
+
+@media (max-width: 36rem) {
+  .task-description-editor__footer {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}

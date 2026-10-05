@@ -1,0 +1,66 @@
+<div class="task-markdown">
+  @for (block of blocks(); track $index) {
+    @switch (block.type) {
+      @case ('heading') {
+        @switch (block.level) {
+          @case (1) {
+            <h2><ng-container *ngTemplateOutlet="segments; context: { $implicit: block.segments }" /></h2>
+          }
+          @case (2) {
+            <h3><ng-container *ngTemplateOutlet="segments; context: { $implicit: block.segments }" /></h3>
+          }
+          @default {
+            <h4><ng-container *ngTemplateOutlet="segments; context: { $implicit: block.segments }" /></h4>
+          }
+        }
+      }
+      @case ('paragraph') {
+        <p><ng-container *ngTemplateOutlet="segments; context: { $implicit: block.segments }" /></p>
+      }
+      @case ('quote') {
+        <blockquote>
+          <ng-container *ngTemplateOutlet="segments; context: { $implicit: block.segments }" />
+        </blockquote>
+      }
+      @case ('list') {
+        @if (block.ordered) {
+          <ol>
+            @for (item of block.items; track $index) {
+              <li><ng-container *ngTemplateOutlet="segments; context: { $implicit: item.segments }" /></li>
+            }
+          </ol>
+        } @else {
+          <ul>
+            @for (item of block.items; track $index) {
+              <li [class.task-markdown__check-item]="item.checked !== null">
+                @if (item.checked !== null) {
+                  <span class="task-markdown__checkbox" [class.task-markdown__checkbox--checked]="item.checked">
+                    {{ item.checked ? '✓' : '' }}
+                  </span>
+                }
+                <span><ng-container *ngTemplateOutlet="segments; context: { $implicit: item.segments }" /></span>
+              </li>
+            }
+          </ul>
+        }
+      }
+      @case ('code-block') {
+        <pre [attr.data-language]="block.language"><code>{{ block.content }}</code></pre>
+      }
+    }
+  }
+</div>
+
+<ng-template #segments let-items>
+  @for (segment of renderSegments(items); track $index) {
+    @switch (segment.type) {
+      @case ('bold') { <strong>{{ segment.content }}</strong> }
+      @case ('italic') { <em>{{ segment.content }}</em> }
+      @case ('code') { <code>{{ segment.content }}</code> }
+      @case ('link') {
+        <a [href]="segment.href" target="_blank" rel="noopener noreferrer">{{ segment.content }}</a>
+      }
+      @default { <span>{{ segment.content }}</span> }
+    }
+  }
+</ng-template>
