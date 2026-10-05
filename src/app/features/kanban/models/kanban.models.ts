@@ -9,6 +9,8 @@ export interface KanbanTask {
   readonly assigneeId: number | null;
   readonly assigneeName: string | null;
   readonly labels: readonly string[];
+  readonly completedChecklistItems: number;
+  readonly totalChecklistItems: number;
 }
 
 export interface KanbanColumn {

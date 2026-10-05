@@ -16,6 +16,9 @@ import {
 } from '@angular/forms';
 import {
   CreateTaskRequest,
+  TaskCollaboration,
+  TaskComment,
+  TaskChecklistItem,
   TaskPriority,
   TaskResponse,
   UpdateTaskRequest,
@@ -137,6 +140,23 @@ export class KanbanComponent implements OnInit {
 
   readonly updateTaskSuccess = signal<string | null>(null);
 
+  readonly managingChecklist = signal(false);
+  readonly checklistError = signal<string | null>(null);
+  readonly checklistSuccess = signal<string | null>(null);
+
+  readonly taskCollaboration = signal<TaskCollaboration | null>(null);
+  readonly loadingTaskCollaboration = signal(false);
+  readonly taskCollaborationError = signal<string | null>(null);
+  readonly managingComment = signal(false);
+  readonly commentActionError = signal<string | null>(null);
+  readonly commentActionSuccess = signal<string | null>(null);
+  readonly editingCommentId = signal<number | null>(null);
+  readonly commentPendingDeletionId = signal<number | null>(null);
+
+  readonly checklistCompletedCount = computed(
+    () => this.selectedTask()?.checklistItems.filter((item) => item.completed).length ?? 0,
+  );
+
   readonly priorities: readonly TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
   readonly createTaskForm = this.formBuilder.nonNullable.group({
@@ -167,6 +187,18 @@ export class KanbanComponent implements OnInit {
     assigneeId: [null as number | null],
 
     labelsText: ['', [TASK_LABELS_VALIDATOR]],
+  });
+
+  readonly checklistItemForm = this.formBuilder.nonNullable.group({
+    title: ['', [Validators.required, Validators.maxLength(180)]],
+  });
+
+  readonly commentForm = this.formBuilder.nonNullable.group({
+    content: ['', [Validators.required, Validators.maxLength(2000)]],
+  });
+
+  readonly editCommentForm = this.formBuilder.nonNullable.group({
+    content: ['', [Validators.required, Validators.maxLength(2000)]],
   });
 
   readonly archiveConfirmationOpen = signal(false);
@@ -524,6 +556,7 @@ export class KanbanComponent implements OnInit {
           this.editingTask.set(false);
 
           this.updateTaskSuccess.set('Tarefa atualizada com sucesso.');
+          this.loadTaskCollaboration(updatedTask.id);
 
           const board = this.selectedBoard();
 
@@ -538,6 +571,316 @@ export class KanbanComponent implements OnInit {
           );
         },
       });
+  }
+
+  addChecklistItem(): void {
+    const task = this.selectedTask();
+
+    if (!this.canWriteTasks() || !task || this.managingChecklist()) {
+      return;
+    }
+
+    if (this.checklistItemForm.invalid) {
+      this.checklistItemForm.markAllAsTouched();
+      return;
+    }
+
+    const title = this.checklistItemForm.controls.title.value.trim();
+
+    if (!title) {
+      this.checklistItemForm.controls.title.setErrors({ required: true });
+      this.checklistItemForm.controls.title.markAsTouched();
+      return;
+    }
+
+    this.managingChecklist.set(true);
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+
+    this.taskService
+      .addChecklistItem(task.id, { title })
+      .pipe(finalize(() => this.managingChecklist.set(false)))
+      .subscribe({
+        next: (updatedTask) => {
+          this.applyChecklistUpdate(updatedTask);
+          this.checklistItemForm.reset({ title: '' });
+          this.checklistSuccess.set('Item adicionado à checklist.');
+          this.loadTaskCollaboration(updatedTask.id);
+        },
+        error: (error: unknown) => {
+          this.checklistError.set(
+            this.extractApiError(error, 'Não foi possível adicionar o item.'),
+          );
+        },
+      });
+  }
+
+  toggleChecklistItem(item: TaskChecklistItem): void {
+    const task = this.selectedTask();
+
+    if (!this.canWriteTasks() || !task || this.managingChecklist()) {
+      return;
+    }
+
+    this.managingChecklist.set(true);
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+
+    this.taskService
+      .updateChecklistItem(task.id, item.id, {
+        title: item.title,
+        completed: !item.completed,
+      })
+      .pipe(finalize(() => this.managingChecklist.set(false)))
+      .subscribe({
+        next: (updatedTask) => {
+          this.applyChecklistUpdate(updatedTask);
+          this.checklistSuccess.set(
+            item.completed ? 'Item reaberto.' : 'Item concluído.',
+          );
+          this.loadTaskCollaboration(updatedTask.id);
+        },
+        error: (error: unknown) => {
+          this.checklistError.set(
+            this.extractApiError(error, 'Não foi possível atualizar o item.'),
+          );
+        },
+      });
+  }
+
+  removeChecklistItem(item: TaskChecklistItem): void {
+    const task = this.selectedTask();
+
+    if (!this.canWriteTasks() || !task || this.managingChecklist()) {
+      return;
+    }
+
+    this.managingChecklist.set(true);
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+
+    this.taskService
+      .removeChecklistItem(task.id, item.id)
+      .pipe(finalize(() => this.managingChecklist.set(false)))
+      .subscribe({
+        next: (updatedTask) => {
+          this.applyChecklistUpdate(updatedTask);
+          this.checklistSuccess.set('Item removido da checklist.');
+          this.loadTaskCollaboration(updatedTask.id);
+        },
+        error: (error: unknown) => {
+          this.checklistError.set(
+            this.extractApiError(error, 'Não foi possível remover o item.'),
+          );
+        },
+      });
+  }
+
+  private applyChecklistUpdate(updatedTask: TaskResponse): void {
+    this.selectedTask.set(updatedTask);
+
+    const board = this.kanban();
+
+    if (!board) {
+      return;
+    }
+
+    const totalChecklistItems = updatedTask.checklistItems.length;
+    const completedChecklistItems = updatedTask.checklistItems.filter(
+      (item) => item.completed,
+    ).length;
+
+    this.kanban.set({
+      ...board,
+      columns: board.columns.map((column) => ({
+        ...column,
+        tasks: column.tasks.map((task) =>
+          task.id === updatedTask.id
+            ? { ...task, totalChecklistItems, completedChecklistItems }
+            : task,
+        ),
+      })),
+    });
+  }
+
+  addComment(): void {
+    const taskId = this.selectedTaskId();
+
+    if (!this.canWriteTasks() || taskId === null || this.managingComment()) {
+      return;
+    }
+
+    if (this.commentForm.invalid) {
+      this.commentForm.markAllAsTouched();
+      return;
+    }
+
+    const content = this.commentForm.controls.content.value.trim();
+
+    if (!content) {
+      this.commentForm.controls.content.setErrors({ required: true });
+      this.commentForm.controls.content.markAsTouched();
+      return;
+    }
+
+    this.managingComment.set(true);
+    this.commentActionError.set(null);
+    this.commentActionSuccess.set(null);
+
+    this.taskService
+      .addComment(taskId, { content })
+      .pipe(finalize(() => this.managingComment.set(false)))
+      .subscribe({
+        next: (collaboration) => {
+          this.taskCollaboration.set(collaboration);
+          this.commentForm.reset({ content: '' });
+          this.commentActionSuccess.set('Comentário publicado com sucesso.');
+        },
+        error: (error: unknown) => {
+          this.commentActionError.set(
+            this.extractApiError(error, 'Não foi possível publicar o comentário.'),
+          );
+        },
+      });
+  }
+
+  startCommentEdit(comment: TaskComment): void {
+    if (!this.canWriteTasks() || !comment.canEdit || this.managingComment()) {
+      return;
+    }
+
+    this.editingCommentId.set(comment.id);
+    this.commentPendingDeletionId.set(null);
+    this.commentActionError.set(null);
+    this.commentActionSuccess.set(null);
+    this.editCommentForm.reset({ content: comment.content });
+  }
+
+  cancelCommentEdit(): void {
+    if (this.managingComment()) {
+      return;
+    }
+
+    this.editingCommentId.set(null);
+    this.editCommentForm.reset({ content: '' });
+  }
+
+  submitCommentEdit(commentId: number): void {
+    const taskId = this.selectedTaskId();
+
+    if (
+      !this.canWriteTasks() ||
+      taskId === null ||
+      this.editingCommentId() !== commentId ||
+      this.managingComment()
+    ) {
+      return;
+    }
+
+    if (this.editCommentForm.invalid) {
+      this.editCommentForm.markAllAsTouched();
+      return;
+    }
+
+    const content = this.editCommentForm.controls.content.value.trim();
+
+    if (!content) {
+      this.editCommentForm.controls.content.setErrors({ required: true });
+      this.editCommentForm.controls.content.markAsTouched();
+      return;
+    }
+
+    this.managingComment.set(true);
+    this.commentActionError.set(null);
+    this.commentActionSuccess.set(null);
+
+    this.taskService
+      .editComment(taskId, commentId, { content })
+      .pipe(finalize(() => this.managingComment.set(false)))
+      .subscribe({
+        next: (collaboration) => {
+          this.taskCollaboration.set(collaboration);
+          this.editingCommentId.set(null);
+          this.editCommentForm.reset({ content: '' });
+          this.commentActionSuccess.set('Comentário atualizado com sucesso.');
+        },
+        error: (error: unknown) => {
+          this.commentActionError.set(
+            this.extractApiError(error, 'Não foi possível atualizar o comentário.'),
+          );
+        },
+      });
+  }
+
+  requestCommentRemoval(comment: TaskComment): void {
+    if (!this.canWriteTasks() || !comment.canDelete || this.managingComment()) {
+      return;
+    }
+
+    this.editingCommentId.set(null);
+    this.commentPendingDeletionId.set(comment.id);
+    this.commentActionError.set(null);
+    this.commentActionSuccess.set(null);
+  }
+
+  cancelCommentRemoval(): void {
+    if (!this.managingComment()) {
+      this.commentPendingDeletionId.set(null);
+    }
+  }
+
+  confirmCommentRemoval(commentId: number): void {
+    const taskId = this.selectedTaskId();
+
+    if (
+      !this.canWriteTasks() ||
+      taskId === null ||
+      this.commentPendingDeletionId() !== commentId ||
+      this.managingComment()
+    ) {
+      return;
+    }
+
+    this.managingComment.set(true);
+    this.commentActionError.set(null);
+    this.commentActionSuccess.set(null);
+
+    this.taskService
+      .removeComment(taskId, commentId)
+      .pipe(finalize(() => this.managingComment.set(false)))
+      .subscribe({
+        next: (collaboration) => {
+          this.taskCollaboration.set(collaboration);
+          this.commentPendingDeletionId.set(null);
+          this.commentActionSuccess.set('Comentário removido com sucesso.');
+        },
+        error: (error: unknown) => {
+          this.commentActionError.set(
+            this.extractApiError(error, 'Não foi possível remover o comentário.'),
+          );
+        },
+      });
+  }
+
+  retryTaskCollaboration(): void {
+    const taskId = this.selectedTaskId();
+
+    if (taskId !== null) {
+      this.loadTaskCollaboration(taskId);
+    }
+  }
+
+  formatTaskTimestamp(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(date);
   }
 
   closeCreateTaskForm(): void {
@@ -735,6 +1078,10 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+    this.checklistItemForm.reset({ title: '' });
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+    this.resetTaskCollaboration();
 
     this.taskDetailsOpen.set(true);
     this.selectedTaskId.set(taskId);
@@ -748,6 +1095,7 @@ export class KanbanComponent implements OnInit {
     this.selectedTask.set(null);
     this.taskDetailsError.set(null);
     this.loadingTaskDetails.set(true);
+    this.loadTaskCollaboration(taskId);
 
     this.taskService
       .findById(taskId)
@@ -776,7 +1124,13 @@ export class KanbanComponent implements OnInit {
   }
 
   closeTaskDetails(): void {
-    if (this.loadingTaskDetails() || this.updatingTask() || this.archivingTask()) {
+    if (
+      this.loadingTaskDetails() ||
+      this.updatingTask() ||
+      this.archivingTask() ||
+      this.managingChecklist() ||
+      this.managingComment()
+    ) {
       return;
     }
     this.taskDetailsOpen.set(false);
@@ -787,6 +1141,10 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+    this.checklistItemForm.reset({ title: '' });
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+    this.resetTaskCollaboration();
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
@@ -1145,8 +1503,54 @@ export class KanbanComponent implements OnInit {
     this.editingTask.set(false);
     this.updateTaskError.set(null);
     this.updateTaskSuccess.set(null);
+    this.checklistItemForm.reset({ title: '' });
+    this.checklistError.set(null);
+    this.checklistSuccess.set(null);
+    this.resetTaskCollaboration();
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
+  }
+
+  private loadTaskCollaboration(taskId: number): void {
+    this.loadingTaskCollaboration.set(true);
+    this.taskCollaborationError.set(null);
+
+    this.taskService
+      .findCollaboration(taskId)
+      .pipe(
+        finalize(() => {
+          if (this.selectedTaskId() === taskId) {
+            this.loadingTaskCollaboration.set(false);
+          }
+        }),
+      )
+      .subscribe({
+        next: (collaboration) => {
+          if (this.selectedTaskId() === taskId) {
+            this.taskCollaboration.set(collaboration);
+          }
+        },
+        error: (error: unknown) => {
+          if (this.selectedTaskId() === taskId) {
+            this.taskCollaborationError.set(
+              this.extractApiError(error, 'Não foi possível carregar comentários e atividades.'),
+            );
+          }
+        },
+      });
+  }
+
+  private resetTaskCollaboration(): void {
+    this.taskCollaboration.set(null);
+    this.loadingTaskCollaboration.set(false);
+    this.taskCollaborationError.set(null);
+    this.managingComment.set(false);
+    this.commentActionError.set(null);
+    this.commentActionSuccess.set(null);
+    this.editingCommentId.set(null);
+    this.commentPendingDeletionId.set(null);
+    this.commentForm.reset({ content: '' });
+    this.editCommentForm.reset({ content: '' });
   }
 }

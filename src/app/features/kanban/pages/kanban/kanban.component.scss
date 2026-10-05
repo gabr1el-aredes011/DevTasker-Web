@@ -857,6 +857,109 @@
   }
 }
 
+.task-checklist {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(129, 173, 154, 0.16);
+  border-radius: 0.8rem;
+}
+
+.task-checklist__header {
+  display: flex;
+  justify-content: space-between;
+
+  h4 {
+    margin: 0.25rem 0 0;
+  }
+
+  strong {
+    color: #79f99c;
+  }
+}
+
+.task-checklist__progress {
+  width: 100%;
+  height: 0.38rem;
+  accent-color: #2fff69;
+}
+
+.task-checklist__form {
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  button {
+    min-height: 2.65rem;
+    border-radius: 0.6rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+}
+
+.task-checklist__validation,
+.task-checklist__message,
+.task-checklist__empty,
+.task-checklist__readonly {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.task-checklist__validation,
+.task-checklist__message--error {
+  color: #ffaaaa;
+}
+
+.task-checklist__message {
+  color: #81f7a2;
+}
+
+.task-checklist__empty,
+.task-checklist__readonly {
+  color: #71857b;
+  line-height: 1.55;
+}
+
+.task-checklist__items {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    padding: 0.55rem 0.65rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid rgba(129, 173, 154, 0.12);
+    border-radius: 0.6rem;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  input {
+    accent-color: #2fff69;
+  }
+
+  button {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid rgba(255, 92, 92, 0.24);
+    border-radius: 0.45rem;
+    background: transparent;
+    color: #ff9b9b;
+    cursor: pointer;
+  }
+}
+
+.task-checklist__item--completed label span {
+  color: #61756a;
+  text-decoration: line-through;
+}
+
 /* =========================================================
    ARQUIVAMENTO DE TAREFA
    ========================================================= */
@@ -1127,6 +1230,14 @@
   .task-details-actions,
   .archive-confirmation__actions {
     flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .task-checklist__form {
+    grid-template-columns: 1fr;
 
     button {
       width: 100%;
