@@ -1,4 +1,5 @@
 @use './app/shared/ui/button/dt-button';
+@use './app/shared/styles/task-collaboration';
 @import '@angular/cdk/overlay-prebuilt.css';
 
 .dt-dialog-backdrop {

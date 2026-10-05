@@ -261,7 +261,8 @@
                   loadingTaskDetails() ||
                   updatingTask() ||
                   archivingTask() ||
-                  managingChecklist()
+                  managingChecklist() ||
+                  managingComment()
                 "
                 (click)="closeTaskDetails()"
               >
@@ -663,6 +664,238 @@
                       Visualizadores acompanham o progresso, sem alterar a checklist.
                     </p>
                   }
+                </section>
+
+                <section class="task-collaboration" aria-labelledby="task-comments-title">
+                  <div class="task-collaboration__column">
+                    <header class="task-collaboration__header">
+                      <div>
+                        <p class="eyebrow">Colaboração</p>
+                        <h4 id="task-comments-title">Comentários</h4>
+                      </div>
+
+                      <strong>{{ taskCollaboration()?.comments?.length ?? 0 }}</strong>
+                    </header>
+
+                    @if (canWriteTasks()) {
+                      <form
+                        class="task-comment-form"
+                        [formGroup]="commentForm"
+                        (ngSubmit)="addComment()"
+                        novalidate
+                      >
+                        <label for="task-comment">Novo comentário</label>
+                        <textarea
+                          id="task-comment"
+                          rows="3"
+                          maxlength="2000"
+                          formControlName="content"
+                          placeholder="Compartilhe contexto, uma decisão ou uma atualização..."
+                        ></textarea>
+
+                        <div class="task-comment-form__footer">
+                          <small>{{ commentForm.controls.content.value.length }} / 2000</small>
+                          <button
+                            class="primary-button"
+                            type="submit"
+                            [disabled]="managingComment()"
+                          >
+                            @if (managingComment()) {
+                              Publicando...
+                            } @else {
+                              Publicar comentário
+                            }
+                          </button>
+                        </div>
+
+                        @if (
+                          commentForm.controls.content.touched &&
+                          commentForm.controls.content.hasError('required')
+                        ) {
+                          <small class="task-collaboration__validation">
+                            Escreva uma mensagem antes de publicar.
+                          </small>
+                        } @else if (commentForm.controls.content.hasError('maxlength')) {
+                          <small class="task-collaboration__validation">
+                            Use no máximo 2000 caracteres.
+                          </small>
+                        }
+                      </form>
+                    } @else if (isReadOnly()) {
+                      <p class="task-collaboration__readonly">
+                        Visualizadores podem acompanhar a conversa, sem publicar ou alterar
+                        comentários.
+                      </p>
+                    }
+
+                    @if (commentActionError()) {
+                      <div class="task-collaboration__message task-collaboration__message--error" role="alert">
+                        {{ commentActionError() }}
+                      </div>
+                    } @else if (commentActionSuccess()) {
+                      <div class="task-collaboration__message" role="status">
+                        {{ commentActionSuccess() }}
+                      </div>
+                    }
+
+                    @if (loadingTaskCollaboration()) {
+                      <div class="task-collaboration__state" role="status">
+                        <span class="loading-indicator" aria-hidden="true"></span>
+                        <span>Carregando colaboração...</span>
+                      </div>
+                    } @else if (taskCollaborationError()) {
+                      <div class="task-collaboration__state task-collaboration__state--error" role="alert">
+                        <span>{{ taskCollaborationError() }}</span>
+                        <button type="button" (click)="retryTaskCollaboration()">
+                          Tentar novamente
+                        </button>
+                      </div>
+                    } @else if (taskCollaboration(); as collaboration) {
+                      @if (collaboration.comments.length === 0) {
+                        <p class="task-collaboration__empty">
+                          Ainda não há comentários nesta tarefa.
+                        </p>
+                      } @else {
+                        <ul class="task-comments">
+                          @for (comment of collaboration.comments; track comment.id) {
+                            <li class="task-comment">
+                              <header>
+                                <span class="task-comment__avatar" aria-hidden="true">
+                                  {{ comment.author.name.charAt(0).toUpperCase() }}
+                                </span>
+                                <div>
+                                  <strong>{{ comment.author.name }}</strong>
+                                  <small>
+                                    {{ formatTaskTimestamp(comment.createdAt) }}
+                                    @if (comment.edited) {
+                                      · editado
+                                    }
+                                  </small>
+                                </div>
+                              </header>
+
+                              @if (editingCommentId() === comment.id) {
+                                <form
+                                  class="task-comment-form task-comment-form--editing"
+                                  [formGroup]="editCommentForm"
+                                  (ngSubmit)="submitCommentEdit(comment.id)"
+                                  novalidate
+                                >
+                                  <label class="visually-hidden" [for]="'edit-comment-' + comment.id">
+                                    Editar comentário
+                                  </label>
+                                  <textarea
+                                    [id]="'edit-comment-' + comment.id"
+                                    rows="3"
+                                    maxlength="2000"
+                                    formControlName="content"
+                                  ></textarea>
+                                  <footer>
+                                    <button
+                                      type="button"
+                                      [disabled]="managingComment()"
+                                      (click)="cancelCommentEdit()"
+                                    >
+                                      Cancelar
+                                    </button>
+                                    <button
+                                      class="primary-button"
+                                      type="submit"
+                                      [disabled]="managingComment()"
+                                    >
+                                      Salvar
+                                    </button>
+                                  </footer>
+                                </form>
+                              } @else {
+                                <p>{{ comment.content }}</p>
+
+                                @if (comment.canEdit || comment.canDelete) {
+                                  <footer class="task-comment__actions">
+                                    @if (comment.canEdit) {
+                                      <button type="button" (click)="startCommentEdit(comment)">
+                                        Editar
+                                      </button>
+                                    }
+                                    @if (comment.canDelete) {
+                                      <button
+                                        class="task-comment__remove"
+                                        type="button"
+                                        (click)="requestCommentRemoval(comment)"
+                                      >
+                                        Remover
+                                      </button>
+                                    }
+                                  </footer>
+                                }
+
+                                @if (commentPendingDeletionId() === comment.id) {
+                                  <div class="task-comment__confirmation" role="alert">
+                                    <span>Remover este comentário?</span>
+                                    <div>
+                                      <button
+                                        type="button"
+                                        [disabled]="managingComment()"
+                                        (click)="cancelCommentRemoval()"
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button
+                                        class="task-comment__remove"
+                                        type="button"
+                                        [disabled]="managingComment()"
+                                        (click)="confirmCommentRemoval(comment.id)"
+                                      >
+                                        Confirmar
+                                      </button>
+                                    </div>
+                                  </div>
+                                }
+                              }
+                            </li>
+                          }
+                        </ul>
+                      }
+                    }
+                  </div>
+
+                  <div class="task-collaboration__column" aria-labelledby="task-activity-title">
+                    <header class="task-collaboration__header">
+                      <div>
+                        <p class="eyebrow">Histórico</p>
+                        <h4 id="task-activity-title">Atividade da tarefa</h4>
+                      </div>
+
+                      <strong>{{ taskCollaboration()?.activities?.length ?? 0 }}</strong>
+                    </header>
+
+                    @if (!loadingTaskCollaboration() && !taskCollaborationError()) {
+                      @if (taskCollaboration(); as collaboration) {
+                        @if (collaboration.activities.length === 0) {
+                          <p class="task-collaboration__empty">
+                            As próximas alterações desta tarefa aparecerão aqui.
+                          </p>
+                        } @else {
+                          <ol class="task-activity">
+                            @for (activity of collaboration.activities; track activity.id) {
+                              <li>
+                                <span class="task-activity__marker" aria-hidden="true"></span>
+                                <div>
+                                  <p>
+                                    <strong>{{ activity.actor.name }}</strong>
+                                    {{ activity.description }}
+                                  </p>
+                                  <time [attr.datetime]="activity.createdAt">
+                                    {{ formatTaskTimestamp(activity.createdAt) }}
+                                  </time>
+                                </div>
+                              </li>
+                            }
+                          </ol>
+                        }
+                      }
+                    }
+                  </div>
                 </section>
               </div>
             }

@@ -41,6 +41,10 @@ describe('KanbanComponent', () => {
     addChecklistItem: vi.fn(),
     updateChecklistItem: vi.fn(),
     removeChecklistItem: vi.fn(),
+    findCollaboration: vi.fn(),
+    addComment: vi.fn(),
+    editComment: vi.fn(),
+    removeComment: vi.fn(),
   };
   const router = {
     navigate: vi.fn().mockResolvedValue(true),
@@ -89,6 +93,7 @@ describe('KanbanComponent', () => {
         updatedAt: '2026-08-31T10:00:00Z',
       }),
     );
+    taskService.findCollaboration.mockReturnValue(of({ comments: [], activities: [] }));
 
     await TestBed.configureTestingModule({
       imports: [KanbanComponent],
@@ -204,6 +209,7 @@ describe('KanbanComponent', () => {
 
     expect(element.querySelector('.task-details-actions')).toBeNull();
     expect(element.querySelector('.task-checklist__form')).toBeNull();
+    expect(element.querySelector('.task-comment-form')).toBeNull();
     expect(
       (element.querySelector('.task-checklist__items input') as HTMLInputElement).disabled,
     ).toBe(true);
@@ -211,6 +217,8 @@ describe('KanbanComponent', () => {
     component.requestTaskArchive();
     component.toggleChecklistItem(component.selectedTask()!.checklistItems[0]);
     component.removeChecklistItem(component.selectedTask()!.checklistItems[0]);
+    component.commentForm.setValue({ content: 'Tentativa bloqueada' });
+    component.addComment();
 
     expect(component.editingTask()).toBe(false);
     expect(component.archiveConfirmationOpen()).toBe(false);
@@ -218,6 +226,7 @@ describe('KanbanComponent', () => {
     expect(taskService.archive).not.toHaveBeenCalled();
     expect(taskService.updateChecklistItem).not.toHaveBeenCalled();
     expect(taskService.removeChecklistItem).not.toHaveBeenCalled();
+    expect(taskService.addComment).not.toHaveBeenCalled();
   });
 
   it.each(['OWNER', 'ADMIN', 'MEMBER'] as const)(
@@ -232,6 +241,40 @@ describe('KanbanComponent', () => {
       expect(component.isReadOnly()).toBe(false);
     },
   );
+
+  it('should publish a trimmed comment and refresh the collaboration state', () => {
+    const collaboration = {
+      comments: [
+        {
+          id: 4,
+          content: 'Contexto da entrega.',
+          author: { id: 2, name: 'Gabriel', profileImageUrl: null },
+          canEdit: true,
+          canDelete: true,
+          edited: false,
+          createdAt: '2026-09-25T15:00:00Z',
+          updatedAt: '2026-09-25T15:00:00Z',
+        },
+      ],
+      activities: [],
+    };
+    taskService.addComment.mockReturnValue(of(collaboration));
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+    component.selectedProject.set(project);
+    component.selectedTaskId.set(19);
+    component.commentForm.setValue({ content: '  Contexto da entrega.  ' });
+
+    component.addComment();
+
+    expect(taskService.addComment).toHaveBeenCalledWith(19, {
+      content: 'Contexto da entrega.',
+    });
+    expect(component.taskCollaboration()).toEqual(collaboration);
+    expect(component.commentForm.controls.content.value).toBe('');
+    expect(component.commentActionSuccess()).toContain('publicado');
+  });
 
   it('should load operational members and send the selected assignee when creating a task', () => {
     queryParams.set('projectId', '7');

@@ -9,6 +9,8 @@ import { environment } from '../../../../environments/environment';
 import {
   CreateTaskRequest,
   CreateTaskChecklistItemRequest,
+  TaskCollaboration,
+  TaskCommentRequest,
   TaskResponse,
   UpdateTaskRequest,
   UpdateTaskChecklistItemRequest,
@@ -89,6 +91,36 @@ export class TaskService {
   removeChecklistItem(taskId: number, itemId: number): Observable<TaskResponse> {
     return this.http.delete<TaskResponse>(
       `${environment.apiUrl}/tasks/${taskId}/checklist-items/${itemId}`,
+    );
+  }
+
+  findCollaboration(taskId: number): Observable<TaskCollaboration> {
+    return this.http.get<TaskCollaboration>(
+      `${environment.apiUrl}/tasks/${taskId}/collaboration`,
+    );
+  }
+
+  addComment(taskId: number, request: TaskCommentRequest): Observable<TaskCollaboration> {
+    return this.http.post<TaskCollaboration>(
+      `${environment.apiUrl}/tasks/${taskId}/comments`,
+      request,
+    );
+  }
+
+  editComment(
+    taskId: number,
+    commentId: number,
+    request: TaskCommentRequest,
+  ): Observable<TaskCollaboration> {
+    return this.http.patch<TaskCollaboration>(
+      `${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`,
+      request,
+    );
+  }
+
+  removeComment(taskId: number, commentId: number): Observable<TaskCollaboration> {
+    return this.http.delete<TaskCollaboration>(
+      `${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`,
     );
   }
 

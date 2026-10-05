@@ -83,4 +83,34 @@ describe('TaskService', () => {
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush({});
   });
+
+  it('should load and manage task collaboration through task-scoped endpoints', () => {
+    service.findCollaboration(19).subscribe();
+
+    const collaborationRequest = http.expectOne(
+      `${environment.apiUrl}/tasks/19/collaboration`,
+    );
+    expect(collaborationRequest.request.method).toBe('GET');
+    collaborationRequest.flush({ comments: [], activities: [] });
+
+    service.addComment(19, { content: 'Contexto da entrega.' }).subscribe();
+
+    const createRequest = http.expectOne(`${environment.apiUrl}/tasks/19/comments`);
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual({ content: 'Contexto da entrega.' });
+    createRequest.flush({ comments: [], activities: [] });
+
+    service.editComment(19, 4, { content: 'Contexto atualizado.' }).subscribe();
+
+    const editRequest = http.expectOne(`${environment.apiUrl}/tasks/19/comments/4`);
+    expect(editRequest.request.method).toBe('PATCH');
+    expect(editRequest.request.body).toEqual({ content: 'Contexto atualizado.' });
+    editRequest.flush({ comments: [], activities: [] });
+
+    service.removeComment(19, 4).subscribe();
+
+    const removeRequest = http.expectOne(`${environment.apiUrl}/tasks/19/comments/4`);
+    expect(removeRequest.request.method).toBe('DELETE');
+    removeRequest.flush({ comments: [], activities: [] });
+  });
 });
