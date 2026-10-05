@@ -1,0 +1,30 @@
+<section
+  class="dt-toast-region"
+  aria-label="Notificações da plataforma"
+  aria-live="polite"
+  aria-relevant="additions"
+>
+  @for (toast of toastService.toasts(); track toast.id) {
+    <article
+      class="dt-toast"
+      [attr.data-tone]="toast.tone"
+      [attr.data-state]="toast.state"
+      [attr.role]="toast.tone === 'error' ? 'alert' : 'status'"
+      [style.--dt-toast-duration]="toast.durationMs + 'ms'"
+    >
+      <span class="dt-toast__icon" aria-hidden="true">{{ iconFor(toast.tone) }}</span>
+
+      <p>{{ toast.message }}</p>
+
+      <button
+        type="button"
+        aria-label="Fechar notificação"
+        (click)="toastService.dismiss(toast.id)"
+      >
+        ×
+      </button>
+
+      <span class="dt-toast__progress" aria-hidden="true"></span>
+    </article>
+  }
+</section>

@@ -1054,44 +1054,6 @@
   }
 }
 
-.task-action-success {
-  display: flex;
-  margin-bottom: 1.25rem;
-  padding: 0.9rem 1rem;
-  align-items: center;
-  gap: 0.65rem;
-  border: 1px solid rgba(47, 255, 105, 0.28);
-  border-left: 3px solid #2fff69;
-  border-radius: 0.75rem;
-  background: rgba(47, 255, 105, 0.07);
-  color: #bdfdce;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
-  animation: task-success-enter 220ms ease-out;
-
-  span {
-    display: grid;
-    width: 1.7rem;
-    height: 1.7rem;
-    place-items: center;
-    border-radius: 50%;
-    background: rgba(47, 255, 105, 0.12);
-    color: #65f790;
-    font-weight: 900;
-  }
-}
-
-@keyframes task-success-enter {
-  from {
-    transform: translateY(-6px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 .task-list {
   min-height: 9rem;
 }

@@ -45,6 +45,7 @@ import {
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
+import { DtToastService } from '../../../../shared/ui';
 
 type LabelFilterMode = 'ANY' | 'ALL';
 type DueDateFilter = 'ALL' | 'OVERDUE' | 'TODAY' | 'NEXT_7_DAYS' | 'NO_DATE';
@@ -76,6 +77,7 @@ export class KanbanComponent implements OnInit {
   private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly toast = inject(DtToastService);
 
   readonly projects = signal<readonly ProjectSummary[]>([]);
 
@@ -250,18 +252,14 @@ export class KanbanComponent implements OnInit {
 
   readonly updateTaskError = signal<string | null>(null);
 
-  readonly updateTaskSuccess = signal<string | null>(null);
-
   readonly managingChecklist = signal(false);
   readonly checklistError = signal<string | null>(null);
-  readonly checklistSuccess = signal<string | null>(null);
 
   readonly taskCollaboration = signal<TaskCollaboration | null>(null);
   readonly loadingTaskCollaboration = signal(false);
   readonly taskCollaborationError = signal<string | null>(null);
   readonly managingComment = signal(false);
   readonly commentActionError = signal<string | null>(null);
-  readonly commentActionSuccess = signal<string | null>(null);
   readonly editingCommentId = signal<number | null>(null);
   readonly commentPendingDeletionId = signal<number | null>(null);
 
@@ -271,7 +269,6 @@ export class KanbanComponent implements OnInit {
   readonly managingAttachment = signal(false);
   readonly downloadingAttachmentId = signal<number | null>(null);
   readonly attachmentActionError = signal<string | null>(null);
-  readonly attachmentActionSuccess = signal<string | null>(null);
   readonly attachmentPendingDeletionId = signal<number | null>(null);
 
   readonly checklistCompletedCount = computed(
@@ -346,13 +343,9 @@ export class KanbanComponent implements OnInit {
 
   readonly archiveTaskError = signal<string | null>(null);
 
-  readonly archiveTaskSuccess = signal<string | null>(null);
-
   readonly movingTask = signal(false);
 
   readonly moveTaskError = signal<string | null>(null);
-
-  readonly moveTaskSuccess = signal<string | null>(null);
 
   readonly canWriteTasks = computed(() => {
     const project = this.selectedProject();
@@ -400,8 +393,6 @@ export class KanbanComponent implements OnInit {
     this.kanbanLoadError.set(null);
 
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
-
     this.updateNavigationState({
       projectId: project.id,
       boardId: null,
@@ -438,10 +429,7 @@ export class KanbanComponent implements OnInit {
 
     this.resetTaskDetails();
 
-    this.archiveTaskSuccess.set(null);
-
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
 
     this.updateNavigationState({
       projectId: null,
@@ -467,7 +455,6 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(board);
 
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
 
     this.updateNavigationState({
       projectId: this.selectedProject()?.id ?? null,
@@ -490,12 +477,9 @@ export class KanbanComponent implements OnInit {
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
 
-    this.archiveTaskSuccess.set(null);
-
     this.resetTaskDetails();
 
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
 
     this.updateNavigationState({
       boardId: null,
@@ -560,8 +544,6 @@ export class KanbanComponent implements OnInit {
 
     this.movingTask.set(true);
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
-    this.archiveTaskSuccess.set(null);
 
     this.taskService
       .move(task.id, request)
@@ -576,7 +558,7 @@ export class KanbanComponent implements OnInit {
             return;
           }
 
-          this.moveTaskSuccess.set('Tarefa movida com sucesso.');
+          this.toast.success('Tarefa movida com sucesso.');
 
           this.refreshKanbanAfterMovement(selectedBoard.id);
         },
@@ -607,10 +589,8 @@ export class KanbanComponent implements OnInit {
     this.closeTaskDetails();
 
     this.createTaskError.set(null);
-    this.archiveTaskSuccess.set(null);
 
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
 
     this.createTaskForm.reset({
       columnId: firstColumn.id,
@@ -633,7 +613,6 @@ export class KanbanComponent implements OnInit {
     }
 
     this.updateTaskError.set(null);
-    this.updateTaskSuccess.set(null);
 
     this.editTaskForm.reset({
       title: task.title,
@@ -703,7 +682,6 @@ export class KanbanComponent implements OnInit {
 
     this.updatingTask.set(true);
     this.updateTaskError.set(null);
-    this.updateTaskSuccess.set(null);
 
     this.taskService
       .update(task.id, request)
@@ -722,7 +700,7 @@ export class KanbanComponent implements OnInit {
           this.editingTask.set(false);
           this.editDescriptionPreview.set(false);
 
-          this.updateTaskSuccess.set('Tarefa atualizada com sucesso.');
+          this.toast.success('Tarefa atualizada com sucesso.');
           this.loadTaskCollaboration(updatedTask.id);
 
           const board = this.selectedBoard();
@@ -762,7 +740,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingChecklist.set(true);
     this.checklistError.set(null);
-    this.checklistSuccess.set(null);
 
     this.taskService
       .addChecklistItem(task.id, { title })
@@ -771,7 +748,7 @@ export class KanbanComponent implements OnInit {
         next: (updatedTask) => {
           this.applyChecklistUpdate(updatedTask);
           this.checklistItemForm.reset({ title: '' });
-          this.checklistSuccess.set('Item adicionado à checklist.');
+          this.toast.success('Item adicionado à checklist.');
           this.loadTaskCollaboration(updatedTask.id);
         },
         error: (error: unknown) => {
@@ -791,7 +768,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingChecklist.set(true);
     this.checklistError.set(null);
-    this.checklistSuccess.set(null);
 
     this.taskService
       .updateChecklistItem(task.id, item.id, {
@@ -802,7 +778,7 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (updatedTask) => {
           this.applyChecklistUpdate(updatedTask);
-          this.checklistSuccess.set(
+          this.toast.success(
             item.completed ? 'Item reaberto.' : 'Item concluído.',
           );
           this.loadTaskCollaboration(updatedTask.id);
@@ -824,7 +800,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingChecklist.set(true);
     this.checklistError.set(null);
-    this.checklistSuccess.set(null);
 
     this.taskService
       .removeChecklistItem(task.id, item.id)
@@ -832,7 +807,7 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (updatedTask) => {
           this.applyChecklistUpdate(updatedTask);
-          this.checklistSuccess.set('Item removido da checklist.');
+          this.toast.success('Item removido da checklist.');
           this.loadTaskCollaboration(updatedTask.id);
         },
         error: (error: unknown) => {
@@ -892,7 +867,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingComment.set(true);
     this.commentActionError.set(null);
-    this.commentActionSuccess.set(null);
 
     this.taskService
       .addComment(taskId, { content })
@@ -901,7 +875,7 @@ export class KanbanComponent implements OnInit {
         next: (collaboration) => {
           this.taskCollaboration.set(collaboration);
           this.commentForm.reset({ content: '' });
-          this.commentActionSuccess.set('Comentário publicado com sucesso.');
+          this.toast.success('Comentário publicado com sucesso.');
         },
         error: (error: unknown) => {
           this.commentActionError.set(
@@ -919,7 +893,6 @@ export class KanbanComponent implements OnInit {
     this.editingCommentId.set(comment.id);
     this.commentPendingDeletionId.set(null);
     this.commentActionError.set(null);
-    this.commentActionSuccess.set(null);
     this.editCommentForm.reset({ content: comment.content });
   }
 
@@ -959,7 +932,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingComment.set(true);
     this.commentActionError.set(null);
-    this.commentActionSuccess.set(null);
 
     this.taskService
       .editComment(taskId, commentId, { content })
@@ -969,7 +941,7 @@ export class KanbanComponent implements OnInit {
           this.taskCollaboration.set(collaboration);
           this.editingCommentId.set(null);
           this.editCommentForm.reset({ content: '' });
-          this.commentActionSuccess.set('Comentário atualizado com sucesso.');
+          this.toast.success('Comentário atualizado com sucesso.');
         },
         error: (error: unknown) => {
           this.commentActionError.set(
@@ -987,7 +959,6 @@ export class KanbanComponent implements OnInit {
     this.editingCommentId.set(null);
     this.commentPendingDeletionId.set(comment.id);
     this.commentActionError.set(null);
-    this.commentActionSuccess.set(null);
   }
 
   cancelCommentRemoval(): void {
@@ -1010,7 +981,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingComment.set(true);
     this.commentActionError.set(null);
-    this.commentActionSuccess.set(null);
 
     this.taskService
       .removeComment(taskId, commentId)
@@ -1019,7 +989,7 @@ export class KanbanComponent implements OnInit {
         next: (collaboration) => {
           this.taskCollaboration.set(collaboration);
           this.commentPendingDeletionId.set(null);
-          this.commentActionSuccess.set('Comentário removido com sucesso.');
+          this.toast.success('Comentário removido com sucesso.');
         },
         error: (error: unknown) => {
           this.commentActionError.set(
@@ -1093,7 +1063,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingAttachment.set(true);
     this.attachmentActionError.set(null);
-    this.attachmentActionSuccess.set(null);
 
     this.taskService
       .uploadAttachment(taskId, file)
@@ -1106,7 +1075,7 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (attachments) => {
           this.taskAttachments.set(attachments);
-          this.attachmentActionSuccess.set('Arquivo anexado com sucesso.');
+          this.toast.success('Arquivo anexado com sucesso.');
           this.loadTaskCollaboration(taskId);
         },
         error: (error: unknown) => {
@@ -1153,7 +1122,6 @@ export class KanbanComponent implements OnInit {
 
     this.attachmentPendingDeletionId.set(attachment.id);
     this.attachmentActionError.set(null);
-    this.attachmentActionSuccess.set(null);
   }
 
   cancelAttachmentRemoval(): void {
@@ -1174,7 +1142,6 @@ export class KanbanComponent implements OnInit {
 
     this.managingAttachment.set(true);
     this.attachmentActionError.set(null);
-    this.attachmentActionSuccess.set(null);
 
     this.taskService
       .removeAttachment(taskId, attachmentId)
@@ -1183,7 +1150,7 @@ export class KanbanComponent implements OnInit {
         next: (attachments) => {
           this.taskAttachments.set(attachments);
           this.attachmentPendingDeletionId.set(null);
-          this.attachmentActionSuccess.set('Anexo removido com sucesso.');
+          this.toast.success('Anexo removido com sucesso.');
           this.loadTaskCollaboration(taskId);
         },
         error: (error: unknown) => {
@@ -1280,6 +1247,7 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: () => {
           this.taskFormOpen.set(false);
+          this.toast.success('Tarefa criada com sucesso.');
           this.loadKanban(selectedBoard.id);
         },
 
@@ -1305,7 +1273,6 @@ export class KanbanComponent implements OnInit {
     }
 
     this.archiveTaskError.set(null);
-    this.archiveTaskSuccess.set(null);
     this.archiveConfirmationOpen.set(true);
   }
 
@@ -1334,7 +1301,6 @@ export class KanbanComponent implements OnInit {
 
     this.archivingTask.set(true);
     this.archiveTaskError.set(null);
-    this.archiveTaskSuccess.set(null);
 
     this.taskService
       .archive(task.id)
@@ -1347,7 +1313,7 @@ export class KanbanComponent implements OnInit {
         next: () => {
           this.resetTaskDetails();
 
-          this.archiveTaskSuccess.set('Tarefa arquivada com sucesso.');
+          this.toast.success('Tarefa arquivada com sucesso.');
 
           if (board) {
             this.loadKanban(board.id);
@@ -1398,20 +1364,16 @@ export class KanbanComponent implements OnInit {
 
   openTaskDetails(taskId: number): void {
     this.moveTaskError.set(null);
-    this.moveTaskSuccess.set(null);
 
     this.taskFormOpen.set(false);
     this.createTaskError.set(null);
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
-    this.archiveTaskSuccess.set(null);
 
     this.editingTask.set(false);
     this.updateTaskError.set(null);
-    this.updateTaskSuccess.set(null);
     this.checklistItemForm.reset({ title: '' });
     this.checklistError.set(null);
-    this.checklistSuccess.set(null);
     this.resetTaskCollaboration();
     this.resetTaskAttachments();
 
@@ -1474,10 +1436,8 @@ export class KanbanComponent implements OnInit {
 
     this.editingTask.set(false);
     this.updateTaskError.set(null);
-    this.updateTaskSuccess.set(null);
     this.checklistItemForm.reset({ title: '' });
     this.checklistError.set(null);
-    this.checklistSuccess.set(null);
     this.resetTaskCollaboration();
     this.resetTaskAttachments();
 
@@ -1932,8 +1892,6 @@ export class KanbanComponent implements OnInit {
           return;
         }
 
-        this.moveTaskSuccess.set(null);
-
         this.moveTaskError.set(
           'A tarefa foi movida, mas não foi possível sincronizar o quadro. Atualize a página.',
         );
@@ -2104,10 +2062,8 @@ export class KanbanComponent implements OnInit {
 
     this.editingTask.set(false);
     this.updateTaskError.set(null);
-    this.updateTaskSuccess.set(null);
     this.checklistItemForm.reset({ title: '' });
     this.checklistError.set(null);
-    this.checklistSuccess.set(null);
     this.resetTaskCollaboration();
     this.resetTaskAttachments();
 
@@ -2150,7 +2106,6 @@ export class KanbanComponent implements OnInit {
     this.taskCollaborationError.set(null);
     this.managingComment.set(false);
     this.commentActionError.set(null);
-    this.commentActionSuccess.set(null);
     this.editingCommentId.set(null);
     this.commentPendingDeletionId.set(null);
     this.commentForm.reset({ content: '' });
@@ -2193,7 +2148,6 @@ export class KanbanComponent implements OnInit {
     this.managingAttachment.set(false);
     this.downloadingAttachmentId.set(null);
     this.attachmentActionError.set(null);
-    this.attachmentActionSuccess.set(null);
     this.attachmentPendingDeletionId.set(null);
   }
 }
