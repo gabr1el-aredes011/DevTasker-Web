@@ -57,19 +57,20 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Estados reutilizáveis de carregamento, vazio e erro
 - 🚧 Field com label, hint, erro e associação ARIA, introduzido em Boards 2.0
 - 🚧 Dialog com gerenciamento de foco pelo Angular CDK, introduzido em Boards 2.0
-- 🧭 Skeleton e Toast
+- ✅ Toast global acessível, temporário e com encerramento manual
+- 🧭 Skeleton
 
 ### Profissionalização visual e experiência
 
-- 🧭 Criar um sistema global e acessível de feedback para ações, com mensagens
+- ✅ Criar um sistema global e acessível de feedback para ações, com mensagens
   consistentes de sucesso, erro, alerta e informação, como “Membro removido com
   sucesso”.
-- 🧭 Padronizar duração, posição, prioridade, animação e comportamento responsivo
+- ✅ Padronizar duração, posição, prioridade, animação e comportamento responsivo
   dessas mensagens em toda a plataforma.
 - 🧭 Centralizar a geração de iniciais e avatares para que a mesma pessoa seja
   representada de forma idêntica na sidebar, projetos, membros, tarefas e demais
   páginas.
-- 🧭 Substituir progressivamente os feedbacks provisórios embutidos nas páginas
+- 🚧 Substituir progressivamente os feedbacks provisórios embutidos nas páginas
   pelos componentes definitivos do design system.
 
 ### Projetos
@@ -181,11 +182,25 @@ Critérios de aceite:
 - ✅ Anexos persistentes com upload, download, exclusão lógica, limites e permissões por função
 - 🧭 Evolução da linha do tempo de atividades e automações baseadas em prazo
 
+### Profissionalização visual — Tasks e Kanban
+
+> Esta etapa acontece após a estabilização funcional de Tasks 2.0. O mesmo
+> processo será repetido nos próximos módulos: concluir a experiência funcional
+> e então aplicar sua identidade visual definitiva.
+
+- ✅ Migrar feedbacks transitórios do Kanban para o sistema global de Toast
+- 🧭 Consolidar hierarquia visual, densidade, tipografia e responsividade do quadro
+- 🧭 Profissionalizar formulários, detalhes, checklist, comentários e anexos
+- 🧭 Revisar microinterações, estados vazios, carregamento e acessibilidade
+- 🧭 Executar validação visual completa em desktop, tablet e dispositivos móveis
+
 ### Colaboração
 
 - ✅ Convites
 - ✅ Membros, funções e permissões
 - ✅ Atividade colaborativa dentro das tarefas
+- 🧭 Sincronização em tempo real de tarefas, movimentações, comentários e membros
+- 🧭 Reconexão resiliente e atualização incremental sem exigir recarregamento manual
 
 ### Perfil e conta
 

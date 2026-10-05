@@ -6,6 +6,7 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { TaskService } from '../../../tasks/services/task.service';
 import { KanbanService } from '../../services/kanban.service';
 import { KanbanComponent } from './kanban.component';
+import { DtToastService } from '../../../../shared/ui';
 
 describe('KanbanComponent', () => {
   const project = {
@@ -301,7 +302,12 @@ describe('KanbanComponent', () => {
     });
     expect(component.taskCollaboration()).toEqual(collaboration);
     expect(component.commentForm.controls.content.value).toBe('');
-    expect(component.commentActionSuccess()).toContain('publicado');
+    expect(TestBed.inject(DtToastService).toasts()).toContainEqual(
+      expect.objectContaining({
+        message: 'Comentário publicado com sucesso.',
+        tone: 'success',
+      }),
+    );
   });
 
   it('should load operational members and send the selected assignee when creating a task', () => {

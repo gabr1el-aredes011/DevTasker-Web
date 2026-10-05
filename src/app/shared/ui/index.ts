@@ -3,3 +3,5 @@ export * from './button/dt-button.directive';
 export * from './feedback-state/dt-feedback-state.component';
 export * from './field/dt-field.component';
 export * from './dialog/dt-dialog-frame.component';
+export * from './toast/dt-toast-region.component';
+export * from './toast/dt-toast.service';

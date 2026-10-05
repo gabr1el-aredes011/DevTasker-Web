@@ -64,22 +64,6 @@
           </div>
         </div>
 
-        @if (archiveTaskSuccess()) {
-          <div class="task-action-success" role="status" aria-live="polite">
-            <span aria-hidden="true">✓</span>
-
-            {{ archiveTaskSuccess() }}
-          </div>
-        }
-
-        @if (moveTaskSuccess()) {
-          <div class="task-action-success" role="status" aria-live="polite">
-            <span aria-hidden="true">✓</span>
-
-            {{ moveTaskSuccess() }}
-          </div>
-        }
-
         @if (moveTaskError()) {
           <div class="task-action-error" role="alert" aria-live="assertive">
             <span aria-hidden="true">!</span>
@@ -350,12 +334,6 @@
               </div>
             } @else if (selectedTask(); as task) {
               <div class="task-details-content">
-                @if (updateTaskSuccess()) {
-                  <div class="task-update-success" role="status">
-                    {{ updateTaskSuccess() }}
-                  </div>
-                }
-
                 @if (editingTask()) {
                   <form
                     class="task-form"
@@ -759,10 +737,6 @@
                     <div class="task-checklist__message task-checklist__message--error" role="alert">
                       {{ checklistError() }}
                     </div>
-                  } @else if (checklistSuccess()) {
-                    <div class="task-checklist__message" role="status">
-                      {{ checklistSuccess() }}
-                    </div>
                   }
 
                   @if (task.checklistItems.length === 0) {
@@ -850,10 +824,6 @@
                   @if (attachmentActionError()) {
                     <div class="task-attachments__message task-attachments__message--error" role="alert">
                       {{ attachmentActionError() }}
-                    </div>
-                  } @else if (attachmentActionSuccess()) {
-                    <div class="task-attachments__message" role="status">
-                      {{ attachmentActionSuccess() }}
                     </div>
                   }
 
@@ -998,10 +968,6 @@
                     @if (commentActionError()) {
                       <div class="task-collaboration__message task-collaboration__message--error" role="alert">
                         {{ commentActionError() }}
-                      </div>
-                    } @else if (commentActionSuccess()) {
-                      <div class="task-collaboration__message" role="status">
-                        {{ commentActionSuccess() }}
                       </div>
                     }
 
