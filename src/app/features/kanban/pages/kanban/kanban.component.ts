@@ -7,11 +7,8 @@ import {
 } from '@angular/cdk/drag-drop';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import {
@@ -40,43 +37,13 @@ import { TaskService } from '../../../tasks/services/task.service';
 import { ApiError } from '../../../../core/http/api-error.model';
 import {
   BoardSummary,
+  ProjectLabel,
   ProjectMemberSummary,
   ProjectSummary,
 } from '../../../projects/models/project.models';
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
-
-const TASK_LABELS_VALIDATOR: ValidatorFn = (
-  control: AbstractControl<string>,
-): ValidationErrors | null => {
-  const labels = parseTaskLabels(control.value);
-
-  if (labels.length > 5) {
-    return { maximumLabels: true };
-  }
-
-  if (labels.some((label) => label.length > 30)) {
-    return { maximumLabelLength: true };
-  }
-
-  return null;
-};
-
-function parseTaskLabels(value: string): string[] {
-  const uniqueLabels = new Map<string, string>();
-
-  for (const rawLabel of value.split(',')) {
-    const label = rawLabel.trim();
-    const normalizedLabel = label.toLocaleLowerCase();
-
-    if (label && !uniqueLabels.has(normalizedLabel)) {
-      uniqueLabels.set(normalizedLabel, label);
-    }
-  }
-
-  return [...uniqueLabels.values()];
-}
 
 @Component({
   selector: 'app-kanban',
@@ -112,6 +79,9 @@ export class KanbanComponent implements OnInit {
   readonly assignableMembers = signal<readonly ProjectMemberSummary[]>([]);
   readonly loadingAssignableMembers = signal(false);
   readonly assignableMembersError = signal<string | null>(null);
+  readonly projectLabels = signal<readonly ProjectLabel[]>([]);
+  readonly loadingProjectLabels = signal(false);
+  readonly projectLabelsError = signal<string | null>(null);
 
   readonly kanban = signal<KanbanBoard | null>(null);
 
@@ -192,7 +162,7 @@ export class KanbanComponent implements OnInit {
 
     assigneeId: [null as number | null],
 
-    labelsText: ['', [TASK_LABELS_VALIDATOR]],
+    labelIds: [[] as number[]],
   });
 
   readonly editTaskForm = this.formBuilder.nonNullable.group({
@@ -206,7 +176,7 @@ export class KanbanComponent implements OnInit {
 
     assigneeId: [null as number | null],
 
-    labelsText: ['', [TASK_LABELS_VALIDATOR]],
+    labelIds: [[] as number[]],
   });
 
   readonly checklistItemForm = this.formBuilder.nonNullable.group({
@@ -266,6 +236,7 @@ export class KanbanComponent implements OnInit {
     this.selectedProject.set(project);
 
     this.loadAssignableMembers(project);
+    this.loadProjectLabels(project);
 
     this.selectedBoard.set(null);
     this.kanban.set(null);
@@ -287,6 +258,7 @@ export class KanbanComponent implements OnInit {
     this.selectedProject.set(null);
 
     this.resetAssignableMembers();
+    this.resetProjectLabels();
 
     this.boards.set([]);
     this.boardsLoadError.set(null);
@@ -476,7 +448,7 @@ export class KanbanComponent implements OnInit {
       priority: 'MEDIUM',
       dueDate: '',
       assigneeId: null,
-      labelsText: '',
+      labelIds: [],
     });
     this.createDescriptionPreview.set(false);
     this.taskFormOpen.set(true);
@@ -498,7 +470,7 @@ export class KanbanComponent implements OnInit {
       priority: task.priority,
       dueDate: task.dueDate ?? '',
       assigneeId: task.assignee?.id ?? null,
-      labelsText: task.labels.join(', '),
+      labelIds: task.labels.filter((label) => !label.archived).map((label) => label.id),
     });
 
     this.editDescriptionPreview.set(false);
@@ -555,7 +527,7 @@ export class KanbanComponent implements OnInit {
 
       dueDate: formValue.dueDate || null,
       assigneeId: formValue.assigneeId,
-      labels: parseTaskLabels(formValue.labelsText),
+      labelIds: formValue.labelIds,
     };
 
     this.updatingTask.set(true);
@@ -1121,7 +1093,7 @@ export class KanbanComponent implements OnInit {
 
       dueDate: formValue.dueDate || null,
       assigneeId: formValue.assigneeId,
-      labels: parseTaskLabels(formValue.labelsText),
+      labelIds: formValue.labelIds,
     };
 
     this.creatingTask.set(true);
@@ -1410,6 +1382,7 @@ export class KanbanComponent implements OnInit {
     this.selectedProject.set(project);
 
     this.loadAssignableMembers(project);
+    this.loadProjectLabels(project);
 
     this.loadBoards(project.id, boardId, taskId);
   }
@@ -1514,6 +1487,58 @@ export class KanbanComponent implements OnInit {
     this.assignableMembers.set([]);
     this.loadingAssignableMembers.set(false);
     this.assignableMembersError.set(null);
+  }
+
+  isTaskLabelSelected(mode: 'create' | 'edit', labelId: number): boolean {
+    const control = mode === 'create' ? this.createTaskForm.controls.labelIds : this.editTaskForm.controls.labelIds;
+    return control.value.includes(labelId);
+  }
+
+  isTaskLabelDisabled(mode: 'create' | 'edit', labelId: number): boolean {
+    if (this.isTaskLabelSelected(mode, labelId)) return false;
+    const control = mode === 'create' ? this.createTaskForm.controls.labelIds : this.editTaskForm.controls.labelIds;
+    const archivedCount = mode === 'edit'
+      ? (this.selectedTask()?.labels.filter((label) => label.archived).length ?? 0)
+      : 0;
+    return control.value.length >= 5 - archivedCount;
+  }
+
+  toggleTaskLabel(mode: 'create' | 'edit', labelId: number): void {
+    const control = mode === 'create' ? this.createTaskForm.controls.labelIds : this.editTaskForm.controls.labelIds;
+    const selected = control.value;
+
+    if (selected.includes(labelId)) {
+      control.setValue(selected.filter((currentId) => currentId !== labelId));
+    } else if (!this.isTaskLabelDisabled(mode, labelId)) {
+      control.setValue([...selected, labelId]);
+    }
+
+    control.markAsDirty();
+  }
+
+  private loadProjectLabels(project: ProjectSummary): void {
+    this.resetProjectLabels();
+    this.loadingProjectLabels.set(true);
+
+    this.projectService
+      .findLabelsByProjectId(project.id)
+      .pipe(finalize(() => this.loadingProjectLabels.set(false)))
+      .subscribe({
+        next: (labels) => {
+          if (this.selectedProject()?.id === project.id) this.projectLabels.set(labels);
+        },
+        error: () => {
+          if (this.selectedProject()?.id === project.id) {
+            this.projectLabelsError.set('Não foi possível carregar as labels disponíveis.');
+          }
+        },
+      });
+  }
+
+  private resetProjectLabels(): void {
+    this.projectLabels.set([]);
+    this.loadingProjectLabels.set(false);
+    this.projectLabelsError.set(null);
   }
 
   private loadKanban(boardId: number, requestedTaskId: number | null = null): void {

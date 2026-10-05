@@ -218,22 +218,35 @@
               </div>
 
               <div class="task-form-field">
-                <label for="task-labels"> Labels </label>
+                <span class="task-form-label" id="task-labels-label">Labels</span>
 
-                <input
-                  id="task-labels"
-                  type="text"
-                  formControlName="labelsText"
-                  placeholder="Ex.: backend, urgente, melhoria"
-                />
-
-                @if (createTaskForm.controls.labelsText.hasError('maximumLabels')) {
-                  <small>Use no máximo 5 labels.</small>
-                } @else if (createTaskForm.controls.labelsText.hasError('maximumLabelLength')) {
-                  <small>Cada label deve possuir no máximo 30 caracteres.</small>
+                @if (loadingProjectLabels()) {
+                  <small>Carregando catálogo de labels...</small>
+                } @else if (projectLabelsError()) {
+                  <small role="alert">{{ projectLabelsError() }}</small>
+                } @else if (projectLabels().length === 0) {
+                  <div class="task-label-picker task-label-picker--empty">
+                    Nenhuma label ativa foi criada para este projeto.
+                  </div>
                 } @else {
-                  <small class="task-form-hint">Separe as labels por vírgulas.</small>
+                  <div class="task-label-picker" role="group" aria-labelledby="task-labels-label">
+                    @for (label of projectLabels(); track label.id) {
+                      <label [attr.data-label-color]="label.color">
+                        <input
+                          type="checkbox"
+                          [checked]="isTaskLabelSelected('create', label.id)"
+                          [disabled]="isTaskLabelDisabled('create', label.id)"
+                          (change)="toggleTaskLabel('create', label.id)"
+                        />
+                        <span aria-hidden="true"></span>
+                        {{ label.name }}
+                      </label>
+                    }
+                  </div>
                 }
+                <small class="task-form-hint">
+                  {{ createTaskForm.controls.labelIds.value.length }} de 5 selecionadas.
+                </small>
               </div>
 
               <div class="task-form-row">
@@ -453,22 +466,34 @@
                     </div>
 
                     <div class="task-form-field">
-                      <label for="edit-task-labels"> Labels </label>
+                      <span class="task-form-label" id="edit-task-labels-label">Labels</span>
 
-                      <input
-                        id="edit-task-labels"
-                        type="text"
-                        formControlName="labelsText"
-                        placeholder="Ex.: backend, urgente, melhoria"
-                      />
-
-                      @if (editTaskForm.controls.labelsText.hasError('maximumLabels')) {
-                        <small>Use no máximo 5 labels.</small>
-                      } @else if (editTaskForm.controls.labelsText.hasError('maximumLabelLength')) {
-                        <small>Cada label deve possuir no máximo 30 caracteres.</small>
+                      @if (projectLabelsError()) {
+                        <small role="alert">{{ projectLabelsError() }}</small>
+                      } @else if (projectLabels().length === 0) {
+                        <div class="task-label-picker task-label-picker--empty">
+                          Nenhuma label ativa foi criada para este projeto.
+                        </div>
                       } @else {
-                        <small class="task-form-hint">Separe as labels por vírgulas.</small>
+                        <div class="task-label-picker" role="group" aria-labelledby="edit-task-labels-label">
+                          @for (label of projectLabels(); track label.id) {
+                            <label [attr.data-label-color]="label.color">
+                              <input
+                                type="checkbox"
+                                [checked]="isTaskLabelSelected('edit', label.id)"
+                                [disabled]="isTaskLabelDisabled('edit', label.id)"
+                                (change)="toggleTaskLabel('edit', label.id)"
+                              />
+                              <span aria-hidden="true"></span>
+                              {{ label.name }}
+                            </label>
+                          }
+                        </div>
                       }
+                      <small class="task-form-hint">
+                        {{ editTaskForm.controls.labelIds.value.length }} labels ativas selecionadas.
+                        Labels arquivadas permanecem no histórico.
+                      </small>
                     </div>
 
                     <div class="task-form-row">
@@ -530,8 +555,13 @@
 
                     @if (task.labels.length > 0) {
                       <div class="task-labels" aria-label="Labels da tarefa">
-                        @for (label of task.labels; track label) {
-                          <span class="task-label">{{ label }}</span>
+                        @for (label of task.labels; track label.id) {
+                          <span class="task-label" [attr.data-label-color]="label.color">
+                            {{ label.name }}
+                            @if (label.archived) {
+                              <span class="visually-hidden">(arquivada)</span>
+                            }
+                          </span>
                         }
                       </div>
                     }
@@ -1237,8 +1267,10 @@
 
                           @if (task.labels.length > 0) {
                             <div class="task-labels" aria-label="Labels da tarefa">
-                              @for (label of task.labels; track label) {
-                                <span class="task-label">{{ label }}</span>
+                              @for (label of task.labels; track label.id) {
+                                <span class="task-label" [attr.data-label-color]="label.color">
+                                  {{ label.name }}
+                                </span>
                               }
                             </div>
                           }

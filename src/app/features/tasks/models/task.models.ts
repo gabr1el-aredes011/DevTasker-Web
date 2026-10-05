@@ -1,4 +1,13 @@
+import type { ProjectLabelColor } from '../../projects/models/project.models';
+
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+export interface TaskLabel {
+  readonly id: number;
+  readonly name: string;
+  readonly color: ProjectLabelColor;
+  readonly archived: boolean;
+}
 
 export interface CreateTaskRequest {
   readonly title: string;
@@ -6,7 +15,7 @@ export interface CreateTaskRequest {
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
   readonly assigneeId: number | null;
-  readonly labels: readonly string[];
+  readonly labelIds: readonly number[];
 }
 
 export interface UpdateTaskRequest {
@@ -15,7 +24,7 @@ export interface UpdateTaskRequest {
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
   readonly assigneeId: number | null;
-  readonly labels: readonly string[];
+  readonly labelIds: readonly number[];
 }
 
 export interface MoveTaskRequest {
@@ -109,7 +118,7 @@ export interface TaskResponse {
   readonly position: number;
   readonly creator: TaskUserSummary;
   readonly assignee: TaskUserSummary | null;
-  readonly labels: readonly string[];
+  readonly labels: readonly TaskLabel[];
   readonly checklistItems: readonly TaskChecklistItem[];
   readonly createdAt: string;
   readonly updatedAt: string;

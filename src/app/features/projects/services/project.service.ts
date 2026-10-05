@@ -12,6 +12,8 @@ import {
   ProjectInvitationAcceptance,
   ProjectInvitationSummary,
   ProjectMemberSummary,
+  ProjectLabel,
+  SaveProjectLabelRequest,
   ProjectSummary,
   SaveBoardRequest,
   UpdateProjectRequest,
@@ -56,6 +58,37 @@ export class ProjectService {
     return this.http.get<readonly ProjectMemberSummary[]>(
       `${environment.apiUrl}/projects/${projectId}/members`,
     );
+  }
+
+  findLabelsByProjectId(projectId: number): Observable<readonly ProjectLabel[]> {
+    return this.http.get<readonly ProjectLabel[]>(
+      `${environment.apiUrl}/projects/${projectId}/labels`,
+    );
+  }
+
+  createLabel(
+    projectId: number,
+    request: SaveProjectLabelRequest,
+  ): Observable<ProjectLabel> {
+    return this.http.post<ProjectLabel>(
+      `${environment.apiUrl}/projects/${projectId}/labels`,
+      request,
+    );
+  }
+
+  updateLabel(
+    projectId: number,
+    labelId: number,
+    request: SaveProjectLabelRequest,
+  ): Observable<ProjectLabel> {
+    return this.http.put<ProjectLabel>(
+      `${environment.apiUrl}/projects/${projectId}/labels/${labelId}`,
+      request,
+    );
+  }
+
+  archiveLabel(projectId: number, labelId: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/projects/${projectId}/labels/${labelId}`);
   }
 
   findPendingInvitations(projectId: number): Observable<readonly ProjectInvitationSummary[]> {

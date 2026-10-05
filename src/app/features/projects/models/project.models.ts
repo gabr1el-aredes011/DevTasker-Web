@@ -1,5 +1,28 @@
 export type ProjectMembershipRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 
+export type ProjectLabelColor =
+  | 'GREEN'
+  | 'BLUE'
+  | 'VIOLET'
+  | 'AMBER'
+  | 'RED'
+  | 'CYAN'
+  | 'GRAY';
+
+export interface ProjectLabel {
+  readonly id: number;
+  readonly name: string;
+  readonly color: ProjectLabelColor;
+  readonly usageCount: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface SaveProjectLabelRequest {
+  readonly name: string;
+  readonly color: ProjectLabelColor;
+}
+
 export interface ProjectSummary {
   readonly id: number;
   readonly name: string;

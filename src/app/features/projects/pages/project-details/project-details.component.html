@@ -80,6 +80,12 @@
               >
                 {{ boardsLoadError() ? '—' : boards().length }}
               </span>
+            } @else if (tab.id === 'labels') {
+              <span
+                [attr.aria-label]="labelsLoadError() ? 'Contagem de labels indisponível' : null"
+              >
+                {{ labelsLoadError() ? '—' : labels().length }}
+              </span>
             } @else if (tab.id === 'members') {
               <span
                 [attr.aria-label]="membersLoadError() ? 'Contagem de membros indisponível' : null"
@@ -270,6 +276,114 @@
                     </button>
                   }
                 </footer>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <section
+        id="project-panel-labels"
+        class="tab-panel"
+        role="tabpanel"
+        aria-labelledby="project-tab-labels"
+        tabindex="0"
+        [hidden]="activeTab() !== 'labels'"
+      >
+        <header class="labels-header">
+          <div>
+            <p class="details-eyebrow">ORGANIZAÇÃO</p>
+            <h2>Catálogo de labels</h2>
+            <p>Padronize os assuntos usados nas tarefas e mantenha o Kanban consistente.</p>
+          </div>
+          <div class="labels-header__actions">
+            <label class="labels-search">
+              <span class="visually-hidden">Pesquisar labels</span>
+              <input
+                type="search"
+                placeholder="Pesquisar labels"
+                [value]="labelQuery()"
+                (input)="updateLabelQuery($event)"
+              />
+            </label>
+            <span role="status">
+              {{ labelsLoadError() ? 'Contagem indisponível' : labels().length + ' ativas' }}
+            </span>
+            @if (canManageLabels()) {
+              <button dtButton variant="primary" size="sm" type="button" (click)="openCreateLabelDialog()">
+                <span aria-hidden="true">+</span>
+                Nova label
+              </button>
+            }
+          </div>
+        </header>
+
+        @if (labelActionSuccess()) {
+          <p class="label-action-message label-action-message--success" role="status">
+            {{ labelActionSuccess() }}
+          </p>
+        }
+        @if (labelActionError()) {
+          <p class="label-action-message label-action-message--error" role="alert">
+            {{ labelActionError() }}
+          </p>
+        }
+
+        @if (labelsLoadError()) {
+          <dt-feedback-state
+            class="labels-feedback"
+            state="error"
+            title="As labels não puderam ser carregadas"
+            [description]="labelsLoadError()"
+            [headingLevel]="3"
+          >
+            <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="retry()">
+              Tentar novamente
+            </button>
+          </dt-feedback-state>
+        } @else if (labels().length === 0) {
+          <dt-feedback-state
+            class="labels-feedback"
+            state="empty"
+            title="Nenhuma label criada"
+            [description]="
+              canManageLabels()
+                ? 'Crie a primeira label para organizar as tarefas do projeto.'
+                : 'Quando a administração criar labels, elas aparecerão nesta seção.'
+            "
+            [headingLevel]="3"
+          />
+        } @else if (filteredLabels().length === 0) {
+          <dt-feedback-state
+            class="labels-feedback"
+            state="empty"
+            title="Nenhuma label encontrada"
+            description="Tente pesquisar por outro nome."
+            [headingLevel]="3"
+          />
+        } @else {
+          <div class="labels-list" role="list" aria-label="Labels ativas do projeto">
+            @for (label of filteredLabels(); track label.id) {
+              <article class="label-card" role="listitem">
+                <span class="label-card__color" [attr.data-label-color]="label.color" aria-hidden="true"></span>
+                <div class="label-card__identity">
+                  <strong>{{ label.name }}</strong>
+                  <span>{{ label.color }}</span>
+                </div>
+                <div class="label-card__usage">
+                  <strong>{{ label.usageCount }}</strong>
+                  <span>{{ label.usageCount === 1 ? 'tarefa' : 'tarefas' }}</span>
+                </div>
+                @if (canManageLabels()) {
+                  <div class="label-card__actions">
+                    <button dtButton variant="secondary" size="sm" type="button" (click)="openEditLabelDialog(label)">
+                      Editar
+                    </button>
+                    <button dtButton variant="danger" size="sm" type="button" (click)="openArchiveLabelDialog(label)">
+                      Arquivar
+                    </button>
+                  </div>
+                }
               </article>
             }
           </div>
