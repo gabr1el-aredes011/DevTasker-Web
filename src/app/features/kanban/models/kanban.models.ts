@@ -8,7 +8,7 @@ export interface KanbanTask {
   readonly position: number;
   readonly assigneeId: number | null;
   readonly assigneeName: string | null;
-  readonly labels: readonly string[];
+  readonly labels: readonly TaskLabel[];
   readonly completedChecklistItems: number;
   readonly totalChecklistItems: number;
 }
@@ -27,3 +27,4 @@ export interface KanbanBoard {
   readonly name: string;
   readonly columns: readonly KanbanColumn[];
 }
+import type { TaskLabel } from '../../tasks/models/task.models';

@@ -43,15 +43,21 @@ import {
   ProjectCollaborationDialogResult,
 } from '../../components/project-collaboration-dialog/project-collaboration-dialog.component';
 import {
+  ProjectLabelDialogComponent,
+  ProjectLabelDialogData,
+  ProjectLabelDialogResult,
+} from '../../components/project-label-dialog/project-label-dialog.component';
+import {
   BoardSummary,
   ProjectDetails as ProjectDetailsModel,
   ProjectInvitationSummary,
+  ProjectLabel,
   ProjectMemberSummary,
 } from '../../models/project.models';
 import { projectRoleLabel, projectRoleTone } from '../../presentation/project-role.presentation';
 import { ProjectService } from '../../services/project.service';
 
-type ProjectDetailsTab = 'overview' | 'boards' | 'members';
+type ProjectDetailsTab = 'overview' | 'boards' | 'labels' | 'members';
 
 @Component({
   selector: 'app-project-details',
@@ -75,6 +81,11 @@ export class ProjectDetailsComponent implements OnInit {
   readonly boardsLoadError = signal<string | null>(null);
   readonly members = signal<readonly ProjectMemberSummary[]>([]);
   readonly membersLoadError = signal<string | null>(null);
+  readonly labels = signal<readonly ProjectLabel[]>([]);
+  readonly labelsLoadError = signal<string | null>(null);
+  readonly labelActionError = signal<string | null>(null);
+  readonly labelActionSuccess = signal<string | null>(null);
+  readonly labelQuery = signal('');
   readonly invitations = signal<readonly ProjectInvitationSummary[]>([]);
   readonly invitationsLoadError = signal<string | null>(null);
   readonly collaborationActionError = signal<string | null>(null);
@@ -95,10 +106,21 @@ export class ProjectDetailsComponent implements OnInit {
     const role = this.project()?.membershipRole;
     return role === 'OWNER' || role === 'ADMIN';
   });
+  readonly canManageLabels = computed(() => {
+    const role = this.project()?.membershipRole;
+    return role === 'OWNER' || role === 'ADMIN';
+  });
+  readonly filteredLabels = computed(() => {
+    const query = this.labelQuery().trim().toLocaleLowerCase();
+    return query
+      ? this.labels().filter((label) => label.name.toLocaleLowerCase().includes(query))
+      : this.labels();
+  });
 
   readonly tabs: readonly { readonly id: ProjectDetailsTab; readonly label: string }[] = [
     { id: 'overview', label: 'Visão geral' },
     { id: 'boards', label: 'Quadros' },
+    { id: 'labels', label: 'Labels' },
     { id: 'members', label: 'Membros' },
   ];
 
@@ -117,9 +139,10 @@ export class ProjectDetailsComponent implements OnInit {
         switchMap((projectId) => this.loadProject(projectId)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ project, boards, members, invitations }) => {
+      .subscribe(({ project, boards, labels, members, invitations }) => {
         this.project.set(project);
         this.boards.set(boards);
+        this.labels.set(labels);
         this.members.set(members);
         this.invitations.set(invitations);
       });
@@ -226,6 +249,28 @@ export class ProjectDetailsComponent implements OnInit {
       actorRole: project.membershipRole,
       invitation,
     });
+  }
+
+  updateLabelQuery(event: Event): void {
+    this.labelQuery.set((event.target as HTMLInputElement).value);
+  }
+
+  openCreateLabelDialog(): void {
+    const projectId = this.projectId();
+    if (projectId === null || !this.canManageLabels()) return;
+    this.openLabelDialog({ mode: 'create', projectId });
+  }
+
+  openEditLabelDialog(label: ProjectLabel): void {
+    const projectId = this.projectId();
+    if (projectId === null || !this.canManageLabels()) return;
+    this.openLabelDialog({ mode: 'edit', projectId, label });
+  }
+
+  openArchiveLabelDialog(label: ProjectLabel): void {
+    const projectId = this.projectId();
+    if (projectId === null || !this.canManageLabels()) return;
+    this.openLabelDialog({ mode: 'archive', projectId, label });
   }
 
   openCreateBoardDialog(): void {
@@ -398,6 +443,41 @@ export class ProjectDetailsComponent implements OnInit {
       });
   }
 
+  private openLabelDialog(data: ProjectLabelDialogData): void {
+    this.labelActionError.set(null);
+    this.labelActionSuccess.set(null);
+
+    this.dialog
+      .open<ProjectLabelDialogResult>(ProjectLabelDialogComponent, {
+        data,
+        ariaLabel:
+          data.mode === 'create'
+            ? 'Criar label do projeto'
+            : `${data.mode === 'edit' ? 'Editar' : 'Arquivar'} a label ${data.label.name}`,
+        panelClass: 'dt-dialog-panel',
+        backdropClass: 'dt-dialog-backdrop',
+      })
+      .closed.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) return;
+
+        if (result.action === 'archived') {
+          this.labels.update((labels) => labels.filter((label) => label.id !== result.labelId));
+          this.labelActionSuccess.set('A label foi arquivada sem apagar o histórico das tarefas.');
+          return;
+        }
+
+        this.labels.update((labels) =>
+          result.action === 'created'
+            ? [...labels, result.label].sort((left, right) => left.name.localeCompare(right.name))
+            : labels.map((label) => (label.id === result.label.id ? result.label : label)),
+        );
+        this.labelActionSuccess.set(
+          result.action === 'created' ? 'Label criada com sucesso.' : 'Label atualizada com sucesso.',
+        );
+      });
+  }
+
   private sortBoards(boards: readonly BoardSummary[]): readonly BoardSummary[] {
     return [...boards].sort((left, right) => {
       if (left.defaultBoard !== right.defaultBoard) {
@@ -438,6 +518,11 @@ export class ProjectDetailsComponent implements OnInit {
     this.boardsLoadError.set(null);
     this.members.set([]);
     this.membersLoadError.set(null);
+    this.labels.set([]);
+    this.labelQuery.set('');
+    this.labelsLoadError.set(null);
+    this.labelActionError.set(null);
+    this.labelActionSuccess.set(null);
     this.invitations.set([]);
     this.invitationsLoadError.set(null);
     this.collaborationActionError.set(null);
@@ -472,6 +557,14 @@ export class ProjectDetailsComponent implements OnInit {
                 this.extractErrorMessage(error, 'Não foi possível carregar os membros do projeto.'),
               );
               return of([] as readonly ProjectMemberSummary[]);
+            }),
+          ),
+          labels: this.projectService.findLabelsByProjectId(projectId).pipe(
+            catchError((error: unknown) => {
+              this.labelsLoadError.set(
+                this.extractErrorMessage(error, 'Não foi possível carregar as labels do projeto.'),
+              );
+              return of([] as readonly ProjectLabel[]);
             }),
           ),
           invitations:
@@ -510,7 +603,9 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   private parseTab(rawTab: string | null): ProjectDetailsTab {
-    return rawTab === 'boards' || rawTab === 'members' ? rawTab : 'overview';
+    return rawTab === 'boards' || rawTab === 'labels' || rawTab === 'members'
+      ? rawTab
+      : 'overview';
   }
 
   private writeTabToUrl(tab: ProjectDetailsTab, replaceUrl = false): Promise<boolean> {

@@ -1,0 +1,74 @@
+<dt-dialog-frame
+  eyebrow="ORGANIZAÇÃO"
+  [title]="title()"
+  [description]="
+    isArchive
+      ? 'A label deixa de ficar disponível para novas seleções, sem apagar o histórico das tarefas.'
+      : 'Crie uma identidade reutilizável e consistente para as tarefas deste projeto.'
+  "
+  [tone]="isArchive ? 'danger' : 'default'"
+  (dismiss)="close()"
+>
+  @if (isArchive && data.mode === 'archive') {
+    <div class="archive-summary">
+      <span class="label-dot" [attr.data-color]="data.label.color" aria-hidden="true"></span>
+      <div>
+        <strong>{{ data.label.name }}</strong>
+        <p>
+          {{ data.label.usageCount }}
+          {{ data.label.usageCount === 1 ? 'tarefa vinculada' : 'tarefas vinculadas' }}
+        </p>
+      </div>
+    </div>
+  } @else {
+    <dt-field
+      label="Nome da label"
+      forId="project-label-name"
+      [required]="true"
+      [counter]="name.value.length + '/30'"
+      [error]="fieldError()"
+      hint="O nome deve ser único dentro do projeto."
+    >
+      <input
+        id="project-label-name"
+        type="text"
+        maxlength="30"
+        autocomplete="off"
+        [formControl]="name"
+        [attr.aria-invalid]="fieldError() ? 'true' : null"
+      />
+    </dt-field>
+
+    <fieldset class="color-picker">
+      <legend>Cor</legend>
+      <div>
+        @for (option of colors; track option) {
+          <label [attr.data-color]="option">
+            <input type="radio" name="label-color" [value]="option" [formControl]="color" />
+            <span aria-hidden="true"></span>
+            {{ option }}
+          </label>
+        }
+      </div>
+    </fieldset>
+  }
+
+  @if (submitError()) {
+    <p class="submit-error" role="alert">{{ submitError() }}</p>
+  }
+
+  <div dtDialogActions>
+    <button dtButton variant="secondary" type="button" [disabled]="submitting()" (click)="close()">
+      Cancelar
+    </button>
+    <button
+      dtButton
+      [variant]="isArchive ? 'danger' : 'primary'"
+      type="button"
+      [loading]="submitting()"
+      (click)="submit()"
+    >
+      {{ isArchive ? 'Arquivar label' : data.mode === 'create' ? 'Criar label' : 'Salvar label' }}
+    </button>
+  </div>
+</dt-dialog-frame>

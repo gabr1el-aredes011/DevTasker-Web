@@ -7,6 +7,7 @@ import {
   BoardSummary,
   ProjectDetails,
   ProjectInvitationSummary,
+  ProjectLabel,
   ProjectMemberSummary,
   ProjectSummary,
 } from '../models/project.models';
@@ -53,6 +54,15 @@ describe('ProjectService', () => {
     invitedByName: 'Dev User',
     expiresAt: '2026-08-23T12:00:00Z',
     createdAt: '2026-08-20T12:00:00Z',
+  };
+
+  const label: ProjectLabel = {
+    id: 23,
+    name: 'Backend',
+    color: 'BLUE',
+    usageCount: 2,
+    createdAt: '2026-10-05T12:00:00Z',
+    updatedAt: '2026-10-05T12:00:00Z',
   };
 
   let service: ProjectService;
@@ -111,6 +121,30 @@ describe('ProjectService', () => {
     const request = http.expectOne(`${environment.apiUrl}/projects/7/members`);
     expect(request.request.method).toBe('GET');
     request.flush([member]);
+  });
+
+  it('should manage the reusable label catalog of a project', () => {
+    service.findLabelsByProjectId(7).subscribe((labels) => expect(labels).toEqual([label]));
+    const list = http.expectOne(`${environment.apiUrl}/projects/7/labels`);
+    expect(list.request.method).toBe('GET');
+    list.flush([label]);
+
+    service.createLabel(7, { name: 'Backend', color: 'BLUE' }).subscribe();
+    const create = http.expectOne(`${environment.apiUrl}/projects/7/labels`);
+    expect(create.request.method).toBe('POST');
+    expect(create.request.body).toEqual({ name: 'Backend', color: 'BLUE' });
+    create.flush(label);
+
+    service.updateLabel(7, 23, { name: 'API', color: 'VIOLET' }).subscribe();
+    const update = http.expectOne(`${environment.apiUrl}/projects/7/labels/23`);
+    expect(update.request.method).toBe('PUT');
+    expect(update.request.body).toEqual({ name: 'API', color: 'VIOLET' });
+    update.flush({ ...label, name: 'API', color: 'VIOLET' });
+
+    service.archiveLabel(7, 23).subscribe();
+    const archive = http.expectOne(`${environment.apiUrl}/projects/7/labels/23`);
+    expect(archive.request.method).toBe('DELETE');
+    archive.flush(null, { status: 204, statusText: 'No Content' });
   });
 
   it('should manage project invitations', () => {

@@ -9,6 +9,7 @@ import {
   BoardSummary,
   ProjectDetails,
   ProjectInvitationSummary,
+  ProjectLabel,
   ProjectMemberSummary,
 } from '../../models/project.models';
 import { ProjectService } from '../../services/project.service';
@@ -65,15 +66,30 @@ describe('ProjectDetailsComponent', () => {
     },
   ];
 
+  const labels: readonly ProjectLabel[] = [
+    {
+      id: 51,
+      name: 'Backend',
+      color: 'BLUE',
+      usageCount: 3,
+      createdAt: '2026-08-20T10:00:00Z',
+      updatedAt: '2026-08-20T10:00:00Z',
+    },
+  ];
+
   const projectService = {
     findById: vi.fn(),
     findBoardsByProjectId: vi.fn(),
     findMembersByProjectId: vi.fn(),
+    findLabelsByProjectId: vi.fn(),
     findPendingInvitations: vi.fn(),
     createBoard: vi.fn(),
     updateBoard: vi.fn(),
     archiveBoard: vi.fn(),
     setDefaultBoard: vi.fn(),
+    createLabel: vi.fn(),
+    updateLabel: vi.fn(),
+    archiveLabel: vi.fn(),
   };
 
   const dialog = {
@@ -85,6 +101,7 @@ describe('ProjectDetailsComponent', () => {
     projectService.findById.mockReturnValue(of(project));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
     projectService.findMembersByProjectId.mockReturnValue(of(members));
+    projectService.findLabelsByProjectId.mockReturnValue(of(labels));
     projectService.findPendingInvitations.mockReturnValue(of(invitations));
     dialog.open.mockReturnValue({ closed: of(undefined) });
 
@@ -109,6 +126,7 @@ describe('ProjectDetailsComponent', () => {
     expect(projectService.findById).toHaveBeenCalledWith(42);
     expect(projectService.findBoardsByProjectId).toHaveBeenCalledWith(42);
     expect(projectService.findMembersByProjectId).toHaveBeenCalledWith(42);
+    expect(projectService.findLabelsByProjectId).toHaveBeenCalledWith(42);
     expect(projectService.findPendingInvitations).toHaveBeenCalledWith(42);
     expect(component.project()).toEqual(project);
     expect(component.boards()).toEqual(boards);
@@ -116,6 +134,19 @@ describe('ProjectDetailsComponent', () => {
     expect(element.querySelector('dt-badge')?.textContent).toContain('Administrador');
     expect(element.querySelector('dt-badge')?.getAttribute('data-tone')).toBe('info');
     expect(element.querySelector('.owner-profile')?.textContent).toContain('Gabriel Silva');
+  });
+
+  it('should preserve a labels deep link and render the reusable catalog', async () => {
+    const { component, element } = await renderPage('/app/projetos/42?tab=labels');
+
+    expect(component.activeTab()).toBe('labels');
+    expect(component.labels()).toEqual(labels);
+    expect((element.querySelector('#project-panel-labels') as HTMLElement).hidden).toBe(false);
+    expect(element.querySelector('.labels-list')?.textContent).toContain('Backend');
+    expect(element.querySelector('.labels-list')?.textContent).toContain('3');
+
+    component.labelQuery.set('frontend');
+    expect(component.filteredLabels()).toEqual([]);
   });
 
   it('should preserve a members deep link and render the project directory', async () => {

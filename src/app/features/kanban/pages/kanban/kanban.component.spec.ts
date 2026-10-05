@@ -28,6 +28,7 @@ describe('KanbanComponent', () => {
     findAll: vi.fn(),
     findBoardsByProjectId: vi.fn(),
     findMembersByProjectId: vi.fn(),
+    findLabelsByProjectId: vi.fn(),
   };
   const kanbanService = {
     findByBoardId: vi.fn(),
@@ -68,6 +69,7 @@ describe('KanbanComponent', () => {
     projectService.findAll.mockReturnValue(of([]));
     projectService.findBoardsByProjectId.mockReturnValue(of([]));
     projectService.findMembersByProjectId.mockReturnValue(of([]));
+    projectService.findLabelsByProjectId.mockReturnValue(of([]));
     kanbanService.findByBoardId.mockReturnValue(
       of({ id: 12, projectId: 7, name: 'Entrega', columns: [] }),
     );
@@ -82,7 +84,7 @@ describe('KanbanComponent', () => {
         position: 0,
         creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
         assignee: null,
-        labels: ['Backend'],
+        labels: [{ id: 4, name: 'Backend', color: 'BLUE' as const, archived: false }],
         checklistItems: [
           {
             id: 8,
@@ -192,7 +194,9 @@ describe('KanbanComponent', () => {
                 position: 0,
                 assigneeId: null,
                 assigneeName: null,
-                labels: ['Permissões'],
+                labels: [
+                  { id: 9, name: 'Permissões', color: 'VIOLET' as const, archived: false },
+                ],
                 completedChecklistItems: 0,
                 totalChecklistItems: 0,
               },
@@ -328,6 +332,26 @@ describe('KanbanComponent', () => {
         },
       ]),
     );
+    projectService.findLabelsByProjectId.mockReturnValue(
+      of([
+        {
+          id: 4,
+          name: 'Backend',
+          color: 'BLUE' as const,
+          usageCount: 2,
+          createdAt: '2026-08-31T10:00:00Z',
+          updatedAt: '2026-08-31T10:00:00Z',
+        },
+        {
+          id: 7,
+          name: 'Urgente',
+          color: 'RED' as const,
+          usageCount: 1,
+          createdAt: '2026-08-31T10:00:00Z',
+          updatedAt: '2026-08-31T10:00:00Z',
+        },
+      ]),
+    );
     kanbanService.findByBoardId.mockReturnValue(
       of({
         id: 12,
@@ -356,7 +380,7 @@ describe('KanbanComponent', () => {
     component.createTaskForm.patchValue({
       title: 'Preparar publicação',
       assigneeId: 3,
-      labelsText: ' Backend, urgente, backend ',
+      labelIds: [4, 7],
     });
     component.submitCreateTask();
 
@@ -365,7 +389,7 @@ describe('KanbanComponent', () => {
       expect.objectContaining({
         title: 'Preparar publicação',
         assigneeId: 3,
-        labels: ['Backend', 'urgente'],
+        labelIds: [4, 7],
       }),
     );
   });
