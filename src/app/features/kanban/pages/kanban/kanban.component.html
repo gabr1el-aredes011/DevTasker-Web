@@ -1188,7 +1188,93 @@
 
             <button type="button" (click)="retryKanban()">Tentar novamente</button>
           </div>
-        } @else if (kanban(); as board) {
+        } @else if (filteredKanban(); as board) {
+          <section class="kanban-label-filters" aria-labelledby="kanban-label-filters-title">
+            <header class="kanban-label-filters__header">
+              <div>
+                <p class="eyebrow">Visualização</p>
+                <h3 id="kanban-label-filters-title">Filtrar por labels</h3>
+              </div>
+
+              <span class="kanban-label-filters__count" role="status" aria-live="polite">
+                {{ visibleTaskCount() }} de {{ totalTaskCount() }} tarefas
+              </span>
+            </header>
+
+            @if (loadingProjectLabels()) {
+              <p class="kanban-label-filters__state">Carregando catálogo de labels...</p>
+            } @else {
+              @if (projectLabelsError()) {
+                <p class="kanban-label-filters__warning" role="alert">
+                  {{ projectLabelsError() }} Os filtros abaixo incluem apenas labels presentes neste quadro.
+                </p>
+              }
+
+              @if (availableLabelFilters().length === 0) {
+                <p class="kanban-label-filters__state">
+                  Este projeto ainda não possui labels disponíveis para filtragem.
+                </p>
+              } @else {
+                <div class="kanban-label-filters__controls">
+                  <div class="kanban-label-filters__mode" role="group" aria-label="Modo de correspondência">
+                    <span>Correspondência</span>
+                    <button
+                      type="button"
+                      [class.is-active]="labelFilterMode() === 'ANY'"
+                      [attr.aria-pressed]="labelFilterMode() === 'ANY'"
+                      (click)="setLabelFilterMode('ANY')"
+                    >
+                      Qualquer label
+                    </button>
+                    <button
+                      type="button"
+                      [class.is-active]="labelFilterMode() === 'ALL'"
+                      [attr.aria-pressed]="labelFilterMode() === 'ALL'"
+                      (click)="setLabelFilterMode('ALL')"
+                    >
+                      Todas as labels
+                    </button>
+                  </div>
+
+                  @if (hasActiveLabelFilters()) {
+                    <button class="kanban-label-filters__clear" type="button" (click)="clearLabelFilters()">
+                      Limpar filtros
+                    </button>
+                  }
+                </div>
+
+                <div
+                  class="kanban-label-filters__options"
+                  role="group"
+                  aria-label="Labels disponíveis"
+                >
+                  @for (label of availableLabelFilters(); track label.id) {
+                    <button
+                      type="button"
+                      class="kanban-label-filter"
+                      [class.is-selected]="isLabelFilterSelected(label.id)"
+                      [attr.data-label-color]="label.color"
+                      [attr.aria-pressed]="isLabelFilterSelected(label.id)"
+                      (click)="toggleLabelFilter(label.id)"
+                    >
+                      <span aria-hidden="true"></span>
+                      {{ label.name }}
+                      @if (label.archived) {
+                        <small>Arquivada</small>
+                      }
+                    </button>
+                  }
+                </div>
+
+                @if (hasActiveLabelFilters()) {
+                  <p class="kanban-label-filters__hint">
+                    A movimentação fica pausada durante a filtragem para preservar a ordem real das tarefas.
+                  </p>
+                }
+              }
+            }
+          </section>
+
           @if (board.columns.length === 0) {
             <div class="state-card">
               <div>
@@ -1229,7 +1315,13 @@
                   >
                     @if (column.tasks.length === 0) {
                       <div class="empty-column">
-                        <p>Nenhuma tarefa nesta coluna.</p>
+                        <p>
+                          {{
+                            hasActiveLabelFilters()
+                              ? 'Nenhuma tarefa corresponde aos filtros nesta coluna.'
+                              : 'Nenhuma tarefa nesta coluna.'
+                          }}
+                        </p>
                       </div>
                     } @else {
                       @for (task of column.tasks; track task.id) {

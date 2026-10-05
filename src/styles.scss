@@ -2,6 +2,7 @@
 @use './app/shared/styles/task-collaboration';
 @use './app/shared/styles/task-description-editor';
 @use './app/shared/styles/task-label-catalog';
+@use './app/shared/styles/kanban-label-filters';
 @import '@angular/cdk/overlay-prebuilt.css';
 
 .dt-dialog-backdrop {

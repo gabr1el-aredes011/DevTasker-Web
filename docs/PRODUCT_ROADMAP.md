@@ -110,7 +110,7 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Limpeza automática da atribuição ao remover ou tornar um membro `VIEWER`
 - ✅ Catálogo reutilizável de labels por projeto, com identidade, cores e arquivamento lógico
 - ✅ Seleção de labels do catálogo nas tarefas e migração segura dos textos anteriores
-- 🧭 Filtros do Kanban por labels do projeto
+- ✅ Filtros do Kanban por uma ou várias labels, com correspondência flexível e estado compartilhável pela URL
 - ✅ Checklist de subtarefas com progresso nos cartões e modo somente leitura para `VIEWER`
 - ✅ Comentários persistentes com autoria, edição pelo autor e moderação por `OWNER`/`ADMIN`
 - ✅ Histórico das principais ações da tarefa, limitado às 100 atividades mais recentes
@@ -173,7 +173,7 @@ Critérios de aceite:
 - ✅ Responsável com validação de participação e permissões
 - ✅ Catálogo de labels por projeto com cores, nomes únicos e gestão por `OWNER`/`ADMIN`
 - ✅ Uso operacional por `MEMBER` e leitura por `VIEWER`, com histórico preservado após arquivamento
-- 🧭 Filtros do Kanban por uma ou mais labels
+- ✅ Filtros do Kanban por uma ou mais labels, incluindo labels arquivadas presentes no histórico
 - ✅ Subtarefas e checklist persistentes, com conclusão, remoção e progresso agregado
 - ✅ Comentários e histórico persistentes, com autorização por função e linha do tempo prospectiva
 - ✅ Anexos persistentes com upload, download, exclusão lógica, limites e permissões por função

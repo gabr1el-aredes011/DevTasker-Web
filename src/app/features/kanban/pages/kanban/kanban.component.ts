@@ -17,6 +17,7 @@ import {
   TaskAttachment,
   TaskComment,
   TaskChecklistItem,
+  TaskLabel,
   TaskPriority,
   TaskResponse,
   UpdateTaskRequest,
@@ -44,6 +45,8 @@ import {
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
+
+type LabelFilterMode = 'ANY' | 'ALL';
 
 @Component({
   selector: 'app-kanban',
@@ -82,8 +85,69 @@ export class KanbanComponent implements OnInit {
   readonly projectLabels = signal<readonly ProjectLabel[]>([]);
   readonly loadingProjectLabels = signal(false);
   readonly projectLabelsError = signal<string | null>(null);
+  readonly selectedLabelFilterIds = signal<readonly number[]>([]);
+  readonly labelFilterMode = signal<LabelFilterMode>('ANY');
 
   readonly kanban = signal<KanbanBoard | null>(null);
+
+  readonly availableLabelFilters = computed<readonly TaskLabel[]>(() => {
+    const labelsById = new Map<number, TaskLabel>();
+
+    for (const label of this.projectLabels()) {
+      labelsById.set(label.id, {
+        id: label.id,
+        name: label.name,
+        color: label.color,
+        archived: false,
+      });
+    }
+
+    for (const column of this.kanban()?.columns ?? []) {
+      for (const task of column.tasks) {
+        for (const label of task.labels) {
+          if (!labelsById.has(label.id)) labelsById.set(label.id, label);
+        }
+      }
+    }
+
+    return [...labelsById.values()].sort((left, right) => {
+      if (left.archived !== right.archived) return left.archived ? 1 : -1;
+      return left.name.localeCompare(right.name);
+    });
+  });
+
+  readonly hasActiveLabelFilters = computed(() => this.selectedLabelFilterIds().length > 0);
+
+  readonly filteredKanban = computed<KanbanBoard | null>(() => {
+    const board = this.kanban();
+    const selectedIds = this.selectedLabelFilterIds();
+    if (!board || selectedIds.length === 0) return board;
+
+    const mode = this.labelFilterMode();
+    return {
+      ...board,
+      columns: board.columns.map((column) => ({
+        ...column,
+        tasks: column.tasks.filter((task) => {
+          const taskLabelIds = new Set(task.labels.map((label) => label.id));
+          return mode === 'ALL'
+            ? selectedIds.every((labelId) => taskLabelIds.has(labelId))
+            : selectedIds.some((labelId) => taskLabelIds.has(labelId));
+        }),
+      })),
+    };
+  });
+
+  readonly totalTaskCount = computed(() =>
+    (this.kanban()?.columns ?? []).reduce((total, column) => total + column.tasks.length, 0),
+  );
+
+  readonly visibleTaskCount = computed(() =>
+    (this.filteredKanban()?.columns ?? []).reduce(
+      (total, column) => total + column.tasks.length,
+      0,
+    ),
+  );
 
   readonly loading = signal(true);
 
@@ -215,6 +279,7 @@ export class KanbanComponent implements OnInit {
   readonly taskMovementDisabled = computed(
     () =>
       !this.canWriteTasks() ||
+      this.hasActiveLabelFilters() ||
       this.loadingKanban() ||
       this.movingTask() ||
       this.creatingTask() ||
@@ -223,6 +288,9 @@ export class KanbanComponent implements OnInit {
       this.taskFormOpen() ||
       this.taskDetailsOpen(),
   );
+
+  private projectLabelsReady = false;
+  private kanbanReady = false;
 
   ngOnInit(): void {
     this.loadPageData();
@@ -235,11 +303,14 @@ export class KanbanComponent implements OnInit {
   selectProject(project: ProjectSummary): void {
     this.selectedProject.set(project);
 
+    this.resetLabelFilters(false);
+
     this.loadAssignableMembers(project);
     this.loadProjectLabels(project);
 
     this.selectedBoard.set(null);
     this.kanban.set(null);
+    this.kanbanReady = false;
     this.kanbanLoadError.set(null);
 
     this.moveTaskError.set(null);
@@ -249,6 +320,8 @@ export class KanbanComponent implements OnInit {
       projectId: project.id,
       boardId: null,
       taskId: null,
+      labels: null,
+      labelMatch: null,
     });
 
     this.loadBoards(project.id);
@@ -256,6 +329,8 @@ export class KanbanComponent implements OnInit {
 
   backToProjects(): void {
     this.selectedProject.set(null);
+
+    this.resetLabelFilters(false);
 
     this.resetAssignableMembers();
     this.resetProjectLabels();
@@ -266,6 +341,7 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
 
     this.kanban.set(null);
+    this.kanbanReady = false;
     this.kanbanLoadError.set(null);
 
     this.taskFormOpen.set(false);
@@ -282,6 +358,8 @@ export class KanbanComponent implements OnInit {
       projectId: null,
       boardId: null,
       taskId: null,
+      labels: null,
+      labelMatch: null,
     });
   }
 
@@ -314,6 +392,7 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
 
     this.kanban.set(null);
+    this.kanbanReady = false;
     this.kanbanLoadError.set(null);
 
     this.taskFormOpen.set(false);
@@ -1326,6 +1405,8 @@ export class KanbanComponent implements OnInit {
     this.selectedProject.set(null);
 
     this.resetAssignableMembers();
+    this.resetProjectLabels();
+    this.resetLabelFilters(false);
 
     this.boards.set([]);
     this.boardsLoadError.set(null);
@@ -1333,6 +1414,7 @@ export class KanbanComponent implements OnInit {
     this.selectedBoard.set(null);
 
     this.kanban.set(null);
+    this.kanbanReady = false;
     this.kanbanLoadError.set(null);
 
     this.projectService
@@ -1366,8 +1448,14 @@ export class KanbanComponent implements OnInit {
      * Navegação comum.
      * Sem projectId o Kanban continua
      * exatamente com o comportamento atual.
-     */
+    */
     if (projectId === null) {
+      if (
+        this.route.snapshot.queryParamMap.get('labels') ||
+        this.route.snapshot.queryParamMap.get('labelMatch')
+      ) {
+        this.syncLabelFiltersToUrl();
+      }
       return;
     }
 
@@ -1380,6 +1468,8 @@ export class KanbanComponent implements OnInit {
     }
 
     this.selectedProject.set(project);
+
+    this.applyLabelFiltersFromUrl();
 
     this.loadAssignableMembers(project);
     this.loadProjectLabels(project);
@@ -1516,6 +1606,30 @@ export class KanbanComponent implements OnInit {
     control.markAsDirty();
   }
 
+  isLabelFilterSelected(labelId: number): boolean {
+    return this.selectedLabelFilterIds().includes(labelId);
+  }
+
+  toggleLabelFilter(labelId: number): void {
+    const selectedIds = this.selectedLabelFilterIds();
+    const nextIds = selectedIds.includes(labelId)
+      ? selectedIds.filter((currentId) => currentId !== labelId)
+      : [...selectedIds, labelId];
+
+    this.selectedLabelFilterIds.set(nextIds);
+    this.syncLabelFiltersToUrl();
+  }
+
+  setLabelFilterMode(mode: LabelFilterMode): void {
+    if (this.labelFilterMode() === mode) return;
+    this.labelFilterMode.set(mode);
+    this.syncLabelFiltersToUrl();
+  }
+
+  clearLabelFilters(): void {
+    this.resetLabelFilters();
+  }
+
   private loadProjectLabels(project: ProjectSummary): void {
     this.resetProjectLabels();
     this.loadingProjectLabels.set(true);
@@ -1525,11 +1639,16 @@ export class KanbanComponent implements OnInit {
       .pipe(finalize(() => this.loadingProjectLabels.set(false)))
       .subscribe({
         next: (labels) => {
-          if (this.selectedProject()?.id === project.id) this.projectLabels.set(labels);
+          if (this.selectedProject()?.id !== project.id) return;
+          this.projectLabels.set(labels);
+          this.projectLabelsReady = true;
+          this.reconcileLabelFilters();
         },
         error: () => {
           if (this.selectedProject()?.id === project.id) {
             this.projectLabelsError.set('Não foi possível carregar as labels disponíveis.');
+            this.projectLabelsReady = true;
+            this.reconcileLabelFilters();
           }
         },
       });
@@ -1539,12 +1658,14 @@ export class KanbanComponent implements OnInit {
     this.projectLabels.set([]);
     this.loadingProjectLabels.set(false);
     this.projectLabelsError.set(null);
+    this.projectLabelsReady = false;
   }
 
   private loadKanban(boardId: number, requestedTaskId: number | null = null): void {
     this.loadingKanban.set(true);
     this.kanbanLoadError.set(null);
     this.kanban.set(null);
+    this.kanbanReady = false;
 
     this.kanbanService
       .findByBoardId(boardId)
@@ -1556,6 +1677,8 @@ export class KanbanComponent implements OnInit {
       .subscribe({
         next: (kanban) => {
           this.kanban.set(kanban);
+          this.kanbanReady = true;
+          this.reconcileLabelFilters();
 
           if (requestedTaskId === null) {
             return;
@@ -1583,6 +1706,8 @@ export class KanbanComponent implements OnInit {
         },
 
         error: () => {
+          this.kanbanReady = true;
+          this.reconcileLabelFilters();
           this.kanbanLoadError.set('Não foi possível carregar o Kanban deste quadro.');
         },
       });
@@ -1693,12 +1818,61 @@ export class KanbanComponent implements OnInit {
     return parsedValue;
   }
 
+  private applyLabelFiltersFromUrl(): void {
+    const rawLabelIds = this.route.snapshot.queryParamMap.get('labels');
+    const labelIds = rawLabelIds
+      ? [...new Set(
+          rawLabelIds
+            .split(',')
+            .map((value) => Number(value))
+            .filter((value) => Number.isInteger(value) && value > 0),
+        )]
+      : [];
+    const rawMode = this.route.snapshot.queryParamMap.get('labelMatch')?.toLowerCase();
+
+    this.selectedLabelFilterIds.set(labelIds);
+    this.labelFilterMode.set(rawMode === 'all' ? 'ALL' : 'ANY');
+  }
+
+  private reconcileLabelFilters(): void {
+    if (!this.projectLabelsReady || !this.kanbanReady) return;
+
+    const selectedIds = this.selectedLabelFilterIds();
+    if (selectedIds.length === 0) return;
+
+    const availableIds = new Set(this.availableLabelFilters().map((label) => label.id));
+    const validIds = selectedIds.filter((labelId) => availableIds.has(labelId));
+    if (validIds.length === selectedIds.length) return;
+
+    this.selectedLabelFilterIds.set(validIds);
+    this.syncLabelFiltersToUrl();
+  }
+
+  private resetLabelFilters(updateUrl = true): void {
+    this.selectedLabelFilterIds.set([]);
+    this.labelFilterMode.set('ANY');
+
+    if (updateUrl) this.syncLabelFiltersToUrl();
+  }
+
+  private syncLabelFiltersToUrl(): void {
+    const selectedIds = this.selectedLabelFilterIds();
+    this.updateNavigationState({
+      labels: selectedIds.length > 0 ? selectedIds.join(',') : null,
+      labelMatch: selectedIds.length > 0 ? this.labelFilterMode().toLowerCase() : null,
+    });
+  }
+
   private updateNavigationState(queryParams: {
     projectId?: number | null;
 
     boardId?: number | null;
 
     taskId?: number | null;
+
+    labels?: string | null;
+
+    labelMatch?: string | null;
   }): void {
     void this.router.navigate([], {
       relativeTo: this.route,
