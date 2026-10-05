@@ -393,4 +393,162 @@ describe('KanbanComponent', () => {
       }),
     );
   });
+
+  it('should combine label filters in any and all modes without mutating the board', () => {
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+    const board = {
+      id: 12,
+      projectId: 7,
+      name: 'Entrega',
+      columns: [
+        {
+          id: 31,
+          name: 'Backlog',
+          category: 'BACKLOG' as const,
+          position: 0,
+          tasks: [
+            {
+              id: 19,
+              title: 'Integração completa',
+              priority: 'HIGH',
+              dueDate: null,
+              position: 0,
+              assigneeId: null,
+              assigneeName: null,
+              labels: [
+                { id: 4, name: 'Backend', color: 'BLUE' as const, archived: false },
+                { id: 7, name: 'Urgente', color: 'RED' as const, archived: false },
+              ],
+              completedChecklistItems: 0,
+              totalChecklistItems: 0,
+            },
+            {
+              id: 20,
+              title: 'Documentar contrato',
+              priority: 'LOW',
+              dueDate: null,
+              position: 1,
+              assigneeId: null,
+              assigneeName: null,
+              labels: [{ id: 4, name: 'Backend', color: 'BLUE' as const, archived: false }],
+              completedChecklistItems: 0,
+              totalChecklistItems: 0,
+            },
+            {
+              id: 21,
+              title: 'Publicar correção',
+              priority: 'URGENT',
+              dueDate: null,
+              position: 2,
+              assigneeId: null,
+              assigneeName: null,
+              labels: [{ id: 7, name: 'Urgente', color: 'RED' as const, archived: false }],
+              completedChecklistItems: 0,
+              totalChecklistItems: 0,
+            },
+          ],
+        },
+      ],
+    };
+    component.selectedProject.set(project);
+    component.kanban.set(board);
+
+    component.toggleLabelFilter(4);
+    component.toggleLabelFilter(7);
+
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([
+      19,
+      20,
+      21,
+    ]);
+    expect(component.visibleTaskCount()).toBe(3);
+
+    component.setLabelFilterMode('ALL');
+
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([19]);
+    expect(component.visibleTaskCount()).toBe(1);
+    expect(component.taskMovementDisabled()).toBe(true);
+    expect(component.kanban()).toBe(board);
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { labels: '4,7', labelMatch: 'all' },
+      }),
+    );
+
+    component.clearLabelFilters();
+
+    expect(component.visibleTaskCount()).toBe(3);
+    expect(component.taskMovementDisabled()).toBe(false);
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { labels: null, labelMatch: null },
+      }),
+    );
+  });
+
+  it('should restore an archived label filter from a shared board URL', () => {
+    queryParams.set('projectId', '7');
+    queryParams.set('boardId', '12');
+    queryParams.set('labels', '9');
+    queryParams.set('labelMatch', 'all');
+    projectService.findAll.mockReturnValue(of([project]));
+    projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+    projectService.findLabelsByProjectId.mockReturnValue(
+      of([
+        {
+          id: 4,
+          name: 'Backend',
+          color: 'BLUE' as const,
+          usageCount: 1,
+          createdAt: '2026-08-31T10:00:00Z',
+          updatedAt: '2026-08-31T10:00:00Z',
+        },
+      ]),
+    );
+    kanbanService.findByBoardId.mockReturnValue(
+      of({
+        id: 12,
+        projectId: 7,
+        name: 'Entrega',
+        columns: [
+          {
+            id: 31,
+            name: 'Backlog',
+            category: 'BACKLOG' as const,
+            position: 0,
+            tasks: [
+              {
+                id: 19,
+                title: 'Preservar histórico',
+                priority: 'MEDIUM',
+                dueDate: null,
+                position: 0,
+                assigneeId: null,
+                assigneeName: null,
+                labels: [
+                  { id: 9, name: 'Legada', color: 'GRAY' as const, archived: true },
+                ],
+                completedChecklistItems: 0,
+                totalChecklistItems: 0,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.selectedLabelFilterIds()).toEqual([9]);
+    expect(component.labelFilterMode()).toBe('ALL');
+    expect(component.availableLabelFilters()).toContainEqual(
+      expect.objectContaining({ id: 9, archived: true }),
+    );
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([19]);
+  });
 });
