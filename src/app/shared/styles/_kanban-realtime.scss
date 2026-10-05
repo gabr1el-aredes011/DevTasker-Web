@@ -1,0 +1,45 @@
+.kanban-realtime-status {
+  display: inline-flex;
+  margin-top: 0.8rem;
+  padding: 0.35rem 0.6rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--dt-color-border-subtle);
+  border-radius: var(--dt-radius-pill);
+  background: rgba(7, 18, 14, 0.62);
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+  font-size: 0.68rem;
+}
+
+.kanban-realtime-status::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--dt-color-text-muted);
+  content: '';
+}
+
+.kanban-realtime-status[data-status='connected'] {
+  color: var(--dt-color-success);
+}
+
+.kanban-realtime-status[data-status='connected']::before {
+  background: var(--dt-color-success);
+  box-shadow: 0 0 0.75rem var(--dt-color-success);
+}
+
+.kanban-realtime-status[data-status='connecting'],
+.kanban-realtime-status[data-status='reconnecting'] {
+  color: var(--dt-color-warning);
+}
+
+.kanban-realtime-status[data-status='connecting']::before,
+.kanban-realtime-status[data-status='reconnecting']::before {
+  background: var(--dt-color-warning);
+  animation: kanban-realtime-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes kanban-realtime-pulse {
+  50% { opacity: 0.35; }
+}

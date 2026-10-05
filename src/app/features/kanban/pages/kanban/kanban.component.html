@@ -61,6 +61,15 @@
               Acompanhe o fluxo de trabalho do projeto
               {{ project.name }}.
             </p>
+
+            <span
+              class="kanban-realtime-status"
+              [attr.data-status]="realtimeStatus()"
+              role="status"
+              aria-live="polite"
+            >
+              {{ realtimeStatusLabel() }}
+            </span>
           </div>
         </div>
 

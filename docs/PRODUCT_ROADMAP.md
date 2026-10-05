@@ -113,6 +113,7 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - ✅ Seleção de labels do catálogo nas tarefas e migração segura dos textos anteriores
 - ✅ Filtros do Kanban por uma ou várias labels, com correspondência flexível e estado compartilhável pela URL
 - ✅ Filtros combináveis por prioridade, responsável e situação do prazo, com estado compartilhável pela URL
+- ✅ Sincronização em tempo real de criação, edição, movimentação e arquivamento de tarefas no quadro aberto
 - ✅ Checklist de subtarefas com progresso nos cartões e modo somente leitura para `VIEWER`
 - ✅ Comentários persistentes com autoria, edição pelo autor e moderação por `OWNER`/`ADMIN`
 - ✅ Histórico das principais ações da tarefa, limitado às 100 atividades mais recentes
@@ -199,8 +200,8 @@ Critérios de aceite:
 - ✅ Convites
 - ✅ Membros, funções e permissões
 - ✅ Atividade colaborativa dentro das tarefas
-- 🧭 Sincronização em tempo real de tarefas, movimentações, comentários e membros
-- 🧭 Reconexão resiliente e atualização incremental sem exigir recarregamento manual
+- 🚧 Sincronização em tempo real: tarefas e movimentações entregues; comentários e membros planejados
+- ✅ Reconexão resiliente e atualização incremental do quadro sem exigir recarregamento manual
 
 ### Perfil e conta
 
