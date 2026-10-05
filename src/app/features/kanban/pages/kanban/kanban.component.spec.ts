@@ -411,7 +411,7 @@ describe('KanbanComponent', () => {
             {
               id: 19,
               title: 'Integração completa',
-              priority: 'HIGH',
+              priority: 'HIGH' as const,
               dueDate: null,
               position: 0,
               assigneeId: null,
@@ -426,7 +426,7 @@ describe('KanbanComponent', () => {
             {
               id: 20,
               title: 'Documentar contrato',
-              priority: 'LOW',
+              priority: 'LOW' as const,
               dueDate: null,
               position: 1,
               assigneeId: null,
@@ -438,7 +438,7 @@ describe('KanbanComponent', () => {
             {
               id: 21,
               title: 'Publicar correção',
-              priority: 'URGENT',
+              priority: 'URGENT' as const,
               dueDate: null,
               position: 2,
               assigneeId: null,
@@ -473,7 +473,7 @@ describe('KanbanComponent', () => {
     expect(router.navigate).toHaveBeenLastCalledWith(
       [],
       expect.objectContaining({
-        queryParams: { labels: '4,7', labelMatch: 'all' },
+        queryParams: expect.objectContaining({ labels: '4,7', labelMatch: 'all' }),
       }),
     );
 
@@ -484,7 +484,7 @@ describe('KanbanComponent', () => {
     expect(router.navigate).toHaveBeenLastCalledWith(
       [],
       expect.objectContaining({
-        queryParams: { labels: null, labelMatch: null },
+        queryParams: expect.objectContaining({ labels: null, labelMatch: null }),
       }),
     );
   });
@@ -550,5 +550,153 @@ describe('KanbanComponent', () => {
       expect.objectContaining({ id: 9, archived: true }),
     );
     expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([19]);
+  });
+
+  it('should combine priority, assignee and due-date productivity filters', () => {
+    const toDateKey = (offsetInDays: number): string => {
+      const date = new Date();
+      date.setDate(date.getDate() + offsetInDays);
+      return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+      ].join('-');
+    };
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+    component.selectedProject.set(project);
+    component.kanban.set({
+      id: 12,
+      projectId: 7,
+      name: 'Entrega',
+      columns: [
+        {
+          id: 31,
+          name: 'Backlog',
+          category: 'BACKLOG',
+          position: 0,
+          tasks: [
+            {
+              id: 30,
+              title: 'Corrigir produção',
+              priority: 'HIGH',
+              dueDate: toDateKey(-1),
+              position: 0,
+              assigneeId: 2,
+              assigneeName: 'Gabriel',
+              labels: [],
+              completedChecklistItems: 0,
+              totalChecklistItems: 0,
+            },
+            {
+              id: 31,
+              title: 'Publicar versão',
+              priority: 'HIGH',
+              dueDate: toDateKey(3),
+              position: 1,
+              assigneeId: 3,
+              assigneeName: 'Bianca',
+              labels: [],
+              completedChecklistItems: 0,
+              totalChecklistItems: 0,
+            },
+            {
+              id: 32,
+              title: 'Organizar backlog',
+              priority: 'LOW',
+              dueDate: null,
+              position: 2,
+              assigneeId: null,
+              assigneeName: null,
+              labels: [],
+              completedChecklistItems: 0,
+              totalChecklistItems: 0,
+            },
+          ],
+        },
+      ],
+    });
+
+    component.togglePriorityFilter('HIGH');
+    component.toggleAssigneeFilter(3);
+    component.setDueDateFilter('NEXT_7_DAYS');
+
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([31]);
+    expect(component.activeFilterCount()).toBe(3);
+    expect(component.taskMovementDisabled()).toBe(true);
+    expect(router.navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: expect.objectContaining({
+          priorities: 'HIGH',
+          assignees: '3',
+          due: 'next_7_days',
+        }),
+      }),
+    );
+
+    component.clearAllFilters();
+
+    expect(component.visibleTaskCount()).toBe(3);
+    expect(component.activeFilterCount()).toBe(0);
+    expect(component.taskMovementDisabled()).toBe(false);
+
+    component.setDueDateFilter('OVERDUE');
+
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([30]);
+
+    component.clearAllFilters();
+    component.toggleAssigneeFilter(null);
+    component.setDueDateFilter('NO_DATE');
+
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([32]);
+  });
+
+  it('should restore productivity filters from the shared URL', () => {
+    queryParams.set('projectId', '7');
+    queryParams.set('boardId', '12');
+    queryParams.set('priorities', 'LOW');
+    queryParams.set('assignees', 'none');
+    queryParams.set('due', 'no_date');
+    projectService.findAll.mockReturnValue(of([project]));
+    projectService.findBoardsByProjectId.mockReturnValue(of(boards));
+    kanbanService.findByBoardId.mockReturnValue(
+      of({
+        id: 12,
+        projectId: 7,
+        name: 'Entrega',
+        columns: [
+          {
+            id: 31,
+            name: 'Backlog',
+            category: 'BACKLOG' as const,
+            position: 0,
+            tasks: [
+              {
+                id: 32,
+                title: 'Organizar backlog',
+                priority: 'LOW' as const,
+                dueDate: null,
+                position: 0,
+                assigneeId: null,
+                assigneeName: null,
+                labels: [],
+                completedChecklistItems: 0,
+                totalChecklistItems: 0,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    expect(component.selectedPriorityFilters()).toEqual(['LOW']);
+    expect(component.selectedAssigneeFilters()).toEqual([null]);
+    expect(component.dueDateFilter()).toBe('NO_DATE');
+    expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([32]);
   });
 });
