@@ -57,7 +57,19 @@ export type TaskActivityType =
   | 'CHECKLIST_ITEM_REMOVED'
   | 'COMMENT_ADDED'
   | 'COMMENT_EDITED'
-  | 'COMMENT_REMOVED';
+  | 'COMMENT_REMOVED'
+  | 'ATTACHMENT_ADDED'
+  | 'ATTACHMENT_REMOVED';
+
+export interface TaskAttachment {
+  readonly id: number;
+  readonly originalFileName: string;
+  readonly contentType: string;
+  readonly sizeBytes: number;
+  readonly uploader: TaskUserSummary;
+  readonly canDelete: boolean;
+  readonly createdAt: string;
+}
 
 export interface TaskCommentRequest {
   readonly content: string;

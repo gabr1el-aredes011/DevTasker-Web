@@ -9,6 +9,7 @@ import { environment } from '../../../../environments/environment';
 import {
   CreateTaskRequest,
   CreateTaskChecklistItemRequest,
+  TaskAttachment,
   TaskCollaboration,
   TaskCommentRequest,
   TaskResponse,
@@ -121,6 +122,34 @@ export class TaskService {
   removeComment(taskId: number, commentId: number): Observable<TaskCollaboration> {
     return this.http.delete<TaskCollaboration>(
       `${environment.apiUrl}/tasks/${taskId}/comments/${commentId}`,
+    );
+  }
+
+  findAttachments(taskId: number): Observable<readonly TaskAttachment[]> {
+    return this.http.get<readonly TaskAttachment[]>(
+      `${environment.apiUrl}/tasks/${taskId}/attachments`,
+    );
+  }
+
+  uploadAttachment(taskId: number, file: File): Observable<readonly TaskAttachment[]> {
+    const body = new FormData();
+    body.append('file', file);
+
+    return this.http.post<readonly TaskAttachment[]>(
+      `${environment.apiUrl}/tasks/${taskId}/attachments`,
+      body,
+    );
+  }
+
+  downloadAttachment(taskId: number, attachmentId: number): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/tasks/${taskId}/attachments/${attachmentId}/download`, {
+      responseType: 'blob',
+    });
+  }
+
+  removeAttachment(taskId: number, attachmentId: number): Observable<readonly TaskAttachment[]> {
+    return this.http.delete<readonly TaskAttachment[]>(
+      `${environment.apiUrl}/tasks/${taskId}/attachments/${attachmentId}`,
     );
   }
 

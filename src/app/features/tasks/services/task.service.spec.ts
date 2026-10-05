@@ -113,4 +113,36 @@ describe('TaskService', () => {
     expect(removeRequest.request.method).toBe('DELETE');
     removeRequest.flush({ comments: [], activities: [] });
   });
+
+  it('should manage task attachments through task-scoped endpoints', () => {
+    service.findAttachments(19).subscribe();
+
+    const listRequest = http.expectOne(`${environment.apiUrl}/tasks/19/attachments`);
+    expect(listRequest.request.method).toBe('GET');
+    listRequest.flush([]);
+
+    const file = new File(['conteúdo'], 'evidencia.txt', { type: 'text/plain' });
+    service.uploadAttachment(19, file).subscribe();
+
+    const uploadRequest = http.expectOne(`${environment.apiUrl}/tasks/19/attachments`);
+    expect(uploadRequest.request.method).toBe('POST');
+    expect(uploadRequest.request.body).toBeInstanceOf(FormData);
+    expect((uploadRequest.request.body as FormData).get('file')).toBe(file);
+    uploadRequest.flush([]);
+
+    service.downloadAttachment(19, 5).subscribe();
+
+    const downloadRequest = http.expectOne(
+      `${environment.apiUrl}/tasks/19/attachments/5/download`,
+    );
+    expect(downloadRequest.request.method).toBe('GET');
+    expect(downloadRequest.request.responseType).toBe('blob');
+    downloadRequest.flush(new Blob(['conteúdo']));
+
+    service.removeAttachment(19, 5).subscribe();
+
+    const removeRequest = http.expectOne(`${environment.apiUrl}/tasks/19/attachments/5`);
+    expect(removeRequest.request.method).toBe('DELETE');
+    removeRequest.flush([]);
+  });
 });

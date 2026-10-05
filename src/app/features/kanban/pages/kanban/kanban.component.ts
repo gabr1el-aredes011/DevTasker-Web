@@ -17,6 +17,7 @@ import {
 import {
   CreateTaskRequest,
   TaskCollaboration,
+  TaskAttachment,
   TaskComment,
   TaskChecklistItem,
   TaskPriority,
@@ -152,6 +153,15 @@ export class KanbanComponent implements OnInit {
   readonly commentActionSuccess = signal<string | null>(null);
   readonly editingCommentId = signal<number | null>(null);
   readonly commentPendingDeletionId = signal<number | null>(null);
+
+  readonly taskAttachments = signal<readonly TaskAttachment[]>([]);
+  readonly loadingTaskAttachments = signal(false);
+  readonly taskAttachmentsError = signal<string | null>(null);
+  readonly managingAttachment = signal(false);
+  readonly downloadingAttachmentId = signal<number | null>(null);
+  readonly attachmentActionError = signal<string | null>(null);
+  readonly attachmentActionSuccess = signal<string | null>(null);
+  readonly attachmentPendingDeletionId = signal<number | null>(null);
 
   readonly checklistCompletedCount = computed(
     () => this.selectedTask()?.checklistItems.filter((item) => item.completed).length ?? 0,
@@ -883,6 +893,169 @@ export class KanbanComponent implements OnInit {
     }).format(date);
   }
 
+  uploadAttachment(event: Event): void {
+    const taskId = this.selectedTaskId();
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0) ?? null;
+
+    if (
+      !this.canWriteTasks() ||
+      taskId === null ||
+      file === null ||
+      this.managingAttachment() ||
+      this.taskAttachments().length >= 10
+    ) {
+      input.value = '';
+      return;
+    }
+
+    const allowedTypes = new Set([
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+      'text/plain',
+      'application/json',
+      'application/zip',
+      'application/x-zip-compressed',
+    ]);
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.attachmentActionError.set('O arquivo deve possuir no máximo 10 MB.');
+      input.value = '';
+      return;
+    }
+
+    if (!allowedTypes.has(file.type.toLowerCase())) {
+      this.attachmentActionError.set(
+        'Tipo não permitido. Use PDF, PNG, JPEG, WebP, TXT, JSON ou ZIP.',
+      );
+      input.value = '';
+      return;
+    }
+
+    this.managingAttachment.set(true);
+    this.attachmentActionError.set(null);
+    this.attachmentActionSuccess.set(null);
+
+    this.taskService
+      .uploadAttachment(taskId, file)
+      .pipe(
+        finalize(() => {
+          this.managingAttachment.set(false);
+          input.value = '';
+        }),
+      )
+      .subscribe({
+        next: (attachments) => {
+          this.taskAttachments.set(attachments);
+          this.attachmentActionSuccess.set('Arquivo anexado com sucesso.');
+          this.loadTaskCollaboration(taskId);
+        },
+        error: (error: unknown) => {
+          this.attachmentActionError.set(
+            this.extractApiError(error, 'Não foi possível anexar o arquivo.'),
+          );
+        },
+      });
+  }
+
+  downloadAttachment(attachment: TaskAttachment): void {
+    const taskId = this.selectedTaskId();
+    if (taskId === null || this.downloadingAttachmentId() !== null) {
+      return;
+    }
+
+    this.downloadingAttachmentId.set(attachment.id);
+    this.attachmentActionError.set(null);
+
+    this.taskService
+      .downloadAttachment(taskId, attachment.id)
+      .pipe(finalize(() => this.downloadingAttachmentId.set(null)))
+      .subscribe({
+        next: (content) => {
+          const objectUrl = URL.createObjectURL(content);
+          const anchor = document.createElement('a');
+          anchor.href = objectUrl;
+          anchor.download = attachment.originalFileName;
+          anchor.click();
+          URL.revokeObjectURL(objectUrl);
+        },
+        error: (error: unknown) => {
+          this.attachmentActionError.set(
+            this.extractApiError(error, 'Não foi possível baixar o arquivo.'),
+          );
+        },
+      });
+  }
+
+  requestAttachmentRemoval(attachment: TaskAttachment): void {
+    if (!attachment.canDelete || this.managingAttachment()) {
+      return;
+    }
+
+    this.attachmentPendingDeletionId.set(attachment.id);
+    this.attachmentActionError.set(null);
+    this.attachmentActionSuccess.set(null);
+  }
+
+  cancelAttachmentRemoval(): void {
+    if (!this.managingAttachment()) {
+      this.attachmentPendingDeletionId.set(null);
+    }
+  }
+
+  confirmAttachmentRemoval(attachmentId: number): void {
+    const taskId = this.selectedTaskId();
+    if (
+      taskId === null ||
+      this.attachmentPendingDeletionId() !== attachmentId ||
+      this.managingAttachment()
+    ) {
+      return;
+    }
+
+    this.managingAttachment.set(true);
+    this.attachmentActionError.set(null);
+    this.attachmentActionSuccess.set(null);
+
+    this.taskService
+      .removeAttachment(taskId, attachmentId)
+      .pipe(finalize(() => this.managingAttachment.set(false)))
+      .subscribe({
+        next: (attachments) => {
+          this.taskAttachments.set(attachments);
+          this.attachmentPendingDeletionId.set(null);
+          this.attachmentActionSuccess.set('Anexo removido com sucesso.');
+          this.loadTaskCollaboration(taskId);
+        },
+        error: (error: unknown) => {
+          this.attachmentActionError.set(
+            this.extractApiError(error, 'Não foi possível remover o anexo.'),
+          );
+        },
+      });
+  }
+
+  retryTaskAttachments(): void {
+    const taskId = this.selectedTaskId();
+    if (taskId !== null) {
+      this.loadTaskAttachments(taskId);
+    }
+  }
+
+  formatFileSize(sizeBytes: number): string {
+    if (sizeBytes < 1024) {
+      return `${sizeBytes} B`;
+    }
+
+    if (sizeBytes < 1024 * 1024) {
+      return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   closeCreateTaskForm(): void {
     if (this.creatingTask()) {
       return;
@@ -1082,6 +1255,7 @@ export class KanbanComponent implements OnInit {
     this.checklistError.set(null);
     this.checklistSuccess.set(null);
     this.resetTaskCollaboration();
+    this.resetTaskAttachments();
 
     this.taskDetailsOpen.set(true);
     this.selectedTaskId.set(taskId);
@@ -1096,6 +1270,7 @@ export class KanbanComponent implements OnInit {
     this.taskDetailsError.set(null);
     this.loadingTaskDetails.set(true);
     this.loadTaskCollaboration(taskId);
+    this.loadTaskAttachments(taskId);
 
     this.taskService
       .findById(taskId)
@@ -1129,7 +1304,8 @@ export class KanbanComponent implements OnInit {
       this.updatingTask() ||
       this.archivingTask() ||
       this.managingChecklist() ||
-      this.managingComment()
+      this.managingComment() ||
+      this.managingAttachment()
     ) {
       return;
     }
@@ -1145,6 +1321,7 @@ export class KanbanComponent implements OnInit {
     this.checklistError.set(null);
     this.checklistSuccess.set(null);
     this.resetTaskCollaboration();
+    this.resetTaskAttachments();
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
@@ -1507,6 +1684,7 @@ export class KanbanComponent implements OnInit {
     this.checklistError.set(null);
     this.checklistSuccess.set(null);
     this.resetTaskCollaboration();
+    this.resetTaskAttachments();
 
     this.archiveConfirmationOpen.set(false);
     this.archiveTaskError.set(null);
@@ -1552,5 +1730,45 @@ export class KanbanComponent implements OnInit {
     this.commentPendingDeletionId.set(null);
     this.commentForm.reset({ content: '' });
     this.editCommentForm.reset({ content: '' });
+  }
+
+  private loadTaskAttachments(taskId: number): void {
+    this.loadingTaskAttachments.set(true);
+    this.taskAttachmentsError.set(null);
+
+    this.taskService
+      .findAttachments(taskId)
+      .pipe(
+        finalize(() => {
+          if (this.selectedTaskId() === taskId) {
+            this.loadingTaskAttachments.set(false);
+          }
+        }),
+      )
+      .subscribe({
+        next: (attachments) => {
+          if (this.selectedTaskId() === taskId) {
+            this.taskAttachments.set(attachments);
+          }
+        },
+        error: (error: unknown) => {
+          if (this.selectedTaskId() === taskId) {
+            this.taskAttachmentsError.set(
+              this.extractApiError(error, 'Não foi possível carregar os anexos.'),
+            );
+          }
+        },
+      });
+  }
+
+  private resetTaskAttachments(): void {
+    this.taskAttachments.set([]);
+    this.loadingTaskAttachments.set(false);
+    this.taskAttachmentsError.set(null);
+    this.managingAttachment.set(false);
+    this.downloadingAttachmentId.set(null);
+    this.attachmentActionError.set(null);
+    this.attachmentActionSuccess.set(null);
+    this.attachmentPendingDeletionId.set(null);
   }
 }
