@@ -130,6 +130,12 @@ app-auth-particles {
   }
 }
 
+.auth-brand__symbol img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .auth-story__content {
   max-width: 41rem;
 }
