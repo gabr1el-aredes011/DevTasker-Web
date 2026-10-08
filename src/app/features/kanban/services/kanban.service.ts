@@ -1,9 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import {
-  inject,
-  Injectable,
-} from '@angular/core';
-import { Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { map, Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { KanbanBoard } from '../models/kanban.models';
@@ -14,11 +11,19 @@ import { KanbanBoard } from '../models/kanban.models';
 export class KanbanService {
   private readonly http = inject(HttpClient);
 
-  findByBoardId(
-    boardId: number,
-  ): Observable<KanbanBoard> {
-    return this.http.get<KanbanBoard>(
-      `${environment.apiUrl}/boards/${boardId}/kanban`,
+  findByBoardId(boardId: number): Observable<KanbanBoard> {
+    return this.http.get<KanbanBoard>(`${environment.apiUrl}/boards/${boardId}/kanban`).pipe(
+      map((board) => ({
+        ...board,
+        columns: board.columns.map((column) => ({
+          ...column,
+          tasks: column.tasks.map((task) => ({
+            ...task,
+            labels: task.labels ?? [],
+            technologies: task.technologies ?? [],
+          })),
+        })),
+      })),
     );
   }
 }

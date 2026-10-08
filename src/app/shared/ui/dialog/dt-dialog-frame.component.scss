@@ -4,11 +4,32 @@
 }
 
 .dt-dialog {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--dt-color-border-strong);
   border-radius: var(--dt-radius-xl);
-  background: var(--dt-color-surface-1);
-  box-shadow: var(--dt-shadow-lg), var(--dt-shadow-brand);
+  background:
+    linear-gradient(rgba(70, 255, 120, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 255, 120, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 100% 0, rgba(70, 255, 120, 0.12), transparent 18rem),
+    rgba(4, 16, 11, 0.97);
+  background-size:
+    2rem 2rem,
+    2rem 2rem,
+    auto,
+    auto;
+  box-shadow:
+    0 2rem 7rem rgba(0, 0, 0, 0.72),
+    0 0 4rem rgba(34, 237, 95, 0.12);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: linear-gradient(transparent, var(--dt-color-brand-400), transparent);
+    box-shadow: 0 0 1.25rem var(--dt-color-brand-glow);
+  }
 }
 
 .dt-dialog[data-tone='danger'] {
@@ -58,6 +79,16 @@
   background: transparent;
   color: var(--dt-color-text-secondary);
   cursor: pointer;
+  transition:
+    transform var(--dt-duration-fast) var(--dt-ease-standard),
+    border-color var(--dt-duration-fast) var(--dt-ease-standard),
+    color var(--dt-duration-fast) var(--dt-ease-standard);
+}
+
+.dt-dialog__close:hover:not(:disabled) {
+  transform: rotate(6deg) scale(1.04);
+  border-color: var(--dt-color-border-strong);
+  color: var(--dt-color-brand-300);
 }
 
 .dt-dialog__close:focus-visible {

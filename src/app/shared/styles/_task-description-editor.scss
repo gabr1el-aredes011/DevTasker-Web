@@ -45,6 +45,38 @@
   line-height: var(--dt-line-relaxed);
 }
 
+.task-description-editor__tools {
+  display: flex;
+  padding: 0.35rem 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--dt-color-border-default);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.task-description-editor__tools button {
+  display: grid;
+  min-width: 1.85rem;
+  height: 1.85rem;
+  padding: 0 0.35rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--dt-radius-sm);
+  background: transparent;
+  color: var(--dt-color-text-muted);
+  cursor: pointer;
+  font-family: var(--dt-font-mono);
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.task-description-editor__tools button:hover {
+  border-color: var(--dt-color-border-default);
+  background: var(--dt-color-brand-soft);
+  color: var(--dt-color-brand-300);
+}
+
 .task-description-editor__preview {
   min-height: 10rem;
   padding: 0.9rem;

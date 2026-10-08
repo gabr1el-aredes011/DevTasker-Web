@@ -1,9 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import {
-  inject,
-  Injectable,
-} from '@angular/core';
-import { Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { map, Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import {
@@ -24,58 +21,41 @@ import {
 export class TaskService {
   private readonly http = inject(HttpClient);
 
-  findById(
-    taskId: number,
-  ): Observable<TaskResponse> {
-    return this.http.get<TaskResponse>(
-      `${environment.apiUrl}/tasks/${taskId}`,
-    );
+  findById(taskId: number): Observable<TaskResponse> {
+    return this.http
+      .get<TaskResponse>(`${environment.apiUrl}/tasks/${taskId}`)
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
-  create(
-    columnId: number,
-    request: CreateTaskRequest,
-  ): Observable<TaskResponse> {
-    return this.http.post<TaskResponse>(
-      `${environment.apiUrl}/columns/${columnId}/tasks`,
-      request,
-    );
+  create(columnId: number, request: CreateTaskRequest): Observable<TaskResponse> {
+    return this.http
+      .post<TaskResponse>(`${environment.apiUrl}/columns/${columnId}/tasks`, request)
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
-  update(
-    taskId: number,
-    request: UpdateTaskRequest,
-  ): Observable<TaskResponse> {
-    return this.http.put<TaskResponse>(
-      `${environment.apiUrl}/tasks/${taskId}`,
-      request,
-    );
+  update(taskId: number, request: UpdateTaskRequest): Observable<TaskResponse> {
+    return this.http
+      .put<TaskResponse>(`${environment.apiUrl}/tasks/${taskId}`, request)
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
   archive(taskId: number): Observable<void> {
-    return this.http.delete<void>(
-      `${environment.apiUrl}/tasks/${taskId}`,
-    );
+    return this.http.delete<void>(`${environment.apiUrl}/tasks/${taskId}`);
   }
 
-  move(
-    taskId: number,
-    request: MoveTaskRequest,
-  ): Observable<TaskResponse> {
-    return this.http.patch<TaskResponse>(
-      `${environment.apiUrl}/tasks/${taskId}/move`,
-      request,
-    );
+  move(taskId: number, request: MoveTaskRequest): Observable<TaskResponse> {
+    return this.http
+      .patch<TaskResponse>(`${environment.apiUrl}/tasks/${taskId}/move`, request)
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
   addChecklistItem(
     taskId: number,
     request: CreateTaskChecklistItemRequest,
   ): Observable<TaskResponse> {
-    return this.http.post<TaskResponse>(
-      `${environment.apiUrl}/tasks/${taskId}/checklist-items`,
-      request,
-    );
+    return this.http
+      .post<TaskResponse>(`${environment.apiUrl}/tasks/${taskId}/checklist-items`, request)
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
   updateChecklistItem(
@@ -83,22 +63,22 @@ export class TaskService {
     itemId: number,
     request: UpdateTaskChecklistItemRequest,
   ): Observable<TaskResponse> {
-    return this.http.patch<TaskResponse>(
-      `${environment.apiUrl}/tasks/${taskId}/checklist-items/${itemId}`,
-      request,
-    );
+    return this.http
+      .patch<TaskResponse>(
+        `${environment.apiUrl}/tasks/${taskId}/checklist-items/${itemId}`,
+        request,
+      )
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
   removeChecklistItem(taskId: number, itemId: number): Observable<TaskResponse> {
-    return this.http.delete<TaskResponse>(
-      `${environment.apiUrl}/tasks/${taskId}/checklist-items/${itemId}`,
-    );
+    return this.http
+      .delete<TaskResponse>(`${environment.apiUrl}/tasks/${taskId}/checklist-items/${itemId}`)
+      .pipe(map((task) => this.normalizeTask(task)));
   }
 
   findCollaboration(taskId: number): Observable<TaskCollaboration> {
-    return this.http.get<TaskCollaboration>(
-      `${environment.apiUrl}/tasks/${taskId}/collaboration`,
-    );
+    return this.http.get<TaskCollaboration>(`${environment.apiUrl}/tasks/${taskId}/collaboration`);
   }
 
   addComment(taskId: number, request: TaskCommentRequest): Observable<TaskCollaboration> {
@@ -142,9 +122,12 @@ export class TaskService {
   }
 
   downloadAttachment(taskId: number, attachmentId: number): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/tasks/${taskId}/attachments/${attachmentId}/download`, {
-      responseType: 'blob',
-    });
+    return this.http.get(
+      `${environment.apiUrl}/tasks/${taskId}/attachments/${attachmentId}/download`,
+      {
+        responseType: 'blob',
+      },
+    );
   }
 
   removeAttachment(taskId: number, attachmentId: number): Observable<readonly TaskAttachment[]> {
@@ -153,4 +136,12 @@ export class TaskService {
     );
   }
 
+  private normalizeTask(task: TaskResponse): TaskResponse {
+    return {
+      ...task,
+      labels: task.labels ?? [],
+      technologies: task.technologies ?? [],
+      checklistItems: task.checklistItems ?? [],
+    };
+  }
 }

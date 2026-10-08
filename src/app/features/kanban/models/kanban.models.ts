@@ -1,4 +1,4 @@
-import type { TaskLabel, TaskPriority } from '../../tasks/models/task.models';
+import type { TaskLabel, TaskPriority, TaskTechnology } from '../../tasks/models/task.models';
 
 export type KanbanColumnCategory = 'BACKLOG' | 'TODO' | 'DOING' | 'REVIEW' | 'DONE';
 
@@ -11,6 +11,7 @@ export interface KanbanTask {
   readonly assigneeId: number | null;
   readonly assigneeName: string | null;
   readonly labels: readonly TaskLabel[];
+  readonly technologies: readonly TaskTechnology[];
   readonly completedChecklistItems: number;
   readonly totalChecklistItems: number;
 }
