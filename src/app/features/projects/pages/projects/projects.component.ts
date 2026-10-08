@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { A11yModule } from '@angular/cdk/a11y';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -38,6 +39,7 @@ type ProjectFormMode = 'create' | 'edit';
   standalone: true,
   imports: [
     DatePipe,
+    A11yModule,
     ReactiveFormsModule,
     RouterLink,
     DtBadgeComponent,
@@ -304,6 +306,12 @@ export class ProjectsComponent implements OnInit {
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscape(event: Event): void {
+    if (this.formMode() && !this.submitting() && !this.loadingDetails()) {
+      event.preventDefault();
+      this.closeForm();
+      return;
+    }
+
     if (!this.archiveCandidate() || this.archivingProjectId() !== null) {
       return;
     }

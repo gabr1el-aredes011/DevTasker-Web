@@ -220,7 +220,12 @@
             @for (board of boards(); track board.id) {
               <article class="board-card" [attr.aria-labelledby]="'board-title-' + board.id">
                 <header>
-                  <span class="board-card__icon" aria-hidden="true">▦</span>
+                  <span class="board-card__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <rect x="3.5" y="4" width="17" height="16" rx="2" />
+                      <path d="M9 4v16M15 4v16" />
+                    </svg>
+                  </span>
                   <div class="board-card__meta">
                     @if (board.defaultBoard) {
                       <dt-badge tone="brand">Padrão</dt-badge>
@@ -310,7 +315,13 @@
               {{ labelsLoadError() ? 'Contagem indisponível' : labels().length + ' ativas' }}
             </span>
             @if (canManageLabels()) {
-              <button dtButton variant="primary" size="sm" type="button" (click)="openCreateLabelDialog()">
+              <button
+                dtButton
+                variant="primary"
+                size="sm"
+                type="button"
+                (click)="openCreateLabelDialog()"
+              >
                 <span aria-hidden="true">+</span>
                 Nova label
               </button>
@@ -365,7 +376,11 @@
           <div class="labels-list" role="list" aria-label="Labels ativas do projeto">
             @for (label of filteredLabels(); track label.id) {
               <article class="label-card" role="listitem">
-                <span class="label-card__color" [attr.data-label-color]="label.color" aria-hidden="true"></span>
+                <span
+                  class="label-card__color"
+                  [attr.data-label-color]="label.color"
+                  aria-hidden="true"
+                ></span>
                 <div class="label-card__identity">
                   <strong>{{ label.name }}</strong>
                   <span>{{ label.color }}</span>
@@ -376,10 +391,22 @@
                 </div>
                 @if (canManageLabels()) {
                   <div class="label-card__actions">
-                    <button dtButton variant="secondary" size="sm" type="button" (click)="openEditLabelDialog(label)">
+                    <button
+                      dtButton
+                      variant="secondary"
+                      size="sm"
+                      type="button"
+                      (click)="openEditLabelDialog(label)"
+                    >
                       Editar
                     </button>
-                    <button dtButton variant="danger" size="sm" type="button" (click)="openArchiveLabelDialog(label)">
+                    <button
+                      dtButton
+                      variant="danger"
+                      size="sm"
+                      type="button"
+                      (click)="openArchiveLabelDialog(label)"
+                    >
                       Arquivar
                     </button>
                   </div>

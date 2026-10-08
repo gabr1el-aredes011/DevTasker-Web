@@ -22,7 +22,9 @@
       [disabled]="submitting() || loadingDetails() || archiveCandidate()"
       (click)="openCreateForm()"
     >
-      <span aria-hidden="true">＋</span>
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
       Novo projeto
     </button>
   </header>
@@ -35,175 +37,252 @@
   }
 
   @if (formMode(); as mode) {
-    <section class="project-form-panel" aria-labelledby="project-form-title">
-      <header class="project-form-panel__header">
-        <div>
-          <p class="projects-eyebrow">
-            {{ mode === 'edit' ? 'ATUALIZAR CONTEXTO' : 'NOVO WORKSPACE' }}
-          </p>
-          <h2 id="project-form-title">{{ formTitle() }}</h2>
-          <p>
-            @if (mode === 'edit') {
-              Ajuste o nome e a descrição usados por toda a equipe.
-            } @else {
-              O DevTasker prepara automaticamente um quadro inicial com o fluxo recomendado.
-            }
-          </p>
-        </div>
-
-        <button
-          class="icon-action"
-          type="button"
-          aria-label="Fechar formulário"
-          [disabled]="submitting() || loadingDetails()"
-          (click)="closeForm()"
-        >
-          ×
-        </button>
-      </header>
-
-      @if (loadingDetails()) {
-        <div class="page-feedback details-feedback" role="status" aria-live="polite">
-          <span class="spinner" aria-hidden="true"></span>
+    <div class="workspace-view-modal" (click)="closeForm()">
+      <section
+        class="project-form-panel workspace-view-modal__surface"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="project-form-title"
+        cdkTrapFocus
+        [cdkTrapFocusAutoCapture]="true"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="project-form-panel__header">
           <div>
-            <strong>Carregando detalhes</strong>
-            <p>Confirmando os dados e sua permissão de edição.</p>
-          </div>
-        </div>
-      } @else if (detailsError()) {
-        <div class="page-feedback page-feedback--error details-feedback" role="alert">
-          <span aria-hidden="true">!</span>
-          <div>
-            <strong>Não foi possível abrir a edição</strong>
-            <p>{{ detailsError() }}</p>
-            <button type="button" (click)="retryEdit()">Tentar novamente</button>
-          </div>
-        </div>
-      } @else {
-        <form
-          class="project-form"
-          [formGroup]="projectForm"
-          (ngSubmit)="submitProject()"
-          novalidate
-        >
-          @if (mode === 'edit') {
-            @if (editingProject(); as project) {
-              <div class="editing-context">
-                <span class="project-symbol project-symbol--small" aria-hidden="true">
-                  {{ projectInitial(project.name) }}
-                </span>
-                <div>
-                  <strong>Projeto #{{ project.id }}</strong>
-                  <p>Proprietário: {{ project.ownerName }}</p>
-                </div>
-                <dt-badge [tone]="projectRoleTone(project.membershipRole)">
-                  {{ projectRoleLabel(project.membershipRole) }}
-                </dt-badge>
-              </div>
-            }
-          }
-
-          @if (formError()) {
-            <div class="page-feedback page-feedback--error" role="alert" aria-live="assertive">
-              <span aria-hidden="true">!</span>
-              <p>{{ formError() }}</p>
-            </div>
-          }
-
-          <div class="project-form__grid">
-            <div class="form-field">
-              <label for="project-name">Nome do projeto</label>
-              <input
-                #projectNameInput
-                id="project-name"
-                type="text"
-                formControlName="name"
-                autocomplete="off"
-                maxlength="120"
-                placeholder="Ex.: Plataforma mobile"
-                [attr.aria-invalid]="
-                  projectForm.controls.name.touched && projectForm.controls.name.invalid
-                "
-                [attr.aria-describedby]="
-                  projectForm.controls.name.touched && projectForm.controls.name.invalid
-                    ? 'project-name-error'
-                    : null
-                "
-              />
-
-              @if (projectForm.controls.name.touched && projectForm.controls.name.invalid) {
-                <small id="project-name-error">
-                  @if (projectForm.controls.name.hasError('required')) {
-                    O nome do projeto é obrigatório.
-                  } @else {
-                    O nome deve possuir no máximo 120 caracteres.
-                  }
-                </small>
-              }
-            </div>
-
-            <div class="form-field form-field--description">
-              <div class="form-field__label">
-                <label for="project-description">Descrição</label>
-                <span>{{ descriptionLength() }}/1000</span>
-              </div>
-
-              <textarea
-                id="project-description"
-                formControlName="description"
-                maxlength="1000"
-                rows="4"
-                placeholder="Descreva o objetivo, o produto ou o contexto compartilhado."
-                [attr.aria-invalid]="
-                  projectForm.controls.description.touched &&
-                  projectForm.controls.description.invalid
-                "
-                [attr.aria-describedby]="
-                  projectForm.controls.description.touched &&
-                  projectForm.controls.description.invalid
-                    ? 'project-description-error'
-                    : null
-                "
-              ></textarea>
-
-              @if (
-                projectForm.controls.description.touched && projectForm.controls.description.invalid
-              ) {
-                <small id="project-description-error">
-                  A descrição deve possuir no máximo 1000 caracteres.
-                </small>
-              }
-            </div>
-          </div>
-
-          <footer class="project-form__actions">
-            <button
-              dtButton
-              variant="secondary"
-              type="button"
-              [disabled]="submitting()"
-              (click)="closeForm()"
-            >
-              Cancelar
-            </button>
-            <button
-              dtButton
-              variant="primary"
-              type="submit"
-              [loading]="submitting()"
-              [disabled]="submitting()"
-            >
-              @if (submitting()) {
-                {{ mode === 'edit' ? 'Salvando...' : 'Criando...' }}
+            <p class="projects-eyebrow">
+              {{ mode === 'edit' ? 'ATUALIZAR CONTEXTO' : 'NOVO WORKSPACE' }}
+            </p>
+            <h2 id="project-form-title">{{ formTitle() }}</h2>
+            <p>
+              @if (mode === 'edit') {
+                Ajuste o nome e a descrição usados por toda a equipe.
               } @else {
-                {{ mode === 'edit' ? 'Salvar alterações' : 'Criar projeto' }}
-                <span aria-hidden="true">→</span>
+                O DevTasker prepara automaticamente um quadro inicial com o fluxo recomendado.
               }
-            </button>
-          </footer>
-        </form>
-      }
-    </section>
+            </p>
+          </div>
+
+          <button
+            class="icon-action"
+            type="button"
+            aria-label="Fechar formulário"
+            [disabled]="submitting() || loadingDetails()"
+            (click)="closeForm()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+
+        @if (loadingDetails()) {
+          <div class="page-feedback details-feedback" role="status" aria-live="polite">
+            <span class="spinner" aria-hidden="true"></span>
+            <div>
+              <strong>Carregando detalhes</strong>
+              <p>Confirmando os dados e sua permissão de edição.</p>
+            </div>
+          </div>
+        } @else if (detailsError()) {
+          <div class="page-feedback page-feedback--error details-feedback" role="alert">
+            <span aria-hidden="true">!</span>
+            <div>
+              <strong>Não foi possível abrir a edição</strong>
+              <p>{{ detailsError() }}</p>
+              <button type="button" (click)="retryEdit()">Tentar novamente</button>
+            </div>
+          </div>
+        } @else {
+          <form
+            class="project-form"
+            [formGroup]="projectForm"
+            (ngSubmit)="submitProject()"
+            novalidate
+          >
+            @if (mode === 'edit') {
+              @if (editingProject(); as project) {
+                <div class="editing-context">
+                  <span class="project-symbol project-symbol--small" aria-hidden="true">
+                    {{ projectInitial(project.name) }}
+                  </span>
+                  <div>
+                    <strong>Projeto #{{ project.id }}</strong>
+                    <p>Proprietário: {{ project.ownerName }}</p>
+                  </div>
+                  <dt-badge [tone]="projectRoleTone(project.membershipRole)">
+                    {{ projectRoleLabel(project.membershipRole) }}
+                  </dt-badge>
+                </div>
+              }
+            }
+
+            @if (formError()) {
+              <div class="page-feedback page-feedback--error" role="alert" aria-live="assertive">
+                <span aria-hidden="true">!</span>
+                <p>{{ formError() }}</p>
+              </div>
+            }
+
+            <div class="project-form__body">
+              <div class="project-form__grid">
+                <div class="form-field">
+                  <label for="project-name">Nome do projeto</label>
+                  <input
+                    #projectNameInput
+                    id="project-name"
+                    type="text"
+                    formControlName="name"
+                    autocomplete="off"
+                    maxlength="120"
+                    placeholder="Ex.: Plataforma mobile"
+                    [attr.aria-invalid]="
+                      projectForm.controls.name.touched && projectForm.controls.name.invalid
+                    "
+                    [attr.aria-describedby]="
+                      projectForm.controls.name.touched && projectForm.controls.name.invalid
+                        ? 'project-name-error'
+                        : null
+                    "
+                  />
+
+                  @if (projectForm.controls.name.touched && projectForm.controls.name.invalid) {
+                    <small id="project-name-error">
+                      @if (projectForm.controls.name.hasError('required')) {
+                        O nome do projeto é obrigatório.
+                      } @else {
+                        O nome deve possuir no máximo 120 caracteres.
+                      }
+                    </small>
+                  }
+                </div>
+
+                <div class="form-field form-field--description">
+                  <div class="form-field__label">
+                    <label for="project-description">Descrição</label>
+                    <span>{{ descriptionLength() }}/1000</span>
+                  </div>
+
+                  <textarea
+                    id="project-description"
+                    formControlName="description"
+                    maxlength="1000"
+                    rows="7"
+                    placeholder="Descreva o objetivo, o produto ou o contexto compartilhado."
+                    [attr.aria-invalid]="
+                      projectForm.controls.description.touched &&
+                      projectForm.controls.description.invalid
+                    "
+                    [attr.aria-describedby]="
+                      projectForm.controls.description.touched &&
+                      projectForm.controls.description.invalid
+                        ? 'project-description-error'
+                        : null
+                    "
+                  ></textarea>
+
+                  @if (
+                    projectForm.controls.description.touched &&
+                    projectForm.controls.description.invalid
+                  ) {
+                    <small id="project-description-error">
+                      A descrição deve possuir no máximo 1000 caracteres.
+                    </small>
+                  }
+                </div>
+              </div>
+
+              <aside class="project-form__preview" aria-label="Resumo da configuração">
+                <div class="project-form__preview-heading">
+                  <span class="project-symbol" aria-hidden="true">
+                    {{ projectInitial(projectForm.controls.name.value || 'Novo projeto') }}
+                  </span>
+                  <div>
+                    <small>{{
+                      mode === 'edit' ? 'Prévia atualizada' : 'Configuração inicial'
+                    }}</small>
+                    <strong>{{ projectForm.controls.name.value || 'Novo projeto' }}</strong>
+                  </div>
+                </div>
+
+                <ol class="project-form__outcomes">
+                  @if (mode === 'edit') {
+                    <li>
+                      <span aria-hidden="true">01</span>
+                      <div>
+                        <strong>Contexto atualizado</strong>
+                        <p>O novo nome e a descrição aparecerão para toda a equipe.</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span aria-hidden="true">02</span>
+                      <div>
+                        <strong>Estrutura preservada</strong>
+                        <p>Quadros, tarefas e histórico não serão alterados.</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span aria-hidden="true">03</span>
+                      <div>
+                        <strong>Permissões mantidas</strong>
+                        <p>Participantes e funções continuam iguais.</p>
+                      </div>
+                    </li>
+                  } @else {
+                    <li>
+                      <span aria-hidden="true">01</span>
+                      <div>
+                        <strong>Quadro principal</strong>
+                        <p>Um quadro será preparado para iniciar o trabalho.</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span aria-hidden="true">02</span>
+                      <div>
+                        <strong>Fluxo recomendado</strong>
+                        <p>Backlog, execução, revisão e conclusão já organizados.</p>
+                      </div>
+                    </li>
+                    <li>
+                      <span aria-hidden="true">03</span>
+                      <div>
+                        <strong>Governança segura</strong>
+                        <p>Você inicia como proprietário e pode convidar a equipe depois.</p>
+                      </div>
+                    </li>
+                  }
+                </ol>
+              </aside>
+            </div>
+
+            <footer class="project-form__actions">
+              <button
+                dtButton
+                variant="secondary"
+                type="button"
+                [disabled]="submitting()"
+                (click)="closeForm()"
+              >
+                Cancelar
+              </button>
+              <button
+                dtButton
+                variant="primary"
+                type="submit"
+                [loading]="submitting()"
+                [disabled]="submitting()"
+              >
+                @if (submitting()) {
+                  {{ mode === 'edit' ? 'Salvando...' : 'Criando...' }}
+                } @else {
+                  {{ mode === 'edit' ? 'Salvar alterações' : 'Criar projeto' }}
+                  <span aria-hidden="true">→</span>
+                }
+              </button>
+            </footer>
+          </form>
+        }
+      </section>
+    </div>
   }
 
   <section class="projects-catalog" aria-labelledby="projects-catalog-title">
@@ -216,7 +295,12 @@
       <div class="catalog-toolbar__tools">
         <label class="search-field">
           <span class="visually-hidden">Pesquisar projetos por nome ou descrição</span>
-          <span aria-hidden="true">⌕</span>
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+          </span>
           <input
             type="search"
             [formControl]="searchControl"
@@ -226,7 +310,11 @@
             "
           />
           @if (searchControl.value) {
-            <button type="button" aria-label="Limpar pesquisa" (click)="clearSearch()">×</button>
+            <button type="button" aria-label="Limpar pesquisa" (click)="clearSearch()">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="m7 7 10 10M17 7 7 17" />
+              </svg>
+            </button>
           }
         </label>
 
