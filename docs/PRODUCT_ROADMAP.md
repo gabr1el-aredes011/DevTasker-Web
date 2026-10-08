@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 5 de outubro de 2026.
+Última atualização: 8 de outubro de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -62,6 +62,15 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 
 ### Profissionalização visual e experiência
 
+- 🧭 Tratar cada superfície como uma experiência de produto própria: compartilhar
+  tokens, componentes e regras de acessibilidade, mas nunca reutilizar uma página
+  inteira como solução visual genérica para outra funcionalidade.
+- 🧭 Garantir que cada página tenha propósito, hierarquia, composição, estados
+  vazios, interações e identidade visual coerentes com a informação que apresenta.
+- 🧭 Evitar padrões provisórios de “escada/cascata” para criação, edição e filtros;
+  usar dialogs, drawers ou páginas dedicadas conforme a profundidade de cada fluxo.
+- 🧭 Validar cada superfície em desktop, tablet e celular antes de considerá-la
+  pronta para publicação.
 - ✅ Criar um sistema global e acessível de feedback para ações, com mensagens
   consistentes de sucesso, erro, alerta e informação, como “Membro removido com
   sucesso”.
@@ -72,6 +81,45 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
   páginas.
 - 🚧 Substituir progressivamente os feedbacks provisórios embutidos nas páginas
   pelos componentes definitivos do design system.
+
+### Arquitetura das 12 experiências principais
+
+As doze superfícies abaixo formam a visão de produto aprovada. Elas compartilham
+o design system, mas devem possuir composição e linguagem próprias — Arquivados,
+por exemplo, não será uma cópia visual do Kanban.
+
+1. **Dashboard:** visão geral do workspace, riscos, progresso e atalhos relevantes.
+2. **Projetos:** catálogo autoral de iniciativas, criação e acesso ao contexto de
+   cada projeto.
+3. **Kanban:** central operacional dos quadros, tarefas, filtros e indicadores do
+   fluxo de trabalho.
+4. **Perfil:** identidade pessoal, foto, informações profissionais, idioma,
+   preferências e segurança.
+5. **Minhas tarefas:** agenda pessoal organizada por prazo, prioridade, projeto e
+   situação.
+6. **Notificações:** central de convites, menções, comentários, responsabilidades
+   e mudanças relevantes.
+7. **Equipe:** pessoas, funções, participação, disponibilidade e carga de trabalho.
+8. **Relatórios:** análises por período, projeto, responsável, prazo e produtividade,
+   com exportação futura.
+9. **Arquivados:** experiência própria de preservação, busca, restauração e exclusão
+   definitiva protegida de projetos, quadros e tarefas.
+10. **Atividades:** trilha auditável das ações realizadas no workspace.
+11. **Configurações:** aparência, notificações, idioma, fuso horário, segurança e
+    administração do workspace.
+12. **Integrações:** conexões com ferramentas externas e automações do fluxo de
+    desenvolvimento.
+
+### Estratégia para integrações
+
+- 🧭 Fase 1: vínculos manuais e seguros de repositórios, branches, commits e pull
+  requests do GitHub e GitLab.
+- 🧭 Fase 2: autenticação com os provedores e sincronização de metadados essenciais.
+- 🧭 Fase 3: webhooks para refletir eventos externos em tarefas e atividades.
+- 🧭 Fase 4: calendário por feed e, depois, integrações autorizadas com provedores
+  de calendário.
+- 🧭 Fase 5: avaliar outras ferramentas de desenvolvimento somente quando houver
+  caso de uso claro, segurança definida e manutenção sustentável.
 
 ### Projetos
 
@@ -174,24 +222,49 @@ Critérios de aceite:
 
 - ✅ Descrição avançada em Markdown, limitada a 4.000 caracteres e sem HTML arbitrário
 - ✅ Responsável com validação de participação e permissões
-- ✅ Catálogo de labels por projeto com cores, nomes únicos e gestão por `OWNER`/`ADMIN`
+- ✅ Catálogo de labels por projeto com nomes únicos, gestão por `OWNER`/`ADMIN`
+  e identidade cromática automática, sem configuração manual de cor
 - ✅ Uso operacional por `MEMBER` e leitura por `VIEWER`, com histórico preservado após arquivamento
 - ✅ Filtros do Kanban por uma ou mais labels, incluindo labels arquivadas presentes no histórico
 - ✅ Filtros de produtividade por prioridade, responsável, tarefas sem responsável e situação do prazo
 - ✅ Subtarefas e checklist persistentes, com conclusão, remoção e progresso agregado
 - ✅ Comentários e histórico persistentes, com autorização por função e linha do tempo prospectiva
 - ✅ Anexos persistentes com upload, download, exclusão lógica, limites e permissões por função
+- ✅ Seleção, pré-visualização local e confirmação antes do envio de anexos
+- ✅ Visualização autenticada de imagens, PDFs e arquivos textuais já anexados
+- ✅ Tecnologias da tarefa persistidas e exibidas com ícones oficiais no formulário,
+  detalhes e cards do Kanban
 - 🧭 Evolução da linha do tempo de atividades e automações baseadas em prazo
 
-### Profissionalização visual — Tasks e Kanban
+### Profissionalização visual — Workspace autenticado
 
-> Esta etapa acontece após a estabilização funcional de Tasks 2.0. O mesmo
-> processo será repetido nos próximos módulos: concluir a experiência funcional
-> e então aplicar sua identidade visual definitiva.
+> A autenticação é a referência de identidade do produto. A camada autenticada
+> deve manter essa sensação tecnológica, viva e sofisticada em toda a superfície,
+> preservando o comportamento funcional já estabilizado.
 
 - ✅ Migrar feedbacks transitórios do Kanban para o sistema global de Toast
-- 🧭 Consolidar hierarquia visual, densidade, tipografia e responsividade do quadro
-- 🧭 Profissionalizar formulários, detalhes, checklist, comentários e anexos
+- 🚧 Consolidar a linguagem visual do shell, Dashboard, Projetos, detalhes e Kanban
+  - ✅ Atmosfera exclusiva do workspace, visualmente relacionada à marca sem
+    copiar a cena de partículas da autenticação
+  - ✅ Navegação legível com iconografia vetorial consistente e remoção de
+    indicadores puramente decorativos
+  - ✅ Monograma proprietário aplicado como favicon e assinatura visual do produto
+  - ✅ Sidebar compacta em desktop, sem coluna vazia até o rodapé e com perfil
+    permanentemente acessível
+  - ✅ Paleta semântica para prioridade, aviso, informação, sucesso e risco
+  - 🚧 Aplicar o conceito Developer Command Deck com navegação em rail, composição
+    editorial e trilhos operacionais contínuos
+  - 🚧 Aproveitar a superfície disponível com hierarquia, evitando o simples
+    esticamento de containers e a repetição excessiva de cards
+  - 🧭 Validação visual autenticada e refinamentos finais após testes de uso
+- 🚧 Profissionalizar formulários e detalhes com modais de foco contido
+  - ✅ Criação e edição de projetos, criação e detalhes de tarefas convertidos para modais
+  - ✅ Composer de tarefas dividido entre conteúdo e propriedades, com ações persistentes
+  - ✅ Contexto de destino, seletor visual de prioridade, limites de campos e datas
+    legíveis no fluxo de tarefas
+  - ✅ Criação e edição de projeto com prévia e explicação do resultado da ação
+  - ✅ Refinar anexos com prévia, identificação de formato e ações explícitas
+  - 🚧 Refinar checklist e comentários dentro da nova composição
 - 🧭 Revisar microinterações, estados vazios, carregamento e acessibilidade
 - 🧭 Executar validação visual completa em desktop, tablet e dispositivos móveis
 
@@ -246,6 +319,17 @@ Critérios de aceite:
 - 🧭 Quick actions
 - 🧭 Command palette
 
+### Refinamentos de produto por superfície
+
+- 🧭 Dashboard: reforçar a identidade tecnológica, a leitura visual e a iconografia
+  das métricas sem transformar todos os estados em verde
+- 🧭 Projetos: criar seção de arquivados, exclusão definitiva com proteção,
+  modais refinados e detalhes com gráficos e sinais de atenção por projeto
+- 🧭 Kanban: evoluir a identidade própria do quadro, microinterações e densidade
+  informacional sem perder legibilidade
+- 🧭 Tarefas: ampliar o catálogo de tecnologias de forma administrável e avaliar
+  integração futura com links de pull request, commits e critérios de aceite
+
 ## Qualidade de engenharia
 
 ### Testes
@@ -254,6 +338,11 @@ Critérios de aceite:
 - 🧭 Testes de integração da API com PostgreSQL e Flyway reais
 - 🧭 Testes de integração do frontend
 - 🧭 Fluxos E2E críticos
+
+### Dependências e segurança
+
+- 🧭 Atualizar o Angular para uma versão corrigida dos avisos de segurança apontados
+  pela auditoria de dependências, em uma feature isolada e acompanhada de regressão
 
 ### DevOps
 
@@ -281,8 +370,8 @@ Critérios de aceite:
 - 🔧 Monitorar o custo da validação de `credential_version` em cada requisição.
 - 🔧 Adicionar controle de concorrência otimista aos projetos antes de ampliar a
   edição colaborativa simultânea.
-- 🔧 Reduzir os estilos do Kanban e Dashboard que ultrapassam o orçamento atual
-  do build, sem alterar a experiência visual.
+- 🔧 Manter os estilos de cada componente dentro do orçamento do build enquanto
+  a linguagem Developer Command Deck é consolidada.
 - 🔧 Revisar o script Maven Wrapper no PowerShell para que a suíte possa ser
   executada diretamente por `mvnw.cmd` em qualquer ambiente Windows.
 

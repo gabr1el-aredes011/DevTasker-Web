@@ -5,13 +5,27 @@
   color: var(--task-label-color);
 }
 
-[data-label-color='GREEN'] { --task-label-color: #65f790; }
-[data-label-color='BLUE'] { --task-label-color: #79b8ff; }
-[data-label-color='VIOLET'] { --task-label-color: #b89aff; }
-[data-label-color='AMBER'] { --task-label-color: #f4cf70; }
-[data-label-color='RED'] { --task-label-color: #ff8585; }
-[data-label-color='CYAN'] { --task-label-color: #6ce5df; }
-[data-label-color='GRAY'] { --task-label-color: #aab9b2; }
+[data-label-color='GREEN'] {
+  --task-label-color: #65f790;
+}
+[data-label-color='BLUE'] {
+  --task-label-color: #79b8ff;
+}
+[data-label-color='VIOLET'] {
+  --task-label-color: #b89aff;
+}
+[data-label-color='AMBER'] {
+  --task-label-color: #f4cf70;
+}
+[data-label-color='RED'] {
+  --task-label-color: #ff8585;
+}
+[data-label-color='CYAN'] {
+  --task-label-color: #6ce5df;
+}
+[data-label-color='GRAY'] {
+  --task-label-color: #aab9b2;
+}
 
 .task-form-label {
   color: #cbd8d1;
@@ -27,6 +41,38 @@
   border: 1px solid rgba(129, 173, 154, 0.18);
   border-radius: 0.65rem;
   background: #07110f;
+}
+
+.task-label-picker__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.task-label-picker__item > button {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--dt-color-border-default);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dt-color-text-muted);
+  cursor: pointer;
+}
+
+.task-label-picker__item > button:hover {
+  border-color: var(--dt-color-info);
+  color: var(--dt-color-info);
+}
+
+.task-label-picker__item > button svg {
+  width: 0.8rem;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .task-label-picker label {
@@ -64,6 +110,125 @@
 }
 
 .task-label-picker--empty {
+  align-items: center;
+  justify-content: space-between;
   color: #71827a;
   font-size: 0.75rem;
+}
+
+.task-label-picker--empty p {
+  margin: 0;
+}
+
+.task-label-picker--empty button {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--dt-color-border-strong);
+  border-radius: 0.4rem;
+  background: var(--dt-color-brand-soft);
+  color: var(--dt-color-brand-300);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+
+.task-technology-picker {
+  border: 1px solid rgba(129, 173, 154, 0.18);
+  border-radius: 0.65rem;
+  background: #07110f;
+}
+
+.task-technology-picker summary {
+  padding: 0.75rem;
+  color: var(--dt-color-text-secondary);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.task-technology-picker summary::after {
+  float: right;
+  color: var(--dt-color-brand-300);
+  content: '+';
+}
+
+.task-technology-picker[open] summary::after {
+  content: '−';
+}
+
+.task-technology-picker > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: 13rem;
+  padding: 0.35rem;
+  gap: 0.35rem;
+  overflow-y: auto;
+  border-top: 1px solid rgba(129, 173, 154, 0.12);
+}
+
+.task-technology-picker button,
+.task-technologies > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.task-technology-picker button {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--dt-color-text-muted);
+  cursor: pointer;
+  font-size: 0.65rem;
+  text-align: left;
+}
+
+.task-technology-picker button:hover,
+.task-technology-picker .task-technology-option--selected {
+  border-color: color-mix(in srgb, var(--technology-color, #46ff78) 34%, transparent);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--dt-color-text-primary);
+}
+
+.task-technology-picker button:disabled {
+  cursor: not-allowed;
+  opacity: 0.36;
+}
+
+.task-technology-mark {
+  display: inline-grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--technology-color) 55%, transparent);
+  border-radius: 0.38rem;
+  background: color-mix(in srgb, var(--technology-color) 12%, transparent);
+  color: var(--technology-color);
+}
+
+.task-technology-mark svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  fill: currentColor;
+}
+
+.task-technologies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.task-technologies > span {
+  padding: 0.24rem 0.45rem 0.24rem 0.3rem;
+  border: 1px solid rgba(129, 173, 154, 0.16);
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--dt-color-text-secondary);
+  font-size: 0.58rem;
+  font-weight: 700;
 }

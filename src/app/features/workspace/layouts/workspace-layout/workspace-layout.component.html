@@ -1,32 +1,21 @@
 <div class="workspace-shell" [class.workspace-shell--sidebar-open]="sidebarOpen()">
+  <div class="workspace-atmosphere" aria-hidden="true">
+    <span class="workspace-atmosphere__grid"></span>
+    <span class="workspace-atmosphere__beam"></span>
+    <span class="workspace-atmosphere__halo"></span>
+  </div>
+
   <aside class="workspace-sidebar">
     <header class="workspace-sidebar__header">
       <a class="workspace-brand" routerLink="/app/dashboard" (click)="closeSidebar()">
         <span class="workspace-brand__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5 12.5 9.2 17 19 7"
-              stroke="currentColor"
-              stroke-width="2.4"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-
-            <path
-              d="
-                M19 12v6
-                a2 2 0 0 1-2 2H6
-                a2 2 0 0 1-2-2V7
-                a2 2 0 0 1 2-2h8
-              "
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-          </svg>
+          <img src="devtasker-mark.svg" alt="" />
         </span>
 
-        <span class="workspace-brand__text"> Dev<strong>Tasker</strong> </span>
+        <span class="workspace-brand__copy">
+          <span class="workspace-brand__text"> Dev<strong>Tasker</strong> </span>
+          <small>Workspace</small>
+        </span>
       </a>
 
       <button
@@ -40,37 +29,41 @@
     </header>
 
     <div class="workspace-sidebar__section">
-      <p class="workspace-sidebar__label">WORKSPACE</p>
+      <p class="workspace-sidebar__label">Workspace</p>
 
       <nav class="workspace-navigation" aria-label="Navegação principal">
         <a routerLink="/app/dashboard" routerLinkActive="is-active" (click)="closeSidebar()">
-          <span class="workspace-navigation__icon" aria-hidden="true"> ◫ </span>
+          <span class="workspace-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 4h6v7H4zM14 4h6v4h-6zM14 12h6v8h-6zM4 15h6v5H4z" />
+            </svg>
+          </span>
 
           <span> Dashboard </span>
         </a>
 
         <a routerLink="/app/projetos" routerLinkActive="is-active" (click)="closeSidebar()">
-          <span class="workspace-navigation__icon" aria-hidden="true"> ◇ </span>
+          <span class="workspace-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 7.5h6l2 2H20v9.5H4z" />
+              <path d="M4 7.5V5h6l2 2.5" />
+            </svg>
+          </span>
 
           <span> Projetos </span>
         </a>
 
         <a routerLink="/app/kanban" routerLinkActive="is-active" (click)="closeSidebar()">
-          <span class="workspace-navigation__icon" aria-hidden="true"> ▦ </span>
+          <span class="workspace-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="3.5" y="4" width="17" height="16" rx="2" />
+              <path d="M9 4v16M15 4v16" />
+            </svg>
+          </span>
 
           <span> Kanban </span>
         </a>
       </nav>
-    </div>
-
-    <div class="workspace-sidebar__roadmap">
-      <span class="workspace-sidebar__roadmap-dot" aria-hidden="true"></span>
-
-      <div>
-        <strong> DevTasker Workspace </strong>
-
-        <p>Organize. Desenvolva. Entregue.</p>
-      </div>
     </div>
 
     <footer class="workspace-user">
@@ -89,7 +82,11 @@
           </span>
         </div>
 
-        <button type="button" aria-label="Sair da conta" title="Sair" (click)="logout()">↗</button>
+        <button type="button" aria-label="Sair da conta" title="Sair" (click)="logout()">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" />
+          </svg>
+        </button>
       } @else {
         <div class="workspace-user__skeleton">Carregando perfil...</div>
       }
@@ -112,20 +109,21 @@
           aria-label="Abrir menu"
           (click)="toggleSidebar()"
         >
-          ☰
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
 
         <div>
-          <p>DEVTasker / Workspace</p>
+          <p>DEVTASKER / WORKSPACE</p>
 
-          <strong> Seu ambiente de desenvolvimento </strong>
+          <strong>Visão operacional</strong>
         </div>
       </div>
 
       <div class="workspace-topbar__status">
         <span></span>
-
-        Sistema operacional
+        Sincronizado
       </div>
     </header>
 

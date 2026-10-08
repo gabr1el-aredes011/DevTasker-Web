@@ -1,7 +1,7 @@
 <section class="dashboard">
   <header class="dashboard-header">
     <div>
-      <p class="dashboard-eyebrow">VISÃO GERAL</p>
+      <p class="dashboard-eyebrow">// MISSION CONTROL</p>
 
       <h1>
         Bom te ver,
@@ -9,7 +9,7 @@
       </h1>
 
       <p class="dashboard-description">
-        Acompanhe projetos, tarefas, prazos e o fluxo do seu workspace em um único lugar.
+        Projetos em movimento, riscos visíveis e entregas sob controle em uma visão operacional.
       </p>
     </div>
 
@@ -60,7 +60,11 @@
     <section class="metrics-grid" aria-label="Resumo do workspace">
       <article class="metric-card">
         <header>
-          <span class="metric-card__icon"> ◇ </span>
+          <span class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 7.5h6l2 2H20v9.5H4zM4 7.5V5h6l2 2.5" />
+            </svg>
+          </span>
 
           <span class="metric-card__code"> PROJECTS </span>
         </header>
@@ -78,7 +82,12 @@
 
       <article class="metric-card">
         <header>
-          <span class="metric-card__icon"> ▦ </span>
+          <span class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="3.5" y="4" width="17" height="16" rx="2" />
+              <path d="M9 4v16M15 4v16" />
+            </svg>
+          </span>
 
           <span class="metric-card__code"> BOARDS </span>
         </header>
@@ -96,7 +105,12 @@
 
       <article class="metric-card">
         <header>
-          <span class="metric-card__icon"> ↗ </span>
+          <span class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="m5 16 4-4 3 3 7-8" />
+              <path d="M14 7h5v5" />
+            </svg>
+          </span>
 
           <span class="metric-card__code"> ACTIVE </span>
         </header>
@@ -117,7 +131,14 @@
 
       <article class="metric-card" [class.metric-card--warning]="data.taskMetrics.overdue > 0">
         <header>
-          <span class="metric-card__icon"> ! </span>
+          <span class="metric-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v5M12 17h.01" />
+              <path
+                d="M10.3 3.8 2.8 17a2 2 0 0 0 1.75 3h14.9a2 2 0 0 0 1.75-3L13.7 3.8a2 2 0 0 0-3.4 0Z"
+              />
+            </svg>
+          </span>
 
           <span class="metric-card__code"> OVERDUE </span>
         </header>

@@ -35,8 +35,42 @@
           Voltar aos quadros
         </button>
 
-        <div class="section-header">
-          <div>
+        <div class="section-header section-header--kanban">
+          <div class="kanban-heading">
+            <p class="eyebrow">
+              <span class="eyebrow__indicator" aria-hidden="true"></span>
+              Central de execução
+            </p>
+
+            <h2>{{ selectedBoard.name }}</h2>
+
+            <p class="section-description">
+              Planeje, priorize e acompanhe o fluxo do projeto {{ project.name }} em tempo real.
+            </p>
+
+            <div class="kanban-context" aria-label="Contexto do quadro">
+              <span
+                class="kanban-realtime-status"
+                [attr.data-status]="realtimeStatus()"
+                role="status"
+                aria-live="polite"
+              >
+                {{ realtimeStatusLabel() }}
+              </span>
+
+              <span class="kanban-context__item">
+                <span aria-hidden="true">◇</span>
+                Projeto / {{ project.name }}
+              </span>
+
+              <span class="kanban-context__item">
+                <span aria-hidden="true">#</span>
+                Board {{ selectedBoard.id }}
+              </span>
+            </div>
+          </div>
+
+          <div class="kanban-header-actions">
             @if (canWriteTasks()) {
               <button
                 class="new-task-button"
@@ -44,7 +78,10 @@
                 [disabled]="loadingKanban() || !kanban()"
                 (click)="openCreateTaskForm()"
               >
-                + Nova tarefa
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Nova tarefa
               </button>
             } @else if (isReadOnly()) {
               <span class="read-only-badge">
@@ -52,24 +89,6 @@
                 Somente leitura
               </span>
             }
-
-            <p class="eyebrow">Quadro selecionado</p>
-
-            <h2>{{ selectedBoard.name }}</h2>
-
-            <p class="section-description">
-              Acompanhe o fluxo de trabalho do projeto
-              {{ project.name }}.
-            </p>
-
-            <span
-              class="kanban-realtime-status"
-              [attr.data-status]="realtimeStatus()"
-              role="status"
-              aria-live="polite"
-            >
-              {{ realtimeStatusLabel() }}
-            </span>
           </div>
         </div>
 
@@ -82,337 +101,205 @@
         }
 
         @if (taskFormOpen()) {
-          <section class="task-form-panel" aria-labelledby="create-task-title">
-            <header class="task-form-header">
-              <div>
-                <p class="eyebrow">Nova tarefa</p>
-
-                <h3 id="create-task-title">Adicionar tarefa ao quadro</h3>
-              </div>
-
-              <button
-                type="button"
-                aria-label="Fechar formulário"
-                [disabled]="creatingTask()"
-                (click)="closeCreateTaskForm()"
-              >
-                ×
-              </button>
-            </header>
-
-            <form
-              class="task-form"
-              [formGroup]="createTaskForm"
-              (ngSubmit)="submitCreateTask()"
-              novalidate
+          <div class="workspace-view-modal" (click)="closeCreateTaskForm()">
+            <section
+              class="task-form-panel workspace-view-modal__surface"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-task-title"
+              cdkTrapFocus
+              [cdkTrapFocusAutoCapture]="true"
+              (click)="$event.stopPropagation()"
             >
-              <div class="task-form-field">
-                <label for="task-title"> Título </label>
+              <header class="task-form-header">
+                <div>
+                  <p class="eyebrow">Criar tarefa</p>
 
-                <input
-                  id="task-title"
-                  type="text"
-                  formControlName="title"
-                  placeholder="Ex.: Implementar página de perfil"
-                />
-
-                @if (
-                  createTaskForm.controls.title.touched &&
-                  createTaskForm.controls.title.hasError('required')
-                ) {
-                  <small>O título é obrigatório.</small>
-                }
-              </div>
-
-              <div class="task-form-field">
-                <label for="task-description"> Descrição </label>
-
-                <div class="task-description-editor">
-                  <div class="task-description-editor__tabs" role="tablist" aria-label="Modo da descrição">
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-controls="create-task-description-panel"
-                      [attr.aria-selected]="!createDescriptionPreview()"
-                      [class.is-active]="!createDescriptionPreview()"
-                      (click)="createDescriptionPreview.set(false)"
-                    >
-                      Escrever
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-controls="create-task-description-panel"
-                      [attr.aria-selected]="createDescriptionPreview()"
-                      [class.is-active]="createDescriptionPreview()"
-                      (click)="createDescriptionPreview.set(true)"
-                    >
-                      Visualizar
-                    </button>
-                  </div>
-
-                  @if (createDescriptionPreview()) {
-                    <div
-                      id="create-task-description-panel"
-                      class="task-description-editor__preview"
-                      role="tabpanel"
-                    >
-                      @if (createTaskForm.controls.description.value.trim()) {
-                        <dt-task-markdown [source]="createTaskForm.controls.description.value" />
-                      } @else {
-                        <p>Nada para visualizar. Escreva uma descrição primeiro.</p>
-                      }
-                    </div>
-                  } @else {
-                    <div id="create-task-description-panel" role="tabpanel">
-                      <textarea
-                        id="task-description"
-                        formControlName="description"
-                        rows="7"
-                        maxlength="4000"
-                        placeholder="Use Markdown para organizar contexto, critérios e decisões..."
-                      ></textarea>
-                    </div>
-                  }
+                  <h3 id="create-task-title">Transforme uma ideia em trabalho claro</h3>
+                  <p>Registre contexto, defina a responsabilidade e posicione a tarefa no fluxo.</p>
                 </div>
 
-                <div class="task-description-editor__footer">
-                  <small class="task-form-hint">
-                    Markdown: **negrito**, *itálico*, listas, links, citações e blocos de código.
-                  </small>
-                  <small>{{ createTaskForm.controls.description.value.length }} / 4000</small>
-                </div>
-
-                @if (createTaskForm.controls.description.hasError('maxlength')) {
-                  <small>A descrição deve possuir no máximo 4.000 caracteres.</small>
-                }
-              </div>
-
-              <div class="task-form-field">
-                <label for="task-assignee"> Responsável </label>
-
-                <select id="task-assignee" formControlName="assigneeId">
-                  <option [ngValue]="null">Sem responsável</option>
-
-                  @for (member of assignableMembers(); track member.userId) {
-                    <option [ngValue]="member.userId">{{ member.name }} · {{ member.role }}</option>
-                  }
-                </select>
-
-                @if (loadingAssignableMembers()) {
-                  <small>Carregando participantes disponíveis...</small>
-                } @else if (assignableMembersError()) {
-                  <small role="alert">{{ assignableMembersError() }}</small>
-                } @else {
-                  <small
-                    >Somente participantes com permissão operacional podem ser responsáveis.</small
-                  >
-                }
-              </div>
-
-              <div class="task-form-field">
-                <span class="task-form-label" id="task-labels-label">Labels</span>
-
-                @if (loadingProjectLabels()) {
-                  <small>Carregando catálogo de labels...</small>
-                } @else if (projectLabelsError()) {
-                  <small role="alert">{{ projectLabelsError() }}</small>
-                } @else if (projectLabels().length === 0) {
-                  <div class="task-label-picker task-label-picker--empty">
-                    Nenhuma label ativa foi criada para este projeto.
-                  </div>
-                } @else {
-                  <div class="task-label-picker" role="group" aria-labelledby="task-labels-label">
-                    @for (label of projectLabels(); track label.id) {
-                      <label [attr.data-label-color]="label.color">
-                        <input
-                          type="checkbox"
-                          [checked]="isTaskLabelSelected('create', label.id)"
-                          [disabled]="isTaskLabelDisabled('create', label.id)"
-                          (change)="toggleTaskLabel('create', label.id)"
-                        />
-                        <span aria-hidden="true"></span>
-                        {{ label.name }}
-                      </label>
-                    }
-                  </div>
-                }
-                <small class="task-form-hint">
-                  {{ createTaskForm.controls.labelIds.value.length }} de 5 selecionadas.
-                </small>
-              </div>
-
-              <div class="task-form-row">
-                <div class="task-form-field">
-                  <label for="task-column"> Coluna </label>
-
-                  <select id="task-column" formControlName="columnId">
-                    @if (kanban(); as currentBoard) {
-                      @for (column of currentBoard.columns; track column.id) {
-                        <option [ngValue]="column.id">
-                          {{ column.name }}
-                        </option>
-                      }
-                    }
-                  </select>
-                </div>
-
-                <div class="task-form-field">
-                  <label for="task-priority"> Prioridade </label>
-
-                  <select id="task-priority" formControlName="priority">
-                    @for (priority of priorities; track priority) {
-                      <option [ngValue]="priority">
-                        {{ priority }}
-                      </option>
-                    }
-                  </select>
-                </div>
-
-                <div class="task-form-field">
-                  <label for="task-due-date"> Data de vencimento </label>
-
-                  <input id="task-due-date" type="date" formControlName="dueDate" />
-                </div>
-              </div>
-
-              @if (createTaskError()) {
-                <div class="task-form-error" role="alert">
-                  {{ createTaskError() }}
-                </div>
-              }
-
-              <footer class="task-form-actions">
                 <button
-                  class="secondary-button"
                   type="button"
+                  aria-label="Fechar formulário"
                   [disabled]="creatingTask()"
                   (click)="closeCreateTaskForm()"
                 >
-                  Cancelar
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="m6 6 12 12M18 6 6 18" />
+                  </svg>
                 </button>
+              </header>
 
-                <button class="primary-button" type="submit" [disabled]="creatingTask()">
-                  @if (creatingTask()) {
-                    Criando tarefa...
-                  } @else {
-                    Criar tarefa
-                  }
-                </button>
-              </footer>
-            </form>
-          </section>
-        }
-
-        @if (taskDetailsOpen()) {
-          <section class="task-details-panel" aria-labelledby="task-details-title">
-            <header class="task-details-header">
-              <div>
-                <p class="eyebrow">Detalhes da tarefa</p>
-
-                <h3 id="task-details-title">Informações completas</h3>
-              </div>
-
-              <button
-                type="button"
-                aria-label="Fechar detalhes da tarefa"
-                [disabled]="
-                  loadingTaskDetails() ||
-                  updatingTask() ||
-                  archivingTask() ||
-                  managingChecklist() ||
-                  managingComment()
-                "
-                (click)="closeTaskDetails()"
+              <form
+                class="task-form"
+                [formGroup]="createTaskForm"
+                (ngSubmit)="submitCreateTask()"
+                novalidate
               >
-                ×
-              </button>
-            </header>
+                <div class="task-form-layout">
+                  <div class="task-form-primary">
+                    <header class="task-form-section-heading">
+                      <span>01</span>
+                      <div>
+                        <strong>Defina o trabalho</strong>
+                        <small>Um título objetivo e contexto suficiente para executar.</small>
+                      </div>
+                    </header>
 
-            @if (loadingTaskDetails()) {
-              <div class="task-details-state" role="status">
-                <span class="loading-indicator" aria-hidden="true"></span>
-
-                <p>Carregando detalhes da tarefa...</p>
-              </div>
-            } @else if (taskDetailsError()) {
-              <div class="task-details-state task-details-state--error" role="alert">
-                <p>{{ taskDetailsError() }}</p>
-
-                <button type="button" (click)="retryTaskDetails()">Tentar novamente</button>
-              </div>
-            } @else if (selectedTask(); as task) {
-              <div class="task-details-content">
-                @if (editingTask()) {
-                  <form
-                    class="task-form"
-                    [formGroup]="editTaskForm"
-                    (ngSubmit)="submitTaskUpdate()"
-                    novalidate
-                  >
-                    <div class="task-form-field">
-                      <label for="edit-task-title"> Título </label>
+                    <div class="task-form-field task-form-field--title">
+                      <div class="task-form-field__label">
+                        <label for="task-title"> Título <span>*</span> </label>
+                        <small>{{ createTaskForm.controls.title.value.length }} / 180</small>
+                      </div>
 
                       <input
-                        id="edit-task-title"
+                        id="task-title"
                         type="text"
                         formControlName="title"
-                        placeholder="Título da tarefa"
+                        maxlength="180"
+                        placeholder="Ex.: Implementar página de perfil"
                       />
 
                       @if (
-                        editTaskForm.controls.title.touched &&
-                        editTaskForm.controls.title.hasError('required')
+                        createTaskForm.controls.title.touched &&
+                        createTaskForm.controls.title.hasError('required')
                       ) {
-                        <small> O título é obrigatório. </small>
+                        <small>O título é obrigatório.</small>
+                      } @else if (createTaskForm.controls.title.hasError('maxlength')) {
+                        <small>O título deve possuir no máximo 180 caracteres.</small>
                       }
                     </div>
 
-                    <div class="task-form-field">
-                      <label for="edit-task-description"> Descrição </label>
+                    <div class="task-form-field task-form-field--description">
+                      <label for="task-description"> Descrição </label>
 
                       <div class="task-description-editor">
-                        <div class="task-description-editor__tabs" role="tablist" aria-label="Modo da descrição">
+                        <div
+                          class="task-description-editor__tabs"
+                          role="tablist"
+                          aria-label="Modo da descrição"
+                        >
                           <button
                             type="button"
                             role="tab"
-                            aria-controls="edit-task-description-panel"
-                            [attr.aria-selected]="!editDescriptionPreview()"
-                            [class.is-active]="!editDescriptionPreview()"
-                            (click)="editDescriptionPreview.set(false)"
+                            aria-controls="create-task-description-panel"
+                            [attr.aria-selected]="!createDescriptionPreview()"
+                            [class.is-active]="!createDescriptionPreview()"
+                            (click)="createDescriptionPreview.set(false)"
                           >
                             Escrever
                           </button>
                           <button
                             type="button"
                             role="tab"
-                            aria-controls="edit-task-description-panel"
-                            [attr.aria-selected]="editDescriptionPreview()"
-                            [class.is-active]="editDescriptionPreview()"
-                            (click)="editDescriptionPreview.set(true)"
+                            aria-controls="create-task-description-panel"
+                            [attr.aria-selected]="createDescriptionPreview()"
+                            [class.is-active]="createDescriptionPreview()"
+                            (click)="createDescriptionPreview.set(true)"
                           >
                             Visualizar
                           </button>
                         </div>
 
-                        @if (editDescriptionPreview()) {
+                        @if (createDescriptionPreview()) {
                           <div
-                            id="edit-task-description-panel"
+                            id="create-task-description-panel"
                             class="task-description-editor__preview"
                             role="tabpanel"
                           >
-                            @if (editTaskForm.controls.description.value.trim()) {
-                              <dt-task-markdown [source]="editTaskForm.controls.description.value" />
+                            @if (createTaskForm.controls.description.value.trim()) {
+                              <dt-task-markdown
+                                [source]="createTaskForm.controls.description.value"
+                              />
                             } @else {
                               <p>Nada para visualizar. Escreva uma descrição primeiro.</p>
                             }
                           </div>
                         } @else {
-                          <div id="edit-task-description-panel" role="tabpanel">
+                          <div id="create-task-description-panel" role="tabpanel">
+                            <div
+                              class="task-description-editor__tools"
+                              aria-label="Formatação Markdown"
+                            >
+                              <button
+                                type="button"
+                                title="Título de seção"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'heading')
+                                "
+                              >
+                                H2
+                              </button>
+                              <button
+                                type="button"
+                                title="Negrito"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'bold')
+                                "
+                              >
+                                B
+                              </button>
+                              <button
+                                type="button"
+                                title="Itálico"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'italic')
+                                "
+                              >
+                                <em>I</em>
+                              </button>
+                              <button
+                                type="button"
+                                title="Lista"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'list')
+                                "
+                              >
+                                ≡
+                              </button>
+                              <button
+                                type="button"
+                                title="Critério de aceite"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'checklist')
+                                "
+                              >
+                                ☐
+                              </button>
+                              <button
+                                type="button"
+                                title="Citação"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'quote')
+                                "
+                              >
+                                ”
+                              </button>
+                              <button
+                                type="button"
+                                title="Código"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'code')
+                                "
+                              >
+                                &lt;/&gt;
+                              </button>
+                              <button
+                                type="button"
+                                title="Link"
+                                (click)="
+                                  formatDescription('create', createDescriptionEditor, 'link')
+                                "
+                              >
+                                ↗
+                              </button>
+                            </div>
                             <textarea
-                              id="edit-task-description"
+                              #createDescriptionEditor
+                              id="task-description"
                               formControlName="description"
-                              rows="8"
+                              rows="7"
                               maxlength="4000"
                               placeholder="Use Markdown para organizar contexto, critérios e decisões..."
                             ></textarea>
@@ -422,20 +309,45 @@
 
                       <div class="task-description-editor__footer">
                         <small class="task-form-hint">
-                          Markdown: **negrito**, *itálico*, listas, links, citações e blocos de código.
+                          Markdown: **negrito**, *itálico*, listas, links, citações e blocos de
+                          código.
                         </small>
-                        <small>{{ editTaskForm.controls.description.value.length }} / 4000</small>
+                        <small>{{ createTaskForm.controls.description.value.length }} / 4000</small>
                       </div>
 
-                      @if (editTaskForm.controls.description.hasError('maxlength')) {
+                      @if (createTaskForm.controls.description.hasError('maxlength')) {
                         <small>A descrição deve possuir no máximo 4.000 caracteres.</small>
                       }
                     </div>
+                  </div>
+
+                  <aside class="task-form-properties">
+                    <header class="task-form-section-heading">
+                      <span>02</span>
+                      <div>
+                        <strong>Propriedades</strong>
+                        <small>Organize responsabilidade, fluxo e prazo.</small>
+                      </div>
+                    </header>
+
+                    <div class="task-form-context" aria-label="Destino da tarefa">
+                      <span class="task-form-context__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                          <path d="M4 7h6l2 2h8v10H4z" />
+                          <path d="M8 13h8M8 16h5" />
+                        </svg>
+                      </span>
+                      <div>
+                        <small>Destino</small>
+                        <strong>{{ project.name }}</strong>
+                        <span>{{ selectedBoard.name }}</span>
+                      </div>
+                    </div>
 
                     <div class="task-form-field">
-                      <label for="edit-task-assignee"> Responsável </label>
+                      <label for="task-assignee"> Responsável </label>
 
-                      <select id="edit-task-assignee" formControlName="assigneeId">
+                      <select id="task-assignee" formControlName="assigneeId">
                         <option [ngValue]="null">Sem responsável</option>
 
                         @for (member of assignableMembers(); track member.userId) {
@@ -449,699 +361,1382 @@
                         <small>Carregando participantes disponíveis...</small>
                       } @else if (assignableMembersError()) {
                         <small role="alert">{{ assignableMembersError() }}</small>
+                      } @else {
+                        <small
+                          >Somente participantes com permissão operacional podem ser
+                          responsáveis.</small
+                        >
                       }
                     </div>
 
                     <div class="task-form-field">
-                      <span class="task-form-label" id="edit-task-labels-label">Labels</span>
+                      <div class="task-form-label-heading">
+                        <span class="task-form-label" id="task-labels-label">Labels</span>
+                        @if (canManageLabels()) {
+                          <button type="button" (click)="openCreateProjectLabel('create')">
+                            + Nova label
+                          </button>
+                        }
+                      </div>
 
-                      @if (projectLabelsError()) {
+                      @if (loadingProjectLabels()) {
+                        <small>Carregando catálogo de labels...</small>
+                      } @else if (projectLabelsError()) {
                         <small role="alert">{{ projectLabelsError() }}</small>
                       } @else if (projectLabels().length === 0) {
                         <div class="task-label-picker task-label-picker--empty">
-                          Nenhuma label ativa foi criada para este projeto.
+                          <p>Nenhuma label ativa foi criada para este projeto.</p>
+                          @if (canManageLabels()) {
+                            <button type="button" (click)="openCreateProjectLabel('create')">
+                              Criar primeira label
+                            </button>
+                          }
                         </div>
                       } @else {
-                        <div class="task-label-picker" role="group" aria-labelledby="edit-task-labels-label">
+                        <div
+                          class="task-label-picker"
+                          role="group"
+                          aria-labelledby="task-labels-label"
+                        >
                           @for (label of projectLabels(); track label.id) {
-                            <label [attr.data-label-color]="label.color">
-                              <input
-                                type="checkbox"
-                                [checked]="isTaskLabelSelected('edit', label.id)"
-                                [disabled]="isTaskLabelDisabled('edit', label.id)"
-                                (change)="toggleTaskLabel('edit', label.id)"
-                              />
-                              <span aria-hidden="true"></span>
-                              {{ label.name }}
-                            </label>
+                            <div class="task-label-picker__item">
+                              <label [attr.data-label-color]="label.color">
+                                <input
+                                  type="checkbox"
+                                  [checked]="isTaskLabelSelected('create', label.id)"
+                                  [disabled]="isTaskLabelDisabled('create', label.id)"
+                                  (change)="toggleTaskLabel('create', label.id)"
+                                />
+                                <span aria-hidden="true"></span>
+                                {{ label.name }}
+                              </label>
+                              @if (canManageLabels()) {
+                                <button
+                                  type="button"
+                                  [attr.aria-label]="'Editar label ' + label.name"
+                                  (click)="openEditProjectLabel(label)"
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="m4 16-.7 4 4-.7L18 8.6 14.4 5 4 16Z" />
+                                    <path d="m12.8 6.6 3.6 3.6" />
+                                  </svg>
+                                </button>
+                              }
+                            </div>
                           }
                         </div>
                       }
                       <small class="task-form-hint">
-                        {{ editTaskForm.controls.labelIds.value.length }} labels ativas selecionadas.
-                        Labels arquivadas permanecem no histórico.
+                        {{ createTaskForm.controls.labelIds.value.length }} de 5 selecionadas.
+                      </small>
+                    </div>
+
+                    <div class="task-form-field task-technology-field">
+                      <div class="task-form-label-heading">
+                        <span class="task-form-label" id="task-technologies-label"
+                          >Tecnologias</span
+                        >
+                        <small>{{ createTaskForm.controls.technologies.value.length }} / 8</small>
+                      </div>
+                      <details class="task-technology-picker">
+                        <summary>Selecionar tecnologias da tarefa</summary>
+                        <div role="group" aria-labelledby="task-technologies-label">
+                          @for (technology of technologyOptions; track technology.value) {
+                            <button
+                              type="button"
+                              [class.task-technology-option--selected]="
+                                isTaskTechnologySelected('create', technology.value)
+                              "
+                              [disabled]="isTaskTechnologyDisabled('create', technology.value)"
+                              [attr.aria-pressed]="
+                                isTaskTechnologySelected('create', technology.value)
+                              "
+                              (click)="toggleTaskTechnology('create', technology.value)"
+                            >
+                              <span
+                                class="task-technology-mark"
+                                [style.--technology-color]="technology.color"
+                                aria-hidden="true"
+                              >
+                                <svg viewBox="0 0 24 24"><path [attr.d]="technology.path" /></svg>
+                              </span>
+                              {{ technology.label }}
+                            </button>
+                          }
+                        </div>
+                      </details>
+                      <small class="task-form-hint">
+                        Combine linguagem, framework e infraestrutura usados na entrega.
                       </small>
                     </div>
 
                     <div class="task-form-row">
                       <div class="task-form-field">
-                        <label for="edit-task-priority"> Prioridade </label>
+                        <label for="task-column"> Coluna </label>
 
-                        <select id="edit-task-priority" formControlName="priority">
-                          @for (priority of priorities; track priority) {
-                            <option [ngValue]="priority">
-                              {{ priority }}
-                            </option>
+                        <select id="task-column" formControlName="columnId">
+                          @if (kanban(); as currentBoard) {
+                            @for (column of currentBoard.columns; track column.id) {
+                              <option [ngValue]="column.id">
+                                {{ column.name }}
+                              </option>
+                            }
                           }
                         </select>
                       </div>
 
                       <div class="task-form-field">
-                        <label for="edit-task-due-date"> Data de vencimento </label>
+                        <label for="task-due-date"> Data de vencimento </label>
 
-                        <input id="edit-task-due-date" type="date" formControlName="dueDate" />
+                        <input id="task-due-date" type="date" formControlName="dueDate" />
                       </div>
                     </div>
 
-                    @if (updateTaskError()) {
-                      <div class="task-form-error" role="alert">
-                        {{ updateTaskError() }}
-                      </div>
-                    }
-
-                    <footer class="task-form-actions">
-                      <button
-                        class="secondary-button"
-                        type="button"
-                        [disabled]="updatingTask()"
-                        (click)="cancelTaskEdit()"
-                      >
-                        Cancelar
-                      </button>
-
-                      <button class="primary-button" type="submit" [disabled]="updatingTask()">
-                        @if (updatingTask()) {
-                          Salvando alterações...
-                        } @else {
-                          Salvar alterações
-                        }
-                      </button>
-                    </footer>
-                  </form>
-                } @else {
-                  <div class="task-details-title">
-                    <div class="task-details-title__metadata">
-                      <span class="task-priority" [attr.data-priority]="task.priority">
-                        {{ task.priority }}
-                      </span>
-
-                      <span class="task-id"> #{{ task.id }} </span>
-                    </div>
-
-                    <h4>{{ task.title }}</h4>
-
-                    @if (task.labels.length > 0) {
-                      <div class="task-labels" aria-label="Labels da tarefa">
-                        @for (label of task.labels; track label.id) {
-                          <span class="task-label" [attr.data-label-color]="label.color">
-                            {{ label.name }}
-                            @if (label.archived) {
-                              <span class="visually-hidden">(arquivada)</span>
-                            }
-                          </span>
+                    <fieldset class="task-form-field task-priority-control">
+                      <legend>Prioridade</legend>
+                      <div class="task-priority-control__options">
+                        @for (priority of priorities; track priority) {
+                          <label [attr.data-priority]="priority">
+                            <input type="radio" formControlName="priority" [value]="priority" />
+                            <span aria-hidden="true"></span>
+                            {{ formatTaskPriority(priority) }}
+                          </label>
                         }
                       </div>
-                    }
+                    </fieldset>
+                  </aside>
+                </div>
 
-                    @if (task.description) {
-                      <div class="task-details-title__description">
-                        <dt-task-markdown [source]="task.description" />
-                      </div>
-                    } @else {
-                      <p>Esta tarefa não possui descrição.</p>
-                    }
+                @if (createTaskError()) {
+                  <div class="task-form-error" role="alert">
+                    {{ createTaskError() }}
                   </div>
+                }
 
-                  <dl class="task-details-grid">
-                    <div>
-                      <dt>Coluna</dt>
-                      <dd>#{{ task.columnId }}</dd>
-                    </div>
+                <footer class="task-form-actions">
+                  <button
+                    class="secondary-button"
+                    type="button"
+                    [disabled]="creatingTask()"
+                    (click)="closeCreateTaskForm()"
+                  >
+                    Cancelar
+                  </button>
 
-                    <div>
-                      <dt>Posição</dt>
-                      <dd>{{ task.position }}</dd>
-                    </div>
+                  <button class="primary-button" type="submit" [disabled]="creatingTask()">
+                    @if (creatingTask()) {
+                      Criando tarefa...
+                    } @else {
+                      Criar tarefa
+                    }
+                  </button>
+                </footer>
+              </form>
+            </section>
+          </div>
+        }
 
-                    <div>
-                      <dt>Prioridade</dt>
-                      <dd>{{ task.priority }}</dd>
-                    </div>
+        @if (taskDetailsOpen()) {
+          <div class="workspace-view-modal" (click)="closeTaskDetails()">
+            <section
+              class="task-details-panel workspace-view-modal__surface workspace-view-modal__surface--wide"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="task-details-title"
+              cdkTrapFocus
+              [cdkTrapFocusAutoCapture]="true"
+              (click)="$event.stopPropagation()"
+            >
+              <header class="task-details-header">
+                <div>
+                  <p class="eyebrow">
+                    {{ editingTask() ? 'Editando tarefa' : 'Detalhes da tarefa' }}
+                  </p>
 
-                    <div>
-                      <dt>Data de vencimento</dt>
-                      <dd>
-                        {{ task.dueDate ?? 'Sem prazo' }}
-                      </dd>
-                    </div>
+                  <h3 id="task-details-title">
+                    {{ editingTask() ? 'Refine o trabalho' : 'Contexto completo' }}
+                  </h3>
+                </div>
 
-                    <div>
-                      <dt>Criado por</dt>
-                      <dd>{{ task.creator.name }}</dd>
-                    </div>
+                <button
+                  type="button"
+                  aria-label="Fechar detalhes da tarefa"
+                  [disabled]="
+                    loadingTaskDetails() ||
+                    updatingTask() ||
+                    archivingTask() ||
+                    managingChecklist() ||
+                    managingComment()
+                  "
+                  (click)="closeTaskDetails()"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="m6 6 12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </header>
 
-                    <div>
-                      <dt>Responsável</dt>
-                      <dd>
-                        {{ task.assignee?.name ?? 'Sem responsável' }}
-                      </dd>
-                    </div>
+              @if (loadingTaskDetails()) {
+                <div class="task-details-state" role="status">
+                  <span class="loading-indicator" aria-hidden="true"></span>
 
-                    <div>
-                      <dt>Criada em</dt>
-                      <dd>{{ task.createdAt }}</dd>
-                    </div>
+                  <p>Carregando detalhes da tarefa...</p>
+                </div>
+              } @else if (taskDetailsError()) {
+                <div class="task-details-state task-details-state--error" role="alert">
+                  <p>{{ taskDetailsError() }}</p>
 
-                    <div>
-                      <dt>Última atualização</dt>
-                      <dd>{{ task.updatedAt }}</dd>
-                    </div>
-                  </dl>
+                  <button type="button" (click)="retryTaskDetails()">Tentar novamente</button>
+                </div>
+              } @else if (selectedTask(); as task) {
+                <div
+                  class="task-details-content"
+                  [class.task-details-content--editing]="editingTask()"
+                >
+                  @if (editingTask()) {
+                    <form
+                      class="task-form"
+                      [formGroup]="editTaskForm"
+                      (ngSubmit)="submitTaskUpdate()"
+                      novalidate
+                    >
+                      <div class="task-form-layout">
+                        <div class="task-form-primary">
+                          <header class="task-form-section-heading">
+                            <span>01</span>
+                            <div>
+                              <strong>Conteúdo da tarefa</strong>
+                              <small>Atualize o objetivo sem perder o contexto existente.</small>
+                            </div>
+                          </header>
 
-                  @if (canWriteTasks()) {
-                    <footer class="task-details-actions">
-                      <button type="button" (click)="startTaskEdit()">Editar tarefa</button>
+                          <div class="task-form-field task-form-field--title">
+                            <div class="task-form-field__label">
+                              <label for="edit-task-title"> Título <span>*</span> </label>
+                              <small>{{ editTaskForm.controls.title.value.length }} / 180</small>
+                            </div>
 
-                      <button
-                        class="danger-button"
-                        type="button"
-                        [disabled]="updatingTask() || archivingTask()"
-                        (click)="requestTaskArchive()"
-                      >
-                        Arquivar tarefa
-                      </button>
-                    </footer>
+                            <input
+                              id="edit-task-title"
+                              type="text"
+                              formControlName="title"
+                              maxlength="180"
+                              placeholder="Título da tarefa"
+                            />
 
-                    @if (archiveConfirmationOpen()) {
-                      <section
-                        class="archive-confirmation"
-                        role="alertdialog"
-                        aria-labelledby="archive-confirmation-title"
-                        aria-describedby="archive-confirmation-description"
-                      >
-                        <div class="archive-confirmation__content">
-                          <span class="archive-confirmation__icon"> ! </span>
+                            @if (
+                              editTaskForm.controls.title.touched &&
+                              editTaskForm.controls.title.hasError('required')
+                            ) {
+                              <small> O título é obrigatório. </small>
+                            } @else if (editTaskForm.controls.title.hasError('maxlength')) {
+                              <small>O título deve possuir no máximo 180 caracteres.</small>
+                            }
+                          </div>
 
-                          <div>
-                            <h4 id="archive-confirmation-title">Arquivar esta tarefa?</h4>
+                          <div class="task-form-field task-form-field--description">
+                            <label for="edit-task-description"> Descrição </label>
 
-                            <p id="archive-confirmation-description">
-                              A tarefa
-                              <strong>{{ task.title }}</strong>
-                              deixará de aparecer no Kanban, mas continuará armazenada no sistema.
-                            </p>
+                            <div class="task-description-editor">
+                              <div
+                                class="task-description-editor__tabs"
+                                role="tablist"
+                                aria-label="Modo da descrição"
+                              >
+                                <button
+                                  type="button"
+                                  role="tab"
+                                  aria-controls="edit-task-description-panel"
+                                  [attr.aria-selected]="!editDescriptionPreview()"
+                                  [class.is-active]="!editDescriptionPreview()"
+                                  (click)="editDescriptionPreview.set(false)"
+                                >
+                                  Escrever
+                                </button>
+                                <button
+                                  type="button"
+                                  role="tab"
+                                  aria-controls="edit-task-description-panel"
+                                  [attr.aria-selected]="editDescriptionPreview()"
+                                  [class.is-active]="editDescriptionPreview()"
+                                  (click)="editDescriptionPreview.set(true)"
+                                >
+                                  Visualizar
+                                </button>
+                              </div>
+
+                              @if (editDescriptionPreview()) {
+                                <div
+                                  id="edit-task-description-panel"
+                                  class="task-description-editor__preview"
+                                  role="tabpanel"
+                                >
+                                  @if (editTaskForm.controls.description.value.trim()) {
+                                    <dt-task-markdown
+                                      [source]="editTaskForm.controls.description.value"
+                                    />
+                                  } @else {
+                                    <p>Nada para visualizar. Escreva uma descrição primeiro.</p>
+                                  }
+                                </div>
+                              } @else {
+                                <div id="edit-task-description-panel" role="tabpanel">
+                                  <div
+                                    class="task-description-editor__tools"
+                                    aria-label="Formatação Markdown"
+                                  >
+                                    <button
+                                      type="button"
+                                      title="Título de seção"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'heading')
+                                      "
+                                    >
+                                      H2
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Negrito"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'bold')
+                                      "
+                                    >
+                                      B
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Itálico"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'italic')
+                                      "
+                                    >
+                                      <em>I</em>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Lista"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'list')
+                                      "
+                                    >
+                                      ≡
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Critério de aceite"
+                                      (click)="
+                                        formatDescription(
+                                          'edit',
+                                          editDescriptionEditor,
+                                          'checklist'
+                                        )
+                                      "
+                                    >
+                                      ☐
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Citação"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'quote')
+                                      "
+                                    >
+                                      ”
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Código"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'code')
+                                      "
+                                    >
+                                      &lt;/&gt;
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Link"
+                                      (click)="
+                                        formatDescription('edit', editDescriptionEditor, 'link')
+                                      "
+                                    >
+                                      ↗
+                                    </button>
+                                  </div>
+                                  <textarea
+                                    #editDescriptionEditor
+                                    id="edit-task-description"
+                                    formControlName="description"
+                                    rows="8"
+                                    maxlength="4000"
+                                    placeholder="Use Markdown para organizar contexto, critérios e decisões..."
+                                  ></textarea>
+                                </div>
+                              }
+                            </div>
+
+                            <div class="task-description-editor__footer">
+                              <small class="task-form-hint">
+                                Markdown: **negrito**, *itálico*, listas, links, citações e blocos
+                                de código.
+                              </small>
+                              <small
+                                >{{ editTaskForm.controls.description.value.length }} / 4000</small
+                              >
+                            </div>
+
+                            @if (editTaskForm.controls.description.hasError('maxlength')) {
+                              <small>A descrição deve possuir no máximo 4.000 caracteres.</small>
+                            }
                           </div>
                         </div>
 
-                        @if (archiveTaskError()) {
-                          <div class="task-form-error" role="alert">
-                            {{ archiveTaskError() }}
+                        <aside class="task-form-properties">
+                          <header class="task-form-section-heading">
+                            <span>02</span>
+                            <div>
+                              <strong>Propriedades</strong>
+                              <small>Ajuste responsáveis, prioridade e prazo.</small>
+                            </div>
+                          </header>
+
+                          <div class="task-form-context" aria-label="Contexto da tarefa">
+                            <span class="task-form-context__icon" aria-hidden="true">
+                              <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M4 7h6l2 2h8v10H4z" />
+                                <path d="M8 13h8M8 16h5" />
+                              </svg>
+                            </span>
+                            <div>
+                              <small>Contexto atual</small>
+                              <strong>{{ project.name }}</strong>
+                              <span>{{ selectedBoard.name }}</span>
+                            </div>
                           </div>
-                        }
 
-                        <footer class="archive-confirmation__actions">
-                          <button
-                            class="secondary-button"
-                            type="button"
-                            [disabled]="archivingTask()"
-                            (click)="cancelTaskArchive()"
-                          >
-                            Cancelar
-                          </button>
+                          <div class="task-form-field">
+                            <label for="edit-task-assignee"> Responsável </label>
 
-                          <button
-                            class="danger-button"
-                            type="button"
-                            [disabled]="archivingTask()"
-                            (click)="confirmTaskArchive()"
-                          >
-                            @if (archivingTask()) {
-                              Arquivando...
-                            } @else {
-                              Confirmar arquivamento
+                            <select id="edit-task-assignee" formControlName="assigneeId">
+                              <option [ngValue]="null">Sem responsável</option>
+
+                              @for (member of assignableMembers(); track member.userId) {
+                                <option [ngValue]="member.userId">
+                                  {{ member.name }} · {{ member.role }}
+                                </option>
+                              }
+                            </select>
+
+                            @if (loadingAssignableMembers()) {
+                              <small>Carregando participantes disponíveis...</small>
+                            } @else if (assignableMembersError()) {
+                              <small role="alert">{{ assignableMembersError() }}</small>
                             }
-                          </button>
-                        </footer>
-                      </section>
-                    }
-                  }
-                }
+                          </div>
 
-                <section class="task-checklist" aria-labelledby="task-checklist-title">
-                  <header class="task-checklist__header">
-                    <div>
-                      <p class="eyebrow">Execução</p>
-                      <h4 id="task-checklist-title">Checklist da tarefa</h4>
-                    </div>
+                          <div class="task-form-field">
+                            <div class="task-form-label-heading">
+                              <span class="task-form-label" id="edit-task-labels-label"
+                                >Labels</span
+                              >
+                              @if (canManageLabels()) {
+                                <button type="button" (click)="openCreateProjectLabel('edit')">
+                                  + Nova label
+                                </button>
+                              }
+                            </div>
 
-                    <strong>
-                      {{ checklistCompletedCount() }} / {{ task.checklistItems.length }}
-                    </strong>
-                  </header>
-
-                  @if (task.checklistItems.length > 0) {
-                    <progress
-                      class="task-checklist__progress"
-                      [value]="checklistCompletedCount()"
-                      [max]="task.checklistItems.length"
-                      [attr.aria-label]="
-                        checklistCompletedCount() +
-                        ' de ' +
-                        task.checklistItems.length +
-                        ' itens concluídos'
-                      "
-                    ></progress>
-                  }
-
-                  @if (canWriteTasks()) {
-                    <form
-                      class="task-form task-checklist__form"
-                      [formGroup]="checklistItemForm"
-                      (ngSubmit)="addChecklistItem()"
-                      novalidate
-                    >
-                      <div class="task-form-field">
-                        <label for="task-checklist-item">Nova subtarefa</label>
-                        <input
-                          id="task-checklist-item"
-                          type="text"
-                          maxlength="180"
-                          formControlName="title"
-                          placeholder="Ex.: Validar cenário de cadastro"
-                        />
-                      </div>
-
-                      <button
-                        class="primary-button"
-                        type="submit"
-                        [disabled]="managingChecklist() || task.checklistItems.length >= 50"
-                      >
-                        Adicionar
-                      </button>
-                    </form>
-
-                    @if (
-                      checklistItemForm.controls.title.touched &&
-                      checklistItemForm.controls.title.hasError('required')
-                    ) {
-                      <small class="task-checklist__validation">Informe o título da subtarefa.</small>
-                    } @else if (checklistItemForm.controls.title.hasError('maxlength')) {
-                      <small class="task-checklist__validation">
-                        Use no máximo 180 caracteres.
-                      </small>
-                    }
-                  }
-
-                  @if (checklistError()) {
-                    <div class="task-checklist__message task-checklist__message--error" role="alert">
-                      {{ checklistError() }}
-                    </div>
-                  }
-
-                  @if (task.checklistItems.length === 0) {
-                    <p class="task-checklist__empty">
-                      Nenhuma subtarefa adicionada. Use a checklist para dividir a entrega em passos
-                      menores.
-                    </p>
-                  } @else {
-                    <ul class="task-checklist__items">
-                      @for (item of task.checklistItems; track item.id) {
-                        <li [class.task-checklist__item--completed]="item.completed">
-                          <label>
-                            <input
-                              type="checkbox"
-                              [checked]="item.completed"
-                              [disabled]="!canWriteTasks() || managingChecklist()"
-                              (change)="toggleChecklistItem(item)"
-                            />
-                            <span>{{ item.title }}</span>
-                          </label>
-
-                          @if (canWriteTasks()) {
-                            <button
-                              type="button"
-                              [disabled]="managingChecklist()"
-                              [attr.aria-label]="'Remover subtarefa ' + item.title"
-                              (click)="removeChecklistItem(item)"
-                            >
-                              Remover
-                            </button>
-                          }
-                        </li>
-                      }
-                    </ul>
-                  }
-
-                  @if (isReadOnly()) {
-                    <p class="task-checklist__readonly">
-                      Visualizadores acompanham o progresso, sem alterar a checklist.
-                    </p>
-                  }
-                </section>
-
-                <section class="task-attachments" aria-labelledby="task-attachments-title">
-                  <header class="task-attachments__header">
-                    <div>
-                      <p class="eyebrow">Arquivos</p>
-                      <h4 id="task-attachments-title">Anexos da tarefa</h4>
-                      <p>Centralize evidências, documentos e materiais desta entrega.</p>
-                    </div>
-
-                    <strong>{{ taskAttachments().length }} / 10</strong>
-                  </header>
-
-                  @if (canWriteTasks()) {
-                    <div class="task-attachments__upload">
-                      <label
-                        for="task-attachment-file"
-                        [class.task-attachments__upload-label--disabled]="
-                          managingAttachment() || taskAttachments().length >= 10
-                        "
-                      >
-                        @if (managingAttachment()) {
-                          Enviando arquivo...
-                        } @else {
-                          Selecionar arquivo
-                        }
-                      </label>
-                      <input
-                        id="task-attachment-file"
-                        class="visually-hidden"
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.json,.zip"
-                        [disabled]="managingAttachment() || taskAttachments().length >= 10"
-                        (change)="uploadAttachment($event)"
-                      />
-                      <small>PDF, imagens, TXT, JSON ou ZIP · máximo de 10 MB</small>
-                    </div>
-                  } @else {
-                    <p class="task-attachments__readonly">
-                      Visualizadores podem consultar e baixar arquivos, sem adicionar ou remover.
-                    </p>
-                  }
-
-                  @if (attachmentActionError()) {
-                    <div class="task-attachments__message task-attachments__message--error" role="alert">
-                      {{ attachmentActionError() }}
-                    </div>
-                  }
-
-                  @if (loadingTaskAttachments()) {
-                    <div class="task-attachments__state" role="status">Carregando anexos...</div>
-                  } @else if (taskAttachmentsError()) {
-                    <div class="task-attachments__state task-attachments__state--error" role="alert">
-                      <span>{{ taskAttachmentsError() }}</span>
-                      <button type="button" (click)="retryTaskAttachments()">Tentar novamente</button>
-                    </div>
-                  } @else if (taskAttachments().length === 0) {
-                    <p class="task-attachments__empty">Nenhum arquivo anexado a esta tarefa.</p>
-                  } @else {
-                    <ul class="task-attachments__list">
-                      @for (attachment of taskAttachments(); track attachment.id) {
-                        <li>
-                          <div class="task-attachments__file-icon" aria-hidden="true">↧</div>
-                          <div class="task-attachments__metadata">
-                            <strong>{{ attachment.originalFileName }}</strong>
-                            <small>
-                              {{ formatFileSize(attachment.sizeBytes) }} · enviado por
-                              {{ attachment.uploader.name }} ·
-                              {{ formatTaskTimestamp(attachment.createdAt) }}
+                            @if (projectLabelsError()) {
+                              <small role="alert">{{ projectLabelsError() }}</small>
+                            } @else if (projectLabels().length === 0) {
+                              <div class="task-label-picker task-label-picker--empty">
+                                <p>Nenhuma label ativa foi criada para este projeto.</p>
+                                @if (canManageLabels()) {
+                                  <button type="button" (click)="openCreateProjectLabel('edit')">
+                                    Criar primeira label
+                                  </button>
+                                }
+                              </div>
+                            } @else {
+                              <div
+                                class="task-label-picker"
+                                role="group"
+                                aria-labelledby="edit-task-labels-label"
+                              >
+                                @for (label of projectLabels(); track label.id) {
+                                  <div class="task-label-picker__item">
+                                    <label [attr.data-label-color]="label.color">
+                                      <input
+                                        type="checkbox"
+                                        [checked]="isTaskLabelSelected('edit', label.id)"
+                                        [disabled]="isTaskLabelDisabled('edit', label.id)"
+                                        (change)="toggleTaskLabel('edit', label.id)"
+                                      />
+                                      <span aria-hidden="true"></span>
+                                      {{ label.name }}
+                                    </label>
+                                    @if (canManageLabels()) {
+                                      <button
+                                        type="button"
+                                        [attr.aria-label]="'Editar label ' + label.name"
+                                        (click)="openEditProjectLabel(label)"
+                                      >
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                          <path d="m4 16-.7 4 4-.7L18 8.6 14.4 5 4 16Z" />
+                                          <path d="m12.8 6.6 3.6 3.6" />
+                                        </svg>
+                                      </button>
+                                    }
+                                  </div>
+                                }
+                              </div>
+                            }
+                            <small class="task-form-hint">
+                              {{ editTaskForm.controls.labelIds.value.length }} labels ativas
+                              selecionadas. Labels arquivadas permanecem no histórico.
                             </small>
                           </div>
 
-                          <div class="task-attachments__actions">
-                            <button
-                              type="button"
-                              [disabled]="downloadingAttachmentId() !== null"
-                              (click)="downloadAttachment(attachment)"
-                            >
-                              @if (downloadingAttachmentId() === attachment.id) {
-                                Baixando...
-                              } @else {
-                                Baixar
+                          <div class="task-form-field task-technology-field">
+                            <div class="task-form-label-heading">
+                              <span class="task-form-label" id="edit-task-technologies-label"
+                                >Tecnologias</span
+                              >
+                              <small
+                                >{{ editTaskForm.controls.technologies.value.length }} / 8</small
+                              >
+                            </div>
+                            <details class="task-technology-picker">
+                              <summary>Selecionar tecnologias da tarefa</summary>
+                              <div role="group" aria-labelledby="edit-task-technologies-label">
+                                @for (technology of technologyOptions; track technology.value) {
+                                  <button
+                                    type="button"
+                                    [class.task-technology-option--selected]="
+                                      isTaskTechnologySelected('edit', technology.value)
+                                    "
+                                    [disabled]="isTaskTechnologyDisabled('edit', technology.value)"
+                                    [attr.aria-pressed]="
+                                      isTaskTechnologySelected('edit', technology.value)
+                                    "
+                                    (click)="toggleTaskTechnology('edit', technology.value)"
+                                  >
+                                    <span
+                                      class="task-technology-mark"
+                                      [style.--technology-color]="technology.color"
+                                      aria-hidden="true"
+                                    >
+                                      <svg viewBox="0 0 24 24">
+                                        <path [attr.d]="technology.path" />
+                                      </svg>
+                                    </span>
+                                    {{ technology.label }}
+                                  </button>
+                                }
+                              </div>
+                            </details>
+                          </div>
+
+                          <div class="task-form-row">
+                            <div class="task-form-field">
+                              <label for="edit-task-due-date"> Data de vencimento </label>
+
+                              <input
+                                id="edit-task-due-date"
+                                type="date"
+                                formControlName="dueDate"
+                              />
+                            </div>
+                          </div>
+
+                          <fieldset class="task-form-field task-priority-control">
+                            <legend>Prioridade</legend>
+                            <div class="task-priority-control__options">
+                              @for (priority of priorities; track priority) {
+                                <label [attr.data-priority]="priority">
+                                  <input
+                                    type="radio"
+                                    formControlName="priority"
+                                    [value]="priority"
+                                  />
+                                  <span aria-hidden="true"></span>
+                                  {{ formatTaskPriority(priority) }}
+                                </label>
                               }
+                            </div>
+                          </fieldset>
+                        </aside>
+                      </div>
+
+                      @if (updateTaskError()) {
+                        <div class="task-form-error" role="alert">
+                          {{ updateTaskError() }}
+                        </div>
+                      }
+
+                      <footer class="task-form-actions">
+                        <button
+                          class="secondary-button"
+                          type="button"
+                          [disabled]="updatingTask()"
+                          (click)="cancelTaskEdit()"
+                        >
+                          Cancelar
+                        </button>
+
+                        <button class="primary-button" type="submit" [disabled]="updatingTask()">
+                          @if (updatingTask()) {
+                            Salvando alterações...
+                          } @else {
+                            Salvar alterações
+                          }
+                        </button>
+                      </footer>
+                    </form>
+                  } @else {
+                    <div class="task-details-title">
+                      <div class="task-details-title__metadata">
+                        <span class="task-priority" [attr.data-priority]="task.priority">
+                          {{ formatTaskPriority(task.priority) }}
+                        </span>
+
+                        <span class="task-id"> #{{ task.id }} </span>
+                      </div>
+
+                      <h4>{{ task.title }}</h4>
+
+                      @if (task.labels.length > 0) {
+                        <div class="task-labels" aria-label="Labels da tarefa">
+                          @for (label of task.labels; track label.id) {
+                            <span class="task-label" [attr.data-label-color]="label.color">
+                              {{ label.name }}
+                              @if (label.archived) {
+                                <span class="visually-hidden">(arquivada)</span>
+                              }
+                            </span>
+                          }
+                        </div>
+                      }
+
+                      @if (task.technologies.length > 0) {
+                        <div class="task-technologies" aria-label="Tecnologias da tarefa">
+                          @for (technology of task.technologies; track technology) {
+                            <span>
+                              <span
+                                class="task-technology-mark"
+                                [style.--technology-color]="technologyOption(technology).color"
+                                aria-hidden="true"
+                              >
+                                <svg viewBox="0 0 24 24">
+                                  <path [attr.d]="technologyOption(technology).path" />
+                                </svg>
+                              </span>
+                              {{ technologyOption(technology).label }}
+                            </span>
+                          }
+                        </div>
+                      }
+
+                      @if (task.description) {
+                        <div class="task-details-title__description">
+                          <dt-task-markdown [source]="task.description" />
+                        </div>
+                      } @else {
+                        <p>Esta tarefa não possui descrição.</p>
+                      }
+                    </div>
+
+                    <dl class="task-details-grid">
+                      <div>
+                        <dt>Coluna</dt>
+                        <dd>#{{ task.columnId }}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Posição</dt>
+                        <dd>{{ task.position }}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Prioridade</dt>
+                        <dd>{{ formatTaskPriority(task.priority) }}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Data de vencimento</dt>
+                        <dd>
+                          {{ formatTaskDueDate(task.dueDate) }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt>Criado por</dt>
+                        <dd>{{ task.creator.name }}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Responsável</dt>
+                        <dd>
+                          {{ task.assignee?.name ?? 'Sem responsável' }}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt>Criada em</dt>
+                        <dd>{{ task.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Última atualização</dt>
+                        <dd>{{ task.updatedAt | date: 'dd/MM/yyyy, HH:mm' }}</dd>
+                      </div>
+                    </dl>
+
+                    @if (canWriteTasks()) {
+                      <footer class="task-details-actions">
+                        <button type="button" (click)="startTaskEdit()">Editar tarefa</button>
+
+                        <button
+                          class="danger-button"
+                          type="button"
+                          [disabled]="updatingTask() || archivingTask()"
+                          (click)="requestTaskArchive()"
+                        >
+                          Arquivar tarefa
+                        </button>
+                      </footer>
+
+                      @if (archiveConfirmationOpen()) {
+                        <section
+                          class="archive-confirmation"
+                          role="alertdialog"
+                          aria-labelledby="archive-confirmation-title"
+                          aria-describedby="archive-confirmation-description"
+                        >
+                          <div class="archive-confirmation__content">
+                            <span class="archive-confirmation__icon"> ! </span>
+
+                            <div>
+                              <h4 id="archive-confirmation-title">Arquivar esta tarefa?</h4>
+
+                              <p id="archive-confirmation-description">
+                                A tarefa
+                                <strong>{{ task.title }}</strong>
+                                deixará de aparecer no Kanban, mas continuará armazenada no sistema.
+                              </p>
+                            </div>
+                          </div>
+
+                          @if (archiveTaskError()) {
+                            <div class="task-form-error" role="alert">
+                              {{ archiveTaskError() }}
+                            </div>
+                          }
+
+                          <footer class="archive-confirmation__actions">
+                            <button
+                              class="secondary-button"
+                              type="button"
+                              [disabled]="archivingTask()"
+                              (click)="cancelTaskArchive()"
+                            >
+                              Cancelar
                             </button>
 
-                            @if (attachment.canDelete) {
+                            <button
+                              class="danger-button"
+                              type="button"
+                              [disabled]="archivingTask()"
+                              (click)="confirmTaskArchive()"
+                            >
+                              @if (archivingTask()) {
+                                Arquivando...
+                              } @else {
+                                Confirmar arquivamento
+                              }
+                            </button>
+                          </footer>
+                        </section>
+                      }
+                    }
+                  }
+
+                  <section class="task-checklist" aria-labelledby="task-checklist-title">
+                    <header class="task-checklist__header">
+                      <div>
+                        <p class="eyebrow">Execução</p>
+                        <h4 id="task-checklist-title">Checklist da tarefa</h4>
+                      </div>
+
+                      <strong>
+                        {{ checklistCompletedCount() }} / {{ task.checklistItems.length }}
+                      </strong>
+                    </header>
+
+                    @if (task.checklistItems.length > 0) {
+                      <progress
+                        class="task-checklist__progress"
+                        [value]="checklistCompletedCount()"
+                        [max]="task.checklistItems.length"
+                        [attr.aria-label]="
+                          checklistCompletedCount() +
+                          ' de ' +
+                          task.checklistItems.length +
+                          ' itens concluídos'
+                        "
+                      ></progress>
+                    }
+
+                    @if (canWriteTasks()) {
+                      <form
+                        class="task-form task-checklist__form"
+                        [formGroup]="checklistItemForm"
+                        (ngSubmit)="addChecklistItem()"
+                        novalidate
+                      >
+                        <div class="task-form-field">
+                          <label for="task-checklist-item">Nova subtarefa</label>
+                          <input
+                            id="task-checklist-item"
+                            type="text"
+                            maxlength="180"
+                            formControlName="title"
+                            placeholder="Ex.: Validar cenário de cadastro"
+                          />
+                        </div>
+
+                        <button
+                          class="primary-button"
+                          type="submit"
+                          [disabled]="managingChecklist() || task.checklistItems.length >= 50"
+                        >
+                          Adicionar
+                        </button>
+                      </form>
+
+                      @if (
+                        checklistItemForm.controls.title.touched &&
+                        checklistItemForm.controls.title.hasError('required')
+                      ) {
+                        <small class="task-checklist__validation"
+                          >Informe o título da subtarefa.</small
+                        >
+                      } @else if (checklistItemForm.controls.title.hasError('maxlength')) {
+                        <small class="task-checklist__validation">
+                          Use no máximo 180 caracteres.
+                        </small>
+                      }
+                    }
+
+                    @if (checklistError()) {
+                      <div
+                        class="task-checklist__message task-checklist__message--error"
+                        role="alert"
+                      >
+                        {{ checklistError() }}
+                      </div>
+                    }
+
+                    @if (task.checklistItems.length === 0) {
+                      <p class="task-checklist__empty">
+                        Nenhuma subtarefa adicionada. Use a checklist para dividir a entrega em
+                        passos menores.
+                      </p>
+                    } @else {
+                      <ul class="task-checklist__items">
+                        @for (item of task.checklistItems; track item.id) {
+                          <li [class.task-checklist__item--completed]="item.completed">
+                            <label>
+                              <input
+                                type="checkbox"
+                                [checked]="item.completed"
+                                [disabled]="!canWriteTasks() || managingChecklist()"
+                                (change)="toggleChecklistItem(item)"
+                              />
+                              <span>{{ item.title }}</span>
+                            </label>
+
+                            @if (canWriteTasks()) {
                               <button
-                                class="task-attachments__remove"
                                 type="button"
-                                [disabled]="managingAttachment()"
-                                (click)="requestAttachmentRemoval(attachment)"
+                                [disabled]="managingChecklist()"
+                                [attr.aria-label]="'Remover subtarefa ' + item.title"
+                                (click)="removeChecklistItem(item)"
                               >
                                 Remover
                               </button>
                             }
-                          </div>
+                          </li>
+                        }
+                      </ul>
+                    }
 
-                          @if (attachmentPendingDeletionId() === attachment.id) {
-                            <div class="task-attachments__confirmation">
-                              <span>Remover este anexo permanentemente?</span>
-                              <div>
-                                <button
-                                  type="button"
-                                  [disabled]="managingAttachment()"
-                                  (click)="cancelAttachmentRemoval()"
-                                >
-                                  Cancelar
-                                </button>
+                    @if (isReadOnly()) {
+                      <p class="task-checklist__readonly">
+                        Visualizadores acompanham o progresso, sem alterar a checklist.
+                      </p>
+                    }
+                  </section>
+
+                  <section class="task-attachments" aria-labelledby="task-attachments-title">
+                    <header class="task-attachments__header">
+                      <div>
+                        <p class="eyebrow">Arquivos</p>
+                        <h4 id="task-attachments-title">Anexos da tarefa</h4>
+                        <p>Centralize evidências, documentos e materiais desta entrega.</p>
+                      </div>
+
+                      <strong>{{ taskAttachments().length }} / 10</strong>
+                    </header>
+
+                    @if (canWriteTasks()) {
+                      <div class="task-attachments__upload">
+                        <label
+                          for="task-attachment-file"
+                          [class.task-attachments__upload-label--disabled]="
+                            managingAttachment() || taskAttachments().length >= 10
+                          "
+                        >
+                          Selecionar arquivo
+                        </label>
+                        <input
+                          id="task-attachment-file"
+                          class="visually-hidden"
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.json,.zip"
+                          [disabled]="managingAttachment() || taskAttachments().length >= 10"
+                          (change)="selectAttachment($event)"
+                        />
+                        <small>PDF, imagens, TXT, JSON ou ZIP · máximo de 10 MB</small>
+                      </div>
+
+                      @if (pendingAttachment(); as pendingFile) {
+                        <div class="task-attachments__pending">
+                          @if (pendingAttachmentThumbnailUrl(); as thumbnailUrl) {
+                            <img [src]="thumbnailUrl" [alt]="'Prévia de ' + pendingFile.name" />
+                          } @else {
+                            <span class="task-attachments__file-icon" aria-hidden="true">
+                              {{ attachmentKind(pendingFile.type) }}
+                            </span>
+                          }
+                          <div class="task-attachments__metadata">
+                            <small>Pronto para enviar</small>
+                            <strong>{{ pendingFile.name }}</strong>
+                            <small>{{ formatFileSize(pendingFile.size) }}</small>
+                          </div>
+                          <div class="task-attachments__actions">
+                            <button type="button" (click)="previewPendingAttachment()">
+                              Visualizar
+                            </button>
+                            <button
+                              type="button"
+                              [disabled]="managingAttachment()"
+                              (click)="cancelPendingAttachment()"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              class="task-attachments__send"
+                              type="button"
+                              [disabled]="managingAttachment()"
+                              (click)="confirmAttachmentUpload()"
+                            >
+                              {{ managingAttachment() ? 'Enviando...' : 'Enviar anexo' }}
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <p class="task-attachments__readonly">
+                        Visualizadores podem consultar e baixar arquivos, sem adicionar ou remover.
+                      </p>
+                    }
+
+                    @if (attachmentActionError()) {
+                      <div
+                        class="task-attachments__message task-attachments__message--error"
+                        role="alert"
+                      >
+                        {{ attachmentActionError() }}
+                      </div>
+                    }
+
+                    @if (loadingTaskAttachments()) {
+                      <div class="task-attachments__state" role="status">Carregando anexos...</div>
+                    } @else if (taskAttachmentsError()) {
+                      <div
+                        class="task-attachments__state task-attachments__state--error"
+                        role="alert"
+                      >
+                        <span>{{ taskAttachmentsError() }}</span>
+                        <button type="button" (click)="retryTaskAttachments()">
+                          Tentar novamente
+                        </button>
+                      </div>
+                    } @else if (taskAttachments().length === 0) {
+                      <p class="task-attachments__empty">Nenhum arquivo anexado a esta tarefa.</p>
+                    } @else {
+                      <ul class="task-attachments__list">
+                        @for (attachment of taskAttachments(); track attachment.id) {
+                          <li>
+                            <div class="task-attachments__file-icon" aria-hidden="true">
+                              {{ attachmentKind(attachment.contentType) }}
+                            </div>
+                            <div class="task-attachments__metadata">
+                              <strong>{{ attachment.originalFileName }}</strong>
+                              <small>
+                                {{ formatFileSize(attachment.sizeBytes) }} · enviado por
+                                {{ attachment.uploader.name }} ·
+                                {{ formatTaskTimestamp(attachment.createdAt) }}
+                              </small>
+                            </div>
+
+                            <div class="task-attachments__actions">
+                              <button
+                                type="button"
+                                [disabled]="previewingAttachmentId() !== null"
+                                (click)="previewAttachment(attachment)"
+                              >
+                                @if (previewingAttachmentId() === attachment.id) {
+                                  Abrindo...
+                                } @else {
+                                  Visualizar
+                                }
+                              </button>
+                              <button
+                                type="button"
+                                [disabled]="downloadingAttachmentId() !== null"
+                                (click)="downloadAttachment(attachment)"
+                              >
+                                @if (downloadingAttachmentId() === attachment.id) {
+                                  Baixando...
+                                } @else {
+                                  Baixar
+                                }
+                              </button>
+
+                              @if (attachment.canDelete) {
                                 <button
                                   class="task-attachments__remove"
                                   type="button"
                                   [disabled]="managingAttachment()"
-                                  (click)="confirmAttachmentRemoval(attachment.id)"
+                                  (click)="requestAttachmentRemoval(attachment)"
                                 >
-                                  Confirmar
+                                  Remover
                                 </button>
+                              }
+                            </div>
+
+                            @if (attachmentPendingDeletionId() === attachment.id) {
+                              <div class="task-attachments__confirmation">
+                                <span>Remover este anexo permanentemente?</span>
+                                <div>
+                                  <button
+                                    type="button"
+                                    [disabled]="managingAttachment()"
+                                    (click)="cancelAttachmentRemoval()"
+                                  >
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    class="task-attachments__remove"
+                                    type="button"
+                                    [disabled]="managingAttachment()"
+                                    (click)="confirmAttachmentRemoval(attachment.id)"
+                                  >
+                                    Confirmar
+                                  </button>
+                                </div>
                               </div>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </section>
+
+                  @if (attachmentPreview(); as preview) {
+                    <div
+                      class="attachment-preview"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="attachment-preview-title"
+                    >
+                      <div class="attachment-preview__surface">
+                        <header>
+                          <div>
+                            <p class="eyebrow">Pré-visualização segura</p>
+                            <h4 id="attachment-preview-title">{{ preview.name }}</h4>
+                          </div>
+                          <button
+                            type="button"
+                            aria-label="Fechar pré-visualização"
+                            (click)="closeAttachmentPreview()"
+                          >
+                            ×
+                          </button>
+                        </header>
+
+                        <div class="attachment-preview__content">
+                          @if (isImageContentType(preview.contentType)) {
+                            <img [src]="preview.objectUrl" [alt]="preview.name" />
+                          } @else if (isPdfContentType(preview.contentType)) {
+                            <iframe [src]="preview.safeUrl" [title]="preview.name"></iframe>
+                          } @else if (preview.textContent !== null) {
+                            <pre>{{ preview.textContent }}</pre>
+                          } @else {
+                            <div class="attachment-preview__unsupported">
+                              <span aria-hidden="true">{{
+                                attachmentKind(preview.contentType)
+                              }}</span>
+                              <strong>Prévia indisponível para este formato</strong>
+                              <p>O arquivo permanece disponível para download.</p>
                             </div>
                           }
-                        </li>
-                      }
-                    </ul>
-                  }
-                </section>
-
-                <section class="task-collaboration" aria-labelledby="task-comments-title">
-                  <div class="task-collaboration__column">
-                    <header class="task-collaboration__header">
-                      <div>
-                        <p class="eyebrow">Colaboração</p>
-                        <h4 id="task-comments-title">Comentários</h4>
+                        </div>
                       </div>
+                    </div>
+                  }
 
-                      <strong>{{ taskCollaboration()?.comments?.length ?? 0 }}</strong>
-                    </header>
-
-                    @if (canWriteTasks()) {
-                      <form
-                        class="task-comment-form"
-                        [formGroup]="commentForm"
-                        (ngSubmit)="addComment()"
-                        novalidate
-                      >
-                        <label for="task-comment">Novo comentário</label>
-                        <textarea
-                          id="task-comment"
-                          rows="3"
-                          maxlength="2000"
-                          formControlName="content"
-                          placeholder="Compartilhe contexto, uma decisão ou uma atualização..."
-                        ></textarea>
-
-                        <div class="task-comment-form__footer">
-                          <small>{{ commentForm.controls.content.value.length }} / 2000</small>
-                          <button
-                            class="primary-button"
-                            type="submit"
-                            [disabled]="managingComment()"
-                          >
-                            @if (managingComment()) {
-                              Publicando...
-                            } @else {
-                              Publicar comentário
-                            }
-                          </button>
+                  <section class="task-collaboration" aria-labelledby="task-comments-title">
+                    <div class="task-collaboration__column">
+                      <header class="task-collaboration__header">
+                        <div>
+                          <p class="eyebrow">Colaboração</p>
+                          <h4 id="task-comments-title">Comentários</h4>
                         </div>
 
-                        @if (
-                          commentForm.controls.content.touched &&
-                          commentForm.controls.content.hasError('required')
-                        ) {
-                          <small class="task-collaboration__validation">
-                            Escreva uma mensagem antes de publicar.
-                          </small>
-                        } @else if (commentForm.controls.content.hasError('maxlength')) {
-                          <small class="task-collaboration__validation">
-                            Use no máximo 2000 caracteres.
-                          </small>
-                        }
-                      </form>
-                    } @else if (isReadOnly()) {
-                      <p class="task-collaboration__readonly">
-                        Visualizadores podem acompanhar a conversa, sem publicar ou alterar
-                        comentários.
-                      </p>
-                    }
+                        <strong>{{ taskCollaboration()?.comments?.length ?? 0 }}</strong>
+                      </header>
 
-                    @if (commentActionError()) {
-                      <div class="task-collaboration__message task-collaboration__message--error" role="alert">
-                        {{ commentActionError() }}
-                      </div>
-                    }
+                      @if (canWriteTasks()) {
+                        <form
+                          class="task-comment-form"
+                          [formGroup]="commentForm"
+                          (ngSubmit)="addComment()"
+                          novalidate
+                        >
+                          <label for="task-comment">Novo comentário</label>
+                          <textarea
+                            id="task-comment"
+                            rows="3"
+                            maxlength="2000"
+                            formControlName="content"
+                            placeholder="Compartilhe contexto, uma decisão ou uma atualização..."
+                          ></textarea>
 
-                    @if (loadingTaskCollaboration()) {
-                      <div class="task-collaboration__state" role="status">
-                        <span class="loading-indicator" aria-hidden="true"></span>
-                        <span>Carregando colaboração...</span>
-                      </div>
-                    } @else if (taskCollaborationError()) {
-                      <div class="task-collaboration__state task-collaboration__state--error" role="alert">
-                        <span>{{ taskCollaborationError() }}</span>
-                        <button type="button" (click)="retryTaskCollaboration()">
-                          Tentar novamente
-                        </button>
-                      </div>
-                    } @else if (taskCollaboration(); as collaboration) {
-                      @if (collaboration.comments.length === 0) {
-                        <p class="task-collaboration__empty">
-                          Ainda não há comentários nesta tarefa.
-                        </p>
-                      } @else {
-                        <ul class="task-comments">
-                          @for (comment of collaboration.comments; track comment.id) {
-                            <li class="task-comment">
-                              <header>
-                                <span class="task-comment__avatar" aria-hidden="true">
-                                  {{ comment.author.name.charAt(0).toUpperCase() }}
-                                </span>
-                                <div>
-                                  <strong>{{ comment.author.name }}</strong>
-                                  <small>
-                                    {{ formatTaskTimestamp(comment.createdAt) }}
-                                    @if (comment.edited) {
-                                      · editado
-                                    }
-                                  </small>
-                                </div>
-                              </header>
-
-                              @if (editingCommentId() === comment.id) {
-                                <form
-                                  class="task-comment-form task-comment-form--editing"
-                                  [formGroup]="editCommentForm"
-                                  (ngSubmit)="submitCommentEdit(comment.id)"
-                                  novalidate
-                                >
-                                  <label class="visually-hidden" [for]="'edit-comment-' + comment.id">
-                                    Editar comentário
-                                  </label>
-                                  <textarea
-                                    [id]="'edit-comment-' + comment.id"
-                                    rows="3"
-                                    maxlength="2000"
-                                    formControlName="content"
-                                  ></textarea>
-                                  <footer>
-                                    <button
-                                      type="button"
-                                      [disabled]="managingComment()"
-                                      (click)="cancelCommentEdit()"
-                                    >
-                                      Cancelar
-                                    </button>
-                                    <button
-                                      class="primary-button"
-                                      type="submit"
-                                      [disabled]="managingComment()"
-                                    >
-                                      Salvar
-                                    </button>
-                                  </footer>
-                                </form>
+                          <div class="task-comment-form__footer">
+                            <small>{{ commentForm.controls.content.value.length }} / 2000</small>
+                            <button
+                              class="primary-button"
+                              type="submit"
+                              [disabled]="managingComment()"
+                            >
+                              @if (managingComment()) {
+                                Publicando...
                               } @else {
-                                <p>{{ comment.content }}</p>
+                                Publicar comentário
+                              }
+                            </button>
+                          </div>
 
-                                @if (comment.canEdit || comment.canDelete) {
-                                  <footer class="task-comment__actions">
-                                    @if (comment.canEdit) {
-                                      <button type="button" (click)="startCommentEdit(comment)">
-                                        Editar
-                                      </button>
-                                    }
-                                    @if (comment.canDelete) {
-                                      <button
-                                        class="task-comment__remove"
-                                        type="button"
-                                        (click)="requestCommentRemoval(comment)"
-                                      >
-                                        Remover
-                                      </button>
-                                    }
-                                  </footer>
-                                }
+                          @if (
+                            commentForm.controls.content.touched &&
+                            commentForm.controls.content.hasError('required')
+                          ) {
+                            <small class="task-collaboration__validation">
+                              Escreva uma mensagem antes de publicar.
+                            </small>
+                          } @else if (commentForm.controls.content.hasError('maxlength')) {
+                            <small class="task-collaboration__validation">
+                              Use no máximo 2000 caracteres.
+                            </small>
+                          }
+                        </form>
+                      } @else if (isReadOnly()) {
+                        <p class="task-collaboration__readonly">
+                          Visualizadores podem acompanhar a conversa, sem publicar ou alterar
+                          comentários.
+                        </p>
+                      }
 
-                                @if (commentPendingDeletionId() === comment.id) {
-                                  <div class="task-comment__confirmation" role="alert">
-                                    <span>Remover este comentário?</span>
-                                    <div>
+                      @if (commentActionError()) {
+                        <div
+                          class="task-collaboration__message task-collaboration__message--error"
+                          role="alert"
+                        >
+                          {{ commentActionError() }}
+                        </div>
+                      }
+
+                      @if (loadingTaskCollaboration()) {
+                        <div class="task-collaboration__state" role="status">
+                          <span class="loading-indicator" aria-hidden="true"></span>
+                          <span>Carregando colaboração...</span>
+                        </div>
+                      } @else if (taskCollaborationError()) {
+                        <div
+                          class="task-collaboration__state task-collaboration__state--error"
+                          role="alert"
+                        >
+                          <span>{{ taskCollaborationError() }}</span>
+                          <button type="button" (click)="retryTaskCollaboration()">
+                            Tentar novamente
+                          </button>
+                        </div>
+                      } @else if (taskCollaboration(); as collaboration) {
+                        @if (collaboration.comments.length === 0) {
+                          <p class="task-collaboration__empty">
+                            Ainda não há comentários nesta tarefa.
+                          </p>
+                        } @else {
+                          <ul class="task-comments">
+                            @for (comment of collaboration.comments; track comment.id) {
+                              <li class="task-comment">
+                                <header>
+                                  <span class="task-comment__avatar" aria-hidden="true">
+                                    {{ comment.author.name.charAt(0).toUpperCase() }}
+                                  </span>
+                                  <div>
+                                    <strong>{{ comment.author.name }}</strong>
+                                    <small>
+                                      {{ formatTaskTimestamp(comment.createdAt) }}
+                                      @if (comment.edited) {
+                                        · editado
+                                      }
+                                    </small>
+                                  </div>
+                                </header>
+
+                                @if (editingCommentId() === comment.id) {
+                                  <form
+                                    class="task-comment-form task-comment-form--editing"
+                                    [formGroup]="editCommentForm"
+                                    (ngSubmit)="submitCommentEdit(comment.id)"
+                                    novalidate
+                                  >
+                                    <label
+                                      class="visually-hidden"
+                                      [for]="'edit-comment-' + comment.id"
+                                    >
+                                      Editar comentário
+                                    </label>
+                                    <textarea
+                                      [id]="'edit-comment-' + comment.id"
+                                      rows="3"
+                                      maxlength="2000"
+                                      formControlName="content"
+                                    ></textarea>
+                                    <footer>
                                       <button
                                         type="button"
                                         [disabled]="managingComment()"
-                                        (click)="cancelCommentRemoval()"
+                                        (click)="cancelCommentEdit()"
                                       >
                                         Cancelar
                                       </button>
                                       <button
-                                        class="task-comment__remove"
-                                        type="button"
+                                        class="primary-button"
+                                        type="submit"
                                         [disabled]="managingComment()"
-                                        (click)="confirmCommentRemoval(comment.id)"
                                       >
-                                        Confirmar
+                                        Salvar
                                       </button>
+                                    </footer>
+                                  </form>
+                                } @else {
+                                  <p>{{ comment.content }}</p>
+
+                                  @if (comment.canEdit || comment.canDelete) {
+                                    <footer class="task-comment__actions">
+                                      @if (comment.canEdit) {
+                                        <button type="button" (click)="startCommentEdit(comment)">
+                                          Editar
+                                        </button>
+                                      }
+                                      @if (comment.canDelete) {
+                                        <button
+                                          class="task-comment__remove"
+                                          type="button"
+                                          (click)="requestCommentRemoval(comment)"
+                                        >
+                                          Remover
+                                        </button>
+                                      }
+                                    </footer>
+                                  }
+
+                                  @if (commentPendingDeletionId() === comment.id) {
+                                    <div class="task-comment__confirmation" role="alert">
+                                      <span>Remover este comentário?</span>
+                                      <div>
+                                        <button
+                                          type="button"
+                                          [disabled]="managingComment()"
+                                          (click)="cancelCommentRemoval()"
+                                        >
+                                          Cancelar
+                                        </button>
+                                        <button
+                                          class="task-comment__remove"
+                                          type="button"
+                                          [disabled]="managingComment()"
+                                          (click)="confirmCommentRemoval(comment.id)"
+                                        >
+                                          Confirmar
+                                        </button>
+                                      </div>
                                     </div>
-                                  </div>
+                                  }
                                 }
-                              }
-                            </li>
-                          }
-                        </ul>
-                      }
-                    }
-                  </div>
-
-                  <div class="task-collaboration__column" aria-labelledby="task-activity-title">
-                    <header class="task-collaboration__header">
-                      <div>
-                        <p class="eyebrow">Histórico</p>
-                        <h4 id="task-activity-title">Atividade da tarefa</h4>
-                      </div>
-
-                      <strong>{{ taskCollaboration()?.activities?.length ?? 0 }}</strong>
-                    </header>
-
-                    @if (!loadingTaskCollaboration() && !taskCollaborationError()) {
-                      @if (taskCollaboration(); as collaboration) {
-                        @if (collaboration.activities.length === 0) {
-                          <p class="task-collaboration__empty">
-                            As próximas alterações desta tarefa aparecerão aqui.
-                          </p>
-                        } @else {
-                          <ol class="task-activity">
-                            @for (activity of collaboration.activities; track activity.id) {
-                              <li>
-                                <span class="task-activity__marker" aria-hidden="true"></span>
-                                <div>
-                                  <p>
-                                    <strong>{{ activity.actor.name }}</strong>
-                                    {{ activity.description }}
-                                  </p>
-                                  <time [attr.datetime]="activity.createdAt">
-                                    {{ formatTaskTimestamp(activity.createdAt) }}
-                                  </time>
-                                </div>
                               </li>
                             }
-                          </ol>
+                          </ul>
                         }
                       }
-                    }
-                  </div>
-                </section>
-              </div>
-            }
-          </section>
+                    </div>
+
+                    <div class="task-collaboration__column" aria-labelledby="task-activity-title">
+                      <header class="task-collaboration__header">
+                        <div>
+                          <p class="eyebrow">Histórico</p>
+                          <h4 id="task-activity-title">Atividade da tarefa</h4>
+                        </div>
+
+                        <strong>{{ taskCollaboration()?.activities?.length ?? 0 }}</strong>
+                      </header>
+
+                      @if (!loadingTaskCollaboration() && !taskCollaborationError()) {
+                        @if (taskCollaboration(); as collaboration) {
+                          @if (collaboration.activities.length === 0) {
+                            <p class="task-collaboration__empty">
+                              As próximas alterações desta tarefa aparecerão aqui.
+                            </p>
+                          } @else {
+                            <ol class="task-activity">
+                              @for (activity of collaboration.activities; track activity.id) {
+                                <li>
+                                  <span class="task-activity__marker" aria-hidden="true"></span>
+                                  <div>
+                                    <p>
+                                      <strong>{{ activity.actor.name }}</strong>
+                                      {{ activity.description }}
+                                    </p>
+                                    <time [attr.datetime]="activity.createdAt">
+                                      {{ formatTaskTimestamp(activity.createdAt) }}
+                                    </time>
+                                  </div>
+                                </li>
+                              }
+                            </ol>
+                          }
+                        }
+                      }
+                    </div>
+                  </section>
+                </div>
+              }
+            </section>
+          </div>
         }
         @if (loadingKanban()) {
           <div class="state-card" role="status">
@@ -1175,7 +1770,8 @@
                 <span class="kanban-filters__count" role="status" aria-live="polite">
                   {{ visibleTaskCount() }} de {{ totalTaskCount() }} tarefas
                   @if (hasActiveKanbanFilters()) {
-                    · {{ activeFilterCount() }} {{ activeFilterCount() === 1 ? 'filtro' : 'filtros' }}
+                    · {{ activeFilterCount() }}
+                    {{ activeFilterCount() === 1 ? 'filtro' : 'filtros' }}
                   }
                 </span>
 
@@ -1244,14 +1840,19 @@
                 } @else {
                   @if (projectLabelsError()) {
                     <p class="kanban-filters__warning" role="alert">
-                      {{ projectLabelsError() }} Os filtros incluem apenas labels presentes neste quadro.
+                      {{ projectLabelsError() }} Os filtros incluem apenas labels presentes neste
+                      quadro.
                     </p>
                   }
 
                   @if (availableLabelFilters().length === 0) {
                     <p class="kanban-filters__state">Nenhuma label disponível para filtragem.</p>
                   } @else {
-                    <div class="kanban-filters__label-mode" role="group" aria-label="Modo de correspondência de labels">
+                    <div
+                      class="kanban-filters__label-mode"
+                      role="group"
+                      aria-label="Modo de correspondência de labels"
+                    >
                       <button
                         type="button"
                         [class.is-active]="labelFilterMode() === 'ANY'"
@@ -1270,7 +1871,11 @@
                       </button>
                     </div>
 
-                    <div class="kanban-filters__options" role="group" aria-label="Labels disponíveis">
+                    <div
+                      class="kanban-filters__options"
+                      role="group"
+                      aria-label="Labels disponíveis"
+                    >
                       @for (label of availableLabelFilters(); track label.id) {
                         <button
                           type="button"
@@ -1295,7 +1900,8 @@
 
             @if (hasActiveKanbanFilters()) {
               <p class="kanban-filters__hint">
-                A movimentação fica pausada durante a filtragem para preservar a ordem real das tarefas.
+                A movimentação fica pausada durante a filtragem para preservar a ordem real das
+                tarefas.
               </p>
             }
           </section>
@@ -1358,8 +1964,8 @@
                           [attr.data-priority]="task.priority"
                         >
                           <header class="task-card__header">
-                            <span class="task-priority">
-                              {{ task.priority }}
+                            <span class="task-priority" [attr.data-priority]="task.priority">
+                              {{ formatTaskPriority(task.priority) }}
                             </span>
 
                             <div class="task-card__header-actions">
@@ -1387,6 +1993,25 @@
                               @for (label of task.labels; track label.id) {
                                 <span class="task-label" [attr.data-label-color]="label.color">
                                   {{ label.name }}
+                                </span>
+                              }
+                            </div>
+                          }
+
+                          @if (task.technologies.length > 0) {
+                            <div class="task-technologies" aria-label="Tecnologias da tarefa">
+                              @for (technology of task.technologies; track technology) {
+                                <span>
+                                  <span
+                                    class="task-technology-mark"
+                                    [style.--technology-color]="technologyOption(technology).color"
+                                    aria-hidden="true"
+                                  >
+                                    <svg viewBox="0 0 24 24">
+                                      <path [attr.d]="technologyOption(technology).path" />
+                                    </svg>
+                                  </span>
+                                  {{ technologyOption(technology).label }}
                                 </span>
                               }
                             </div>
@@ -1500,7 +2125,12 @@
             @for (board of boards(); track board.id) {
               <article class="board-card">
                 <header class="board-card__header">
-                  <span class="board-icon" aria-hidden="true"> ▦ </span>
+                  <span class="board-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <rect x="3.5" y="4" width="17" height="16" rx="2" />
+                      <path d="M9 4v16M15 4v16" />
+                    </svg>
+                  </span>
 
                   <span class="board-card__meta">
                     @if (board.defaultBoard) {

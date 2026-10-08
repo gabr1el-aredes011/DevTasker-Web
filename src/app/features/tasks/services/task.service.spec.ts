@@ -29,6 +29,7 @@ describe('TaskService', () => {
         dueDate: null,
         assigneeId: 3,
         labelIds: [4, 7],
+        technologies: ['JAVA'],
       })
       .subscribe();
 
@@ -37,6 +38,7 @@ describe('TaskService', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body.assigneeId).toBe(3);
     expect(request.request.body.labelIds).toEqual([4, 7]);
+    expect(request.request.body.technologies).toEqual(['JAVA']);
     request.flush({});
   });
 
@@ -49,6 +51,7 @@ describe('TaskService', () => {
         dueDate: null,
         assigneeId: null,
         labelIds: [],
+        technologies: [],
       })
       .subscribe();
 
@@ -57,7 +60,24 @@ describe('TaskService', () => {
     expect(request.request.method).toBe('PUT');
     expect(request.request.body.assigneeId).toBeNull();
     expect(request.request.body.labelIds).toEqual([]);
+    expect(request.request.body.technologies).toEqual([]);
     request.flush({});
+  });
+
+  it('should normalize collections omitted by an older API response', () => {
+    let normalizedTechnologies: readonly string[] | undefined;
+    let normalizedChecklistLength = -1;
+
+    service.findById(19).subscribe((task) => {
+      normalizedTechnologies = task.technologies;
+      normalizedChecklistLength = task.checklistItems.length;
+    });
+
+    const request = http.expectOne(`${environment.apiUrl}/tasks/19`);
+    request.flush({ id: 19, labels: [] });
+
+    expect(normalizedTechnologies).toEqual([]);
+    expect(normalizedChecklistLength).toBe(0);
   });
 
   it('should manage checklist items through task-scoped endpoints', () => {
@@ -87,9 +107,7 @@ describe('TaskService', () => {
   it('should load and manage task collaboration through task-scoped endpoints', () => {
     service.findCollaboration(19).subscribe();
 
-    const collaborationRequest = http.expectOne(
-      `${environment.apiUrl}/tasks/19/collaboration`,
-    );
+    const collaborationRequest = http.expectOne(`${environment.apiUrl}/tasks/19/collaboration`);
     expect(collaborationRequest.request.method).toBe('GET');
     collaborationRequest.flush({ comments: [], activities: [] });
 
@@ -132,9 +150,7 @@ describe('TaskService', () => {
 
     service.downloadAttachment(19, 5).subscribe();
 
-    const downloadRequest = http.expectOne(
-      `${environment.apiUrl}/tasks/19/attachments/5/download`,
-    );
+    const downloadRequest = http.expectOne(`${environment.apiUrl}/tasks/19/attachments/5/download`);
     expect(downloadRequest.request.method).toBe('GET');
     expect(downloadRequest.request.responseType).toBe('blob');
     downloadRequest.flush(new Blob(['conteúdo']));

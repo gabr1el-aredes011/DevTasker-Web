@@ -129,16 +129,16 @@ describe('ProjectService', () => {
     expect(list.request.method).toBe('GET');
     list.flush([label]);
 
-    service.createLabel(7, { name: 'Backend', color: 'BLUE' }).subscribe();
+    service.createLabel(7, { name: 'Backend' }).subscribe();
     const create = http.expectOne(`${environment.apiUrl}/projects/7/labels`);
     expect(create.request.method).toBe('POST');
-    expect(create.request.body).toEqual({ name: 'Backend', color: 'BLUE' });
+    expect(create.request.body).toEqual({ name: 'Backend' });
     create.flush(label);
 
-    service.updateLabel(7, 23, { name: 'API', color: 'VIOLET' }).subscribe();
+    service.updateLabel(7, 23, { name: 'API' }).subscribe();
     const update = http.expectOne(`${environment.apiUrl}/projects/7/labels/23`);
     expect(update.request.method).toBe('PUT');
-    expect(update.request.body).toEqual({ name: 'API', color: 'VIOLET' });
+    expect(update.request.body).toEqual({ name: 'API' });
     update.flush({ ...label, name: 'API', color: 'VIOLET' });
 
     service.archiveLabel(7, 23).subscribe();

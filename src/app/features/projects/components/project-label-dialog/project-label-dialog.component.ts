@@ -6,7 +6,7 @@ import { finalize } from 'rxjs';
 
 import { ApiError } from '../../../../core/http/api-error.model';
 import { DtButtonDirective, DtDialogFrameComponent, DtFieldComponent } from '../../../../shared/ui';
-import { ProjectLabel, ProjectLabelColor } from '../../models/project.models';
+import { ProjectLabel } from '../../models/project.models';
 import { ProjectService } from '../../services/project.service';
 
 export type ProjectLabelDialogData =
@@ -32,23 +32,10 @@ export class ProjectLabelDialogComponent {
   readonly data = inject<ProjectLabelDialogData>(DIALOG_DATA);
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
-  readonly colors: readonly ProjectLabelColor[] = [
-    'GREEN',
-    'BLUE',
-    'VIOLET',
-    'AMBER',
-    'RED',
-    'CYAN',
-    'GRAY',
-  ];
   readonly name = new FormControl(this.data.mode === 'create' ? '' : this.data.label.name, {
     nonNullable: true,
     validators: [Validators.required, Validators.maxLength(30)],
   });
-  readonly color = new FormControl<ProjectLabelColor>(
-    this.data.mode === 'create' ? 'GREEN' : this.data.label.color,
-    { nonNullable: true, validators: [Validators.required] },
-  );
   readonly isArchive = this.data.mode === 'archive';
   readonly title = computed(() => {
     if (this.data.mode === 'create') return 'Criar label';
@@ -67,10 +54,9 @@ export class ProjectLabelDialogComponent {
     }
 
     this.name.markAsTouched();
-    this.color.markAsTouched();
-    if (this.name.invalid || this.color.invalid) return;
+    if (this.name.invalid) return;
 
-    const request = { name: this.name.value.trim(), color: this.color.value };
+    const request = { name: this.name.value.trim() };
     const operation =
       this.data.mode === 'create'
         ? this.projectService.createLabel(this.data.projectId, request)

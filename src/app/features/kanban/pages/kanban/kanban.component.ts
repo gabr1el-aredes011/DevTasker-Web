@@ -5,12 +5,12 @@ import {
   CdkDropList,
   CdkDropListGroup,
 } from '@angular/cdk/drag-drop';
+import { A11yModule } from '@angular/cdk/a11y';
+import { Dialog } from '@angular/cdk/dialog';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   CreateTaskRequest,
   TaskCollaboration,
@@ -19,7 +19,9 @@ import {
   TaskChecklistItem,
   TaskLabel,
   TaskPriority,
+  TaskTechnology,
   TaskResponse,
+  TASK_TECHNOLOGY_OPTIONS,
   UpdateTaskRequest,
   MoveTaskRequest,
 } from '../../../tasks/models/task.models';
@@ -27,12 +29,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  HostListener,
   inject,
   OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
-import { finalize } from 'rxjs';
+import { finalize, take } from 'rxjs';
 import { KanbanBoard, KanbanColumn, KanbanTask } from '../../models/kanban.models';
 import { KanbanService } from '../../services/kanban.service';
 import { TaskService } from '../../../tasks/services/task.service';
@@ -48,17 +51,29 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
 import { DtToastService } from '../../../../shared/ui';
 import { BoardRealtimeService } from '../../services/board-realtime.service';
+import { BoardRealtimeEvent, BoardRealtimeStatus } from '../../models/board-realtime.models';
 import {
-  BoardRealtimeEvent,
-  BoardRealtimeStatus,
-} from '../../models/board-realtime.models';
+  ProjectLabelDialogComponent,
+  ProjectLabelDialogData,
+  ProjectLabelDialogResult,
+} from '../../../projects/components/project-label-dialog/project-label-dialog.component';
 
 type LabelFilterMode = 'ANY' | 'ALL';
 type DueDateFilter = 'ALL' | 'OVERDUE' | 'TODAY' | 'NEXT_7_DAYS' | 'NO_DATE';
+type MarkdownFormat =
+  'bold' | 'italic' | 'heading' | 'list' | 'checklist' | 'quote' | 'code' | 'link';
 
 interface AssigneeFilterOption {
   readonly id: number | null;
   readonly name: string;
+}
+
+interface AttachmentPreview {
+  readonly name: string;
+  readonly contentType: string;
+  readonly objectUrl: string;
+  readonly safeUrl: SafeResourceUrl;
+  readonly textContent: string | null;
 }
 
 @Component({
@@ -70,7 +85,9 @@ interface AssigneeFilterOption {
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
+    A11yModule,
     TaskMarkdownComponent,
+    DatePipe,
   ],
   templateUrl: './kanban.component.html',
   styleUrl: './kanban.component.scss',
@@ -85,6 +102,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(DtToastService);
   private readonly boardRealtimeService = inject(BoardRealtimeService);
+  private readonly dialog = inject(Dialog);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly projects = signal<readonly ProjectSummary[]>([]);
 
@@ -288,12 +307,17 @@ export class KanbanComponent implements OnInit, OnDestroy {
   readonly downloadingAttachmentId = signal<number | null>(null);
   readonly attachmentActionError = signal<string | null>(null);
   readonly attachmentPendingDeletionId = signal<number | null>(null);
+  readonly pendingAttachment = signal<File | null>(null);
+  readonly pendingAttachmentThumbnailUrl = signal<string | null>(null);
+  readonly attachmentPreview = signal<AttachmentPreview | null>(null);
+  readonly previewingAttachmentId = signal<number | null>(null);
 
   readonly checklistCompletedCount = computed(
     () => this.selectedTask()?.checklistItems.filter((item) => item.completed).length ?? 0,
   );
 
   readonly priorities: readonly TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+  readonly technologyOptions = TASK_TECHNOLOGY_OPTIONS;
   readonly priorityFilterOptions: readonly {
     readonly value: TaskPriority;
     readonly label: string;
@@ -317,7 +341,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   readonly createTaskForm = this.formBuilder.nonNullable.group({
     columnId: [0, [Validators.required, Validators.min(1)]],
 
-    title: ['', [Validators.required]],
+    title: ['', [Validators.required, Validators.maxLength(180)]],
 
     description: ['', [Validators.maxLength(4000)]],
 
@@ -328,10 +352,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     assigneeId: [null as number | null],
 
     labelIds: [[] as number[]],
+
+    technologies: [[] as TaskTechnology[]],
   });
 
   readonly editTaskForm = this.formBuilder.nonNullable.group({
-    title: ['', [Validators.required]],
+    title: ['', [Validators.required, Validators.maxLength(180)]],
 
     description: ['', [Validators.maxLength(4000)]],
 
@@ -342,6 +368,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
     assigneeId: [null as number | null],
 
     labelIds: [[] as number[]],
+
+    technologies: [[] as TaskTechnology[]],
   });
 
   readonly checklistItemForm = this.formBuilder.nonNullable.group({
@@ -371,6 +399,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
     return project !== null && project.membershipRole !== 'VIEWER';
   });
 
+  readonly canManageLabels = computed(() => {
+    const role = this.selectedProject()?.membershipRole;
+    return role === 'OWNER' || role === 'ADMIN';
+  });
+
   readonly isReadOnly = computed(() => this.selectedProject()?.membershipRole === 'VIEWER');
 
   readonly taskMovementDisabled = computed(
@@ -397,6 +430,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.disconnectRealtime();
+    this.resetTaskAttachments();
   }
 
   retry(): void {
@@ -627,6 +661,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       dueDate: '',
       assigneeId: null,
       labelIds: [],
+      technologies: [],
     });
     this.createDescriptionPreview.set(false);
     this.taskFormOpen.set(true);
@@ -648,6 +683,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       dueDate: task.dueDate ?? '',
       assigneeId: task.assignee?.id ?? null,
       labelIds: task.labels.filter((label) => !label.archived).map((label) => label.id),
+      technologies: [...task.technologies],
     });
 
     this.editDescriptionPreview.set(false);
@@ -705,6 +741,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       dueDate: formValue.dueDate || null,
       assigneeId: formValue.assigneeId,
       labelIds: formValue.labelIds,
+      technologies: formValue.technologies,
     };
 
     this.updatingTask.set(true);
@@ -805,9 +842,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (updatedTask) => {
           this.applyChecklistUpdate(updatedTask);
-          this.toast.success(
-            item.completed ? 'Item reaberto.' : 'Item concluído.',
-          );
+          this.toast.success(item.completed ? 'Item reaberto.' : 'Item concluído.');
           this.loadTaskCollaboration(updatedTask.id);
         },
         error: (error: unknown) => {
@@ -838,9 +873,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
           this.loadTaskCollaboration(updatedTask.id);
         },
         error: (error: unknown) => {
-          this.checklistError.set(
-            this.extractApiError(error, 'Não foi possível remover o item.'),
-          );
+          this.checklistError.set(this.extractApiError(error, 'Não foi possível remover o item.'));
         },
       });
   }
@@ -1034,6 +1067,65 @@ export class KanbanComponent implements OnInit, OnDestroy {
     }
   }
 
+  formatTaskPriority(priority: TaskPriority): string {
+    const labels: Record<TaskPriority, string> = {
+      LOW: 'Baixa',
+      MEDIUM: 'Média',
+      HIGH: 'Alta',
+      URGENT: 'Urgente',
+    };
+
+    return labels[priority];
+  }
+
+  formatDescription(
+    mode: 'create' | 'edit',
+    textarea: HTMLTextAreaElement,
+    format: MarkdownFormat,
+  ): void {
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.description
+        : this.editTaskForm.controls.description;
+    const value = control.value;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = value.slice(start, end);
+    const replacements: Record<
+      MarkdownFormat,
+      { prefix: string; suffix: string; fallback: string }
+    > = {
+      bold: { prefix: '**', suffix: '**', fallback: 'texto em negrito' },
+      italic: { prefix: '*', suffix: '*', fallback: 'texto em itálico' },
+      heading: { prefix: '## ', suffix: '', fallback: 'Seção' },
+      list: { prefix: '- ', suffix: '', fallback: 'item da lista' },
+      checklist: { prefix: '- [ ] ', suffix: '', fallback: 'critério de aceite' },
+      quote: { prefix: '> ', suffix: '', fallback: 'observação importante' },
+      code: { prefix: '`', suffix: '`', fallback: 'código' },
+      link: { prefix: '[', suffix: '](https://)', fallback: 'texto do link' },
+    };
+    const replacement = replacements[format];
+    const content = selection || replacement.fallback;
+    const inserted = `${replacement.prefix}${content}${replacement.suffix}`;
+
+    control.setValue(`${value.slice(0, start)}${inserted}${value.slice(end)}`);
+    control.markAsDirty();
+    queueMicrotask(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + replacement.prefix.length,
+        start + replacement.prefix.length + content.length,
+      );
+    });
+  }
+
+  formatTaskDueDate(value: string | null): string {
+    if (!value) return 'Sem prazo';
+
+    const [year, month, day] = value.split('-');
+    return day && month && year ? `${day}/${month}/${year}` : value;
+  }
+
   formatTaskTimestamp(value: string): string {
     const date = new Date(value);
 
@@ -1047,14 +1139,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     }).format(date);
   }
 
-  uploadAttachment(event: Event): void {
-    const taskId = this.selectedTaskId();
+  selectAttachment(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.item(0) ?? null;
 
     if (
       !this.canWriteTasks() ||
-      taskId === null ||
       file === null ||
       this.managingAttachment() ||
       this.taskAttachments().length >= 10
@@ -1088,20 +1178,35 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.clearPendingAttachment();
+    this.attachmentActionError.set(null);
+    this.pendingAttachment.set(file);
+
+    if (this.isImageContentType(file.type)) {
+      this.pendingAttachmentThumbnailUrl.set(URL.createObjectURL(file));
+    }
+
+    input.value = '';
+  }
+
+  confirmAttachmentUpload(): void {
+    const taskId = this.selectedTaskId();
+    const file = this.pendingAttachment();
+
+    if (!this.canWriteTasks() || taskId === null || !file || this.managingAttachment()) {
+      return;
+    }
+
     this.managingAttachment.set(true);
     this.attachmentActionError.set(null);
 
     this.taskService
       .uploadAttachment(taskId, file)
-      .pipe(
-        finalize(() => {
-          this.managingAttachment.set(false);
-          input.value = '';
-        }),
-      )
+      .pipe(finalize(() => this.managingAttachment.set(false)))
       .subscribe({
         next: (attachments) => {
           this.taskAttachments.set(attachments);
+          this.clearPendingAttachment();
           this.toast.success('Arquivo anexado com sucesso.');
           this.loadTaskCollaboration(taskId);
         },
@@ -1111,6 +1216,62 @@ export class KanbanComponent implements OnInit, OnDestroy {
           );
         },
       });
+  }
+
+  cancelPendingAttachment(): void {
+    if (!this.managingAttachment()) {
+      this.clearPendingAttachment();
+      this.attachmentActionError.set(null);
+    }
+  }
+
+  previewPendingAttachment(): void {
+    const file = this.pendingAttachment();
+    if (!file) return;
+
+    void this.showAttachmentPreview(file, file.name);
+  }
+
+  previewAttachment(attachment: TaskAttachment): void {
+    const taskId = this.selectedTaskId();
+    if (taskId === null || this.previewingAttachmentId() !== null) return;
+
+    this.previewingAttachmentId.set(attachment.id);
+    this.attachmentActionError.set(null);
+
+    this.taskService
+      .downloadAttachment(taskId, attachment.id)
+      .pipe(finalize(() => this.previewingAttachmentId.set(null)))
+      .subscribe({
+        next: (content) => void this.showAttachmentPreview(content, attachment.originalFileName),
+        error: (error: unknown) => {
+          this.attachmentActionError.set(
+            this.extractApiError(error, 'Não foi possível visualizar o arquivo.'),
+          );
+        },
+      });
+  }
+
+  closeAttachmentPreview(): void {
+    const preview = this.attachmentPreview();
+    if (preview) URL.revokeObjectURL(preview.objectUrl);
+    this.attachmentPreview.set(null);
+  }
+
+  isImageContentType(contentType: string): boolean {
+    return contentType.toLowerCase().startsWith('image/');
+  }
+
+  isPdfContentType(contentType: string): boolean {
+    return contentType.toLowerCase() === 'application/pdf';
+  }
+
+  attachmentKind(contentType: string): string {
+    if (this.isImageContentType(contentType)) return 'IMG';
+    if (this.isPdfContentType(contentType)) return 'PDF';
+    if (contentType.toLowerCase().includes('json')) return '{}';
+    if (contentType.toLowerCase().startsWith('text/')) return 'TXT';
+    return 'ZIP';
   }
 
   downloadAttachment(attachment: TaskAttachment): void {
@@ -1217,6 +1378,26 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.createTaskError.set(null);
   }
 
+  @HostListener('document:keydown.escape', ['$event'])
+  handleModalEscape(event: Event): void {
+    if (this.attachmentPreview()) {
+      event.preventDefault();
+      this.closeAttachmentPreview();
+      return;
+    }
+
+    if (this.taskFormOpen()) {
+      event.preventDefault();
+      this.closeCreateTaskForm();
+      return;
+    }
+
+    if (this.taskDetailsOpen()) {
+      event.preventDefault();
+      this.closeTaskDetails();
+    }
+  }
+
   submitCreateTask(): void {
     if (!this.canWriteTasks()) {
       return;
@@ -1259,6 +1440,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       dueDate: formValue.dueDate || null,
       assigneeId: formValue.assigneeId,
       labelIds: formValue.labelIds,
+      technologies: formValue.technologies,
     };
 
     this.creatingTask.set(true);
@@ -1527,7 +1709,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
      * Navegação comum.
      * Sem projectId o Kanban continua
      * exatamente com o comportamento atual.
-    */
+     */
     if (projectId === null) {
       if (
         this.route.snapshot.queryParamMap.get('labels') ||
@@ -1662,21 +1844,31 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   isTaskLabelSelected(mode: 'create' | 'edit', labelId: number): boolean {
-    const control = mode === 'create' ? this.createTaskForm.controls.labelIds : this.editTaskForm.controls.labelIds;
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.labelIds
+        : this.editTaskForm.controls.labelIds;
     return control.value.includes(labelId);
   }
 
   isTaskLabelDisabled(mode: 'create' | 'edit', labelId: number): boolean {
     if (this.isTaskLabelSelected(mode, labelId)) return false;
-    const control = mode === 'create' ? this.createTaskForm.controls.labelIds : this.editTaskForm.controls.labelIds;
-    const archivedCount = mode === 'edit'
-      ? (this.selectedTask()?.labels.filter((label) => label.archived).length ?? 0)
-      : 0;
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.labelIds
+        : this.editTaskForm.controls.labelIds;
+    const archivedCount =
+      mode === 'edit'
+        ? (this.selectedTask()?.labels.filter((label) => label.archived).length ?? 0)
+        : 0;
     return control.value.length >= 5 - archivedCount;
   }
 
   toggleTaskLabel(mode: 'create' | 'edit', labelId: number): void {
-    const control = mode === 'create' ? this.createTaskForm.controls.labelIds : this.editTaskForm.controls.labelIds;
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.labelIds
+        : this.editTaskForm.controls.labelIds;
     const selected = control.value;
 
     if (selected.includes(labelId)) {
@@ -1688,8 +1880,102 @@ export class KanbanComponent implements OnInit, OnDestroy {
     control.markAsDirty();
   }
 
+  isTaskTechnologySelected(mode: 'create' | 'edit', technology: TaskTechnology): boolean {
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.technologies
+        : this.editTaskForm.controls.technologies;
+    return control.value.includes(technology);
+  }
+
+  isTaskTechnologyDisabled(mode: 'create' | 'edit', technology: TaskTechnology): boolean {
+    if (this.isTaskTechnologySelected(mode, technology)) return false;
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.technologies
+        : this.editTaskForm.controls.technologies;
+    return control.value.length >= 8;
+  }
+
+  toggleTaskTechnology(mode: 'create' | 'edit', technology: TaskTechnology): void {
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.technologies
+        : this.editTaskForm.controls.technologies;
+    const selected = control.value;
+
+    control.setValue(
+      selected.includes(technology)
+        ? selected.filter((current) => current !== technology)
+        : this.isTaskTechnologyDisabled(mode, technology)
+          ? selected
+          : [...selected, technology],
+    );
+    control.markAsDirty();
+  }
+
+  technologyOption(technology: TaskTechnology) {
+    return this.technologyOptions.find((option) => option.value === technology)!;
+  }
+
+  openCreateProjectLabel(mode: 'create' | 'edit'): void {
+    const project = this.selectedProject();
+    if (!project || !this.canManageLabels()) return;
+
+    this.openProjectLabelDialog({ mode: 'create', projectId: project.id }, mode);
+  }
+
+  openEditProjectLabel(label: ProjectLabel): void {
+    const project = this.selectedProject();
+    if (!project || !this.canManageLabels()) return;
+
+    this.openProjectLabelDialog({ mode: 'edit', projectId: project.id, label });
+  }
+
   isLabelFilterSelected(labelId: number): boolean {
     return this.selectedLabelFilterIds().includes(labelId);
+  }
+
+  private openProjectLabelDialog(
+    data: ProjectLabelDialogData,
+    selectInForm?: 'create' | 'edit',
+  ): void {
+    this.dialog
+      .open<ProjectLabelDialogResult>(ProjectLabelDialogComponent, {
+        data,
+        ariaLabel:
+          data.mode === 'create' ? 'Criar label do projeto' : `Editar a label ${data.label.name}`,
+        panelClass: 'dt-dialog-panel',
+        backdropClass: 'dt-dialog-backdrop',
+      })
+      .closed.pipe(take(1))
+      .subscribe((result) => {
+        if (!result || result.action === 'archived') return;
+
+        this.projectLabels.update((labels) =>
+          result.action === 'created'
+            ? [...labels, result.label].sort((left, right) => left.name.localeCompare(right.name))
+            : labels.map((label) => (label.id === result.label.id ? result.label : label)),
+        );
+
+        if (result.action === 'created' && selectInForm) {
+          const control =
+            selectInForm === 'create'
+              ? this.createTaskForm.controls.labelIds
+              : this.editTaskForm.controls.labelIds;
+
+          if (!this.isTaskLabelDisabled(selectInForm, result.label.id)) {
+            control.setValue([...control.value, result.label.id]);
+            control.markAsDirty();
+          }
+        }
+
+        this.toast.success(
+          result.action === 'created'
+            ? 'Label criada e adicionada à tarefa.'
+            : 'Label atualizada com sucesso.',
+        );
+      });
   }
 
   toggleLabelFilter(labelId: number): void {
@@ -2003,27 +2289,26 @@ export class KanbanComponent implements OnInit, OnDestroy {
   private applyFiltersFromUrl(): void {
     const rawLabelIds = this.route.snapshot.queryParamMap.get('labels');
     const labelIds = rawLabelIds
-      ? [...new Set(
-          rawLabelIds
-            .split(',')
-            .map((value) => Number(value))
-            .filter((value) => Number.isInteger(value) && value > 0),
-        )]
+      ? [
+          ...new Set(
+            rawLabelIds
+              .split(',')
+              .map((value) => Number(value))
+              .filter((value) => Number.isInteger(value) && value > 0),
+          ),
+        ]
       : [];
     const rawMode = this.route.snapshot.queryParamMap.get('labelMatch')?.toLowerCase();
     const priorities = (this.route.snapshot.queryParamMap.get('priorities') ?? '')
       .split(',')
       .map((value) => value.toUpperCase())
-      .filter((value): value is TaskPriority =>
-        this.priorities.includes(value as TaskPriority),
-      );
+      .filter((value): value is TaskPriority => this.priorities.includes(value as TaskPriority));
     const assignees = (this.route.snapshot.queryParamMap.get('assignees') ?? '')
       .split(',')
       .filter(Boolean)
       .map((value) => (value.toLowerCase() === 'none' ? null : Number(value)))
       .filter(
-        (value): value is number | null =>
-          value === null || (Number.isInteger(value) && value > 0),
+        (value): value is number | null => value === null || (Number.isInteger(value) && value > 0),
       );
     const rawDueDateFilter = this.route.snapshot.queryParamMap.get('due')?.toUpperCase();
     const dueDateFilter: DueDateFilter =
@@ -2079,8 +2364,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     const selectedAssignees = this.selectedAssigneeFilters();
     this.updateNavigationState({
       labels: selectedLabelIds.length > 0 ? selectedLabelIds.join(',') : null,
-      labelMatch:
-        selectedLabelIds.length > 0 ? this.labelFilterMode().toLowerCase() : null,
+      labelMatch: selectedLabelIds.length > 0 ? this.labelFilterMode().toLowerCase() : null,
       priorities: selectedPriorities.length > 0 ? selectedPriorities.join(',') : null,
       assignees:
         selectedAssignees.length > 0
@@ -2227,6 +2511,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   private resetTaskAttachments(): void {
+    this.clearPendingAttachment();
+    this.closeAttachmentPreview();
     this.taskAttachments.set([]);
     this.loadingTaskAttachments.set(false);
     this.taskAttachmentsError.set(null);
@@ -2234,5 +2520,30 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.downloadingAttachmentId.set(null);
     this.attachmentActionError.set(null);
     this.attachmentPendingDeletionId.set(null);
+    this.previewingAttachmentId.set(null);
+  }
+
+  private clearPendingAttachment(): void {
+    const thumbnailUrl = this.pendingAttachmentThumbnailUrl();
+    if (thumbnailUrl) URL.revokeObjectURL(thumbnailUrl);
+    this.pendingAttachmentThumbnailUrl.set(null);
+    this.pendingAttachment.set(null);
+  }
+
+  private async showAttachmentPreview(content: Blob, name: string): Promise<void> {
+    this.closeAttachmentPreview();
+    const objectUrl = URL.createObjectURL(content);
+    const textContent =
+      content.type.startsWith('text/') || content.type === 'application/json'
+        ? (await content.text()).slice(0, 100_000)
+        : null;
+
+    this.attachmentPreview.set({
+      name,
+      contentType: content.type,
+      objectUrl,
+      safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl),
+      textContent,
+    });
   }
 }

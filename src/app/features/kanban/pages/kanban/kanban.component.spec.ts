@@ -41,8 +41,7 @@ describe('KanbanComponent', () => {
   const boardRealtimeService = {
     status: signal<'disconnected' | 'connecting' | 'connected' | 'reconnecting'>('connected'),
     connect: vi.fn(
-      (_boardId: number, _onEvent: (event: BoardRealtimeEvent) => void) =>
-        stopRealtimeConnection,
+      (_boardId: number, _onEvent: (event: BoardRealtimeEvent) => void) => stopRealtimeConnection,
     ),
   };
   const taskService = {
@@ -98,6 +97,7 @@ describe('KanbanComponent', () => {
         creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
         assignee: null,
         labels: [{ id: 4, name: 'Backend', color: 'BLUE' as const, archived: false }],
+        technologies: ['JAVA'] as const,
         checklistItems: [
           {
             id: 8,
@@ -233,9 +233,8 @@ describe('KanbanComponent', () => {
                 position: 0,
                 assigneeId: null,
                 assigneeName: null,
-                labels: [
-                  { id: 9, name: 'Permissões', color: 'VIOLET' as const, archived: false },
-                ],
+                labels: [{ id: 9, name: 'Permissões', color: 'VIOLET' as const, archived: false }],
+                technologies: [],
                 completedChecklistItems: 0,
                 totalChecklistItems: 0,
               },
@@ -425,6 +424,7 @@ describe('KanbanComponent', () => {
       title: 'Preparar publicação',
       assigneeId: 3,
       labelIds: [4, 7],
+      technologies: ['JAVA', 'ANGULAR'],
     });
     component.submitCreateTask();
 
@@ -434,6 +434,7 @@ describe('KanbanComponent', () => {
         title: 'Preparar publicação',
         assigneeId: 3,
         labelIds: [4, 7],
+        technologies: ['JAVA', 'ANGULAR'],
       }),
     );
   });
@@ -464,6 +465,7 @@ describe('KanbanComponent', () => {
                 { id: 4, name: 'Backend', color: 'BLUE' as const, archived: false },
                 { id: 7, name: 'Urgente', color: 'RED' as const, archived: false },
               ],
+              technologies: [],
               completedChecklistItems: 0,
               totalChecklistItems: 0,
             },
@@ -476,6 +478,7 @@ describe('KanbanComponent', () => {
               assigneeId: null,
               assigneeName: null,
               labels: [{ id: 4, name: 'Backend', color: 'BLUE' as const, archived: false }],
+              technologies: [],
               completedChecklistItems: 0,
               totalChecklistItems: 0,
             },
@@ -488,6 +491,7 @@ describe('KanbanComponent', () => {
               assigneeId: null,
               assigneeName: null,
               labels: [{ id: 7, name: 'Urgente', color: 'RED' as const, archived: false }],
+              technologies: [],
               completedChecklistItems: 0,
               totalChecklistItems: 0,
             },
@@ -502,9 +506,7 @@ describe('KanbanComponent', () => {
     component.toggleLabelFilter(7);
 
     expect(component.filteredKanban()?.columns[0].tasks.map((task) => task.id)).toEqual([
-      19,
-      20,
-      21,
+      19, 20, 21,
     ]);
     expect(component.visibleTaskCount()).toBe(3);
 
@@ -572,9 +574,8 @@ describe('KanbanComponent', () => {
                 position: 0,
                 assigneeId: null,
                 assigneeName: null,
-                labels: [
-                  { id: 9, name: 'Legada', color: 'GRAY' as const, archived: true },
-                ],
+                labels: [{ id: 9, name: 'Legada', color: 'GRAY' as const, archived: true }],
+                technologies: [],
                 completedChecklistItems: 0,
                 totalChecklistItems: 0,
               },
@@ -629,6 +630,7 @@ describe('KanbanComponent', () => {
               assigneeId: 2,
               assigneeName: 'Gabriel',
               labels: [],
+              technologies: [],
               completedChecklistItems: 0,
               totalChecklistItems: 0,
             },
@@ -641,6 +643,7 @@ describe('KanbanComponent', () => {
               assigneeId: 3,
               assigneeName: 'Bianca',
               labels: [],
+              technologies: [],
               completedChecklistItems: 0,
               totalChecklistItems: 0,
             },
@@ -653,6 +656,7 @@ describe('KanbanComponent', () => {
               assigneeId: null,
               assigneeName: null,
               labels: [],
+              technologies: [],
               completedChecklistItems: 0,
               totalChecklistItems: 0,
             },
@@ -725,6 +729,7 @@ describe('KanbanComponent', () => {
                 assigneeId: null,
                 assigneeName: null,
                 labels: [],
+                technologies: [],
                 completedChecklistItems: 0,
                 totalChecklistItems: 0,
               },
