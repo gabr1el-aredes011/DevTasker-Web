@@ -27,6 +27,14 @@ respeitados nesta ordem.
      toda informação seja representada em verde.
    - Consolidar uma identidade tecnológica própria, com movimento sutil e útil,
      sem copiar a tela de autenticação.
+   - Usar os esboços iniciais somente como referência de princípios: contraste,
+     leitura imediata, autoria e ritmo visual. Não reproduzir sua composição,
+     excesso de neon, métricas fictícias ou repetição de cards.
+   - Introduzir profundidade ambiental discreta e acessível (grade, luz e poucos
+     pontos de sinal), sempre subordinada ao conteúdo e desativada quando o
+     usuário preferir movimento reduzido.
+   - Planejar atividade recente com autoria somente a partir de eventos reais da
+     API; a interface não deve simular pessoas, produtividade ou ações.
    - Revisar projetos recentes, prioridades, pipeline, estados vazios,
      carregamento, erro e comportamento responsivo.
 2. **Projetos**
@@ -47,6 +55,9 @@ respeitados nesta ordem.
      respostas e histórico.
    - Preservar o painel de inteligência do quadro e o filtro em modal já
      entregues, refinando-os após validação de uso.
+   - Evoluir a atribuição única para múltiplos responsáveis como uma mudança de
+     domínio completa: migração e integridade no banco, contratos da API,
+     permissões, filtros, cartões, formulários, eventos em tempo real e testes.
 
 ### Portão 2 — Perfil e identidade pessoal
 
@@ -205,7 +216,9 @@ por exemplo, não será uma cópia visual do Kanban.
 - ✅ Persistência no backend
 - ✅ Deep links de projeto, board e tarefa
 - ✅ Estado refletido na URL
-- ✅ Atribuição de responsável entre participantes com permissão operacional
+- ✅ Atribuição de um responsável entre participantes com permissão operacional
+- 🧭 Atribuição de múltiplos responsáveis por tarefa, com avatares agrupados,
+  filtros coerentes e histórico de alterações
 - ✅ Limpeza automática da atribuição ao remover ou tornar um membro `VIEWER`
 - ✅ Catálogo reutilizável de labels por projeto, com identidade, cores e arquivamento lógico
 - ✅ Seleção de labels do catálogo nas tarefas e migração segura dos textos anteriores
@@ -276,6 +289,8 @@ Critérios de aceite:
 
 - ✅ Descrição avançada em Markdown, limitada a 4.000 caracteres e sem HTML arbitrário
 - ✅ Responsável com validação de participação e permissões
+- 🧭 Múltiplos responsáveis com tabela associativa, migração segura do vínculo
+  atual e limpeza automática quando uma participação perde acesso operacional
 - ✅ Catálogo de labels por projeto com nomes únicos, gestão por `OWNER`/`ADMIN`
   e identidade cromática automática, sem configuração manual de cor
 - ✅ Uso operacional por `MEMBER` e leitura por `VIEWER`, com histórico preservado após arquivamento
@@ -385,8 +400,10 @@ Critérios de aceite:
 
 ### Refinamentos de produto por superfície
 
-- 🧭 Dashboard: reforçar a identidade tecnológica, a leitura visual e a iconografia
+- 🚧 Dashboard: reforçar a identidade tecnológica, a leitura visual e a iconografia
   das métricas sem transformar todos os estados em verde
+  - 🚧 Aplicar profundidade tecnológica sutil sem repetir a cena da autenticação
+  - 🧭 Exibir atividade recente com autoria a partir de dados reais do workspace
 - 🧭 Projetos: criar seção de arquivados, exclusão definitiva com proteção,
   modais refinados e detalhes com gráficos e sinais de atenção por projeto
   - ✅ Substituir o hero genérico e `PROJECT_INDEX` por um registro operacional
