@@ -308,6 +308,41 @@ describe('KanbanComponent', () => {
     },
   );
 
+  it('should replace task details with the edit modal and restore details on cancel', () => {
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+
+    component.selectedProject.set(project);
+    component.selectedTask.set({
+      id: 19,
+      columnId: 31,
+      title: 'Revisar permissões',
+      description: 'Validar a experiência.',
+      priority: 'MEDIUM',
+      dueDate: null,
+      position: 0,
+      creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
+      assignee: null,
+      labels: [],
+      technologies: ['JAVA'],
+      checklistItems: [],
+      createdAt: '2026-08-31T10:00:00Z',
+      updatedAt: '2026-08-31T10:00:00Z',
+    });
+    component.taskDetailsOpen.set(true);
+
+    component.startTaskEdit();
+
+    expect(component.taskDetailsOpen()).toBe(false);
+    expect(component.editingTask()).toBe(true);
+    expect(component.taskMovementDisabled()).toBe(true);
+
+    component.cancelTaskEdit();
+
+    expect(component.editingTask()).toBe(false);
+    expect(component.taskDetailsOpen()).toBe(true);
+  });
+
   it('should publish a trimmed comment and refresh the collaboration state', () => {
     const collaboration = {
       comments: [

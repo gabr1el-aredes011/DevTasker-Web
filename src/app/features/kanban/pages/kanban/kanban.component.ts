@@ -416,7 +416,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
       this.updatingTask() ||
       this.archivingTask() ||
       this.taskFormOpen() ||
-      this.taskDetailsOpen(),
+      this.taskDetailsOpen() ||
+      this.editingTask(),
   );
 
   private projectLabelsReady = false;
@@ -687,6 +688,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     });
 
     this.editDescriptionPreview.set(false);
+    this.taskDetailsOpen.set(false);
     this.editingTask.set(true);
   }
 
@@ -698,6 +700,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.editingTask.set(false);
     this.editDescriptionPreview.set(false);
     this.updateTaskError.set(null);
+    this.taskDetailsOpen.set(true);
   }
 
   submitTaskUpdate(): void {
@@ -763,6 +766,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
           this.selectedTask.set(updatedTask);
           this.editingTask.set(false);
           this.editDescriptionPreview.set(false);
+          this.taskDetailsOpen.set(true);
 
           this.toast.success('Tarefa atualizada com sucesso.');
           this.loadTaskCollaboration(updatedTask.id);
@@ -1389,6 +1393,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (this.taskFormOpen()) {
       event.preventDefault();
       this.closeCreateTaskForm();
+      return;
+    }
+
+    if (this.editingTask()) {
+      event.preventDefault();
+      this.cancelTaskEdit();
       return;
     }
 

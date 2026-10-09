@@ -259,6 +259,10 @@ Critérios de aceite:
   - 🧭 Validação visual autenticada e refinamentos finais após testes de uso
 - 🚧 Profissionalizar formulários e detalhes com modais de foco contido
   - ✅ Criação e edição de projetos, criação e detalhes de tarefas convertidos para modais
+  - ✅ Edição de tarefa isolada em um modal próprio, sem empilhar formulários sobre
+    a visualização de detalhes
+  - ✅ Rolagem interna controlada nos detalhes da tarefa, mantendo comentários,
+    histórico, checklist e anexos acessíveis em qualquer altura de tela
   - ✅ Composer de tarefas dividido entre conteúdo e propriedades, com ações persistentes
   - ✅ Contexto de destino, seletor visual de prioridade, limites de campos e datas
     legíveis no fluxo de tarefas

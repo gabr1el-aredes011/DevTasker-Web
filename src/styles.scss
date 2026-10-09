@@ -67,6 +67,7 @@
 
   .task-form-header,
   .task-details-header {
+    flex: 0 0 auto;
     min-height: 6.5rem;
     margin: 0;
     padding: 1.35rem 1.5rem;
@@ -118,11 +119,21 @@
   }
 
   .task-details-content {
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 1.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
 
   .task-details-content--editing {
     padding: 0;
+  }
+
+  .task-edit-panel {
+    border-color: rgba(70, 255, 120, 0.28);
+    animation: dt-task-editor-in 220ms var(--dt-ease-decelerate, ease-out) both;
   }
 
   .task-form-layout {
@@ -715,6 +726,13 @@
   from {
     opacity: 0;
     transform: translateY(1.5rem) scale(0.975);
+  }
+}
+
+@keyframes dt-task-editor-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.985);
   }
 }
 

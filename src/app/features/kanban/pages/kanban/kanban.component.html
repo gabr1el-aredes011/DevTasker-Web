@@ -536,13 +536,20 @@
           </div>
         }
 
-        @if (taskDetailsOpen()) {
-          <div class="workspace-view-modal" (click)="closeTaskDetails()">
+        @if (taskDetailsOpen() || editingTask()) {
+          <div
+            class="workspace-view-modal"
+            [class.workspace-view-modal--editing]="editingTask()"
+            (click)="editingTask() ? cancelTaskEdit() : closeTaskDetails()"
+          >
             <section
-              class="task-details-panel workspace-view-modal__surface workspace-view-modal__surface--wide"
+              class="workspace-view-modal__surface workspace-view-modal__surface--wide"
+              [class.task-form-panel]="editingTask()"
+              [class.task-edit-panel]="editingTask()"
+              [class.task-details-panel]="!editingTask()"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="task-details-title"
+              [attr.aria-labelledby]="editingTask() ? 'edit-task-title' : 'task-details-title'"
               cdkTrapFocus
               [cdkTrapFocusAutoCapture]="true"
               (click)="$event.stopPropagation()"
@@ -553,14 +560,16 @@
                     {{ editingTask() ? 'Editando tarefa' : 'Detalhes da tarefa' }}
                   </p>
 
-                  <h3 id="task-details-title">
+                  <h3 [id]="editingTask() ? 'edit-task-title' : 'task-details-title'">
                     {{ editingTask() ? 'Refine o trabalho' : 'Contexto completo' }}
                   </h3>
                 </div>
 
                 <button
                   type="button"
-                  aria-label="Fechar detalhes da tarefa"
+                  [attr.aria-label]="
+                    editingTask() ? 'Cancelar edição da tarefa' : 'Fechar detalhes da tarefa'
+                  "
                   [disabled]="
                     loadingTaskDetails() ||
                     updatingTask() ||
@@ -568,7 +577,7 @@
                     managingChecklist() ||
                     managingComment()
                   "
-                  (click)="closeTaskDetails()"
+                  (click)="editingTask() ? cancelTaskEdit() : closeTaskDetails()"
                 >
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="m6 6 12 12M18 6 6 18" />
@@ -1160,7 +1169,8 @@
                     }
                   }
 
-                  <section class="task-checklist" aria-labelledby="task-checklist-title">
+                  @if (!editingTask()) {
+                    <section class="task-checklist" aria-labelledby="task-checklist-title">
                     <header class="task-checklist__header">
                       <div>
                         <p class="eyebrow">Execução</p>
@@ -1497,7 +1507,7 @@
                     </div>
                   }
 
-                  <section class="task-collaboration" aria-labelledby="task-comments-title">
+                    <section class="task-collaboration" aria-labelledby="task-comments-title">
                     <div class="task-collaboration__column">
                       <header class="task-collaboration__header">
                         <div>
@@ -1732,7 +1742,8 @@
                         }
                       }
                     </div>
-                  </section>
+                    </section>
+                  }
                 </div>
               }
             </section>
