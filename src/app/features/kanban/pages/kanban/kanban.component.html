@@ -30,8 +30,17 @@
   } @else if (selectedProject(); as project) {
     <div class="boards-view">
       @if (selectedBoard(); as selectedBoard) {
-        <button class="back-button" type="button" (click)="backToBoards()">
-          <span aria-hidden="true">←</span>
+        <button
+          dtButton
+          class="back-button"
+          variant="ghost"
+          size="sm"
+          type="button"
+          (click)="backToBoards()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m14 6-6 6 6 6M8 12h10" />
+          </svg>
           Voltar aos quadros
         </button>
 
@@ -2073,8 +2082,17 @@
           }
         }
       } @else {
-        <button class="back-button" type="button" (click)="backToProjects()">
-          <span aria-hidden="true">←</span>
+        <button
+          dtButton
+          class="back-button"
+          variant="ghost"
+          size="sm"
+          type="button"
+          (click)="backToProjects()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m14 6-6 6 6 6M8 12h10" />
+          </svg>
           Voltar aos projetos
         </button>
 

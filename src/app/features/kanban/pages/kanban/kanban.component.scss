@@ -14,26 +14,24 @@
 }
 
 .back-button {
-  display: inline-flex;
   width: fit-content;
-  min-height: 2.3rem;
-  padding: 0 0.8rem;
-  align-items: center;
-  gap: 0.55rem;
-  border: 1px solid rgba(122, 166, 142, 0.15);
-  border-radius: 0.35rem;
-  background: rgba(4, 15, 10, 0.55);
-  color: var(--dt-color-text-muted);
   font-family: var(--dt-font-mono);
   font-size: 0.63rem;
   letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: 160ms ease;
+
+  svg {
+    width: 1rem;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 160ms ease;
+  }
 
   &:hover {
-    border-color: rgba(70, 255, 120, 0.38);
-    color: var(--dt-color-brand-300);
-    transform: translateX(-0.2rem);
+    svg {
+      transform: translateX(-0.18rem);
+    }
   }
 }
 

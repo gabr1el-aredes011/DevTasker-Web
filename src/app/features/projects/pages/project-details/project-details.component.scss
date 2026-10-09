@@ -11,7 +11,19 @@
 
 .details-back {
   width: fit-content;
-  border-radius: 0;
+
+  svg {
+    width: 1rem;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 160ms ease;
+  }
+
+  &:hover svg {
+    transform: translateX(-0.18rem);
+  }
 }
 
 .details-hero {

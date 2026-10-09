@@ -49,7 +49,7 @@ import {
 import { ProjectService } from '../../../projects/services/project.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TaskMarkdownComponent } from '../../../../shared/ui/task-markdown/task-markdown.component';
-import { DtToastService } from '../../../../shared/ui';
+import { DtButtonDirective, DtToastService } from '../../../../shared/ui';
 import { BoardRealtimeService } from '../../services/board-realtime.service';
 import { BoardRealtimeEvent, BoardRealtimeStatus } from '../../models/board-realtime.models';
 import {
@@ -86,6 +86,7 @@ interface AttachmentPreview {
     CdkDrag,
     CdkDragHandle,
     A11yModule,
+    DtButtonDirective,
     TaskMarkdownComponent,
     DatePipe,
   ],

@@ -53,7 +53,7 @@ export interface TaskTechnologyOption {
 }
 
 export const TASK_TECHNOLOGY_OPTIONS: readonly TaskTechnologyOption[] = [
-  { value: 'ANGULAR', label: 'Angular', path: siAngular.path, color: `#${siAngular.hex}` },
+  { value: 'ANGULAR', label: 'Angular', path: siAngular.path, color: '#dd2a7b' },
   { value: 'REACT', label: 'React', path: siReact.path, color: `#${siReact.hex}` },
   { value: 'VUE', label: 'Vue', path: siVuedotjs.path, color: `#${siVuedotjs.hex}` },
   {
@@ -70,7 +70,7 @@ export const TASK_TECHNOLOGY_OPTIONS: readonly TaskTechnologyOption[] = [
   },
   { value: 'HTML', label: 'HTML', path: siHtml5.path, color: `#${siHtml5.hex}` },
   { value: 'CSS', label: 'CSS', path: siCss.path, color: `#${siCss.hex}` },
-  { value: 'JAVA', label: 'Java', path: siOpenjdk.path, color: `#${siOpenjdk.hex}` },
+  { value: 'JAVA', label: 'Java', path: siOpenjdk.path, color: '#f89820' },
   { value: 'SPRING', label: 'Spring', path: siSpring.path, color: `#${siSpring.hex}` },
   { value: 'KOTLIN', label: 'Kotlin', path: siKotlin.path, color: `#${siKotlin.hex}` },
   { value: 'PYTHON', label: 'Python', path: siPython.path, color: `#${siPython.hex}` },
@@ -79,7 +79,7 @@ export const TASK_TECHNOLOGY_OPTIONS: readonly TaskTechnologyOption[] = [
   { value: 'DOTNET', label: '.NET', path: siDotnet.path, color: `#${siDotnet.hex}` },
   { value: 'PHP', label: 'PHP', path: siPhp.path, color: `#${siPhp.hex}` },
   { value: 'GO', label: 'Go', path: siGo.path, color: `#${siGo.hex}` },
-  { value: 'RUST', label: 'Rust', path: siRust.path, color: `#${siRust.hex}` },
+  { value: 'RUST', label: 'Rust', path: siRust.path, color: '#dea584' },
   { value: 'SWIFT', label: 'Swift', path: siSwift.path, color: `#${siSwift.hex}` },
   { value: 'SQL', label: 'SQL', path: siPostgresql.path, color: `#${siPostgresql.hex}` },
   { value: 'DOCKER', label: 'Docker', path: siDocker.path, color: `#${siDocker.hex}` },
