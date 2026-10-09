@@ -29,25 +29,28 @@
 .details-hero {
   position: relative;
   display: grid;
-  min-height: clamp(18rem, 31vw, 30rem);
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: clamp(2rem, 5vw, 5rem) clamp(0.25rem, 2vw, 2rem);
-  align-items: end;
+  min-height: clamp(22rem, 31vw, 28rem);
+  grid-template-columns: minmax(0, 1.2fr) minmax(21rem, 0.62fr);
+  padding: clamp(2rem, 5vw, 4rem) clamp(0.25rem, 2vw, 2rem);
+  align-items: center;
   gap: 2rem;
   overflow: hidden;
   border-bottom: 1px solid rgba(109, 177, 133, 0.18);
 }
 
 .details-hero::before {
-  content: 'PROJECT CONTEXT';
+  content: '';
   position: absolute;
-  top: 1rem;
-  right: 0;
-  color: rgba(70, 255, 120, 0.035);
-  font-family: var(--dt-font-mono);
-  font-size: clamp(2.5rem, 9vw, 9rem);
-  font-weight: 900;
-  text-transform: uppercase;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(70, 255, 120, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(70, 255, 120, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 76% 50%, rgba(70, 255, 120, 0.1), transparent 24rem);
+  background-size:
+    5rem 5rem,
+    5rem 5rem,
+    auto;
+  mask-image: linear-gradient(90deg, transparent, #000 48%, #000);
   pointer-events: none;
 }
 
@@ -71,11 +74,11 @@
   min-width: 0;
 
   h1 {
-    max-width: 15ch;
+    max-width: 13ch;
     margin: 1.2rem 0 0;
     overflow-wrap: anywhere;
     font-family: var(--dt-font-display);
-    font-size: clamp(3.2rem, 7.5vw, 7.75rem);
+    font-size: clamp(3rem, 5.8vw, 6rem);
     font-weight: 900;
     line-height: 0.86;
     letter-spacing: -0.075em;
@@ -123,10 +126,73 @@
   }
 }
 
-.details-hero > .dt-button {
-  min-height: 3.3rem;
-  border-radius: 0;
-  box-shadow: 0 1rem 3rem rgba(34, 237, 95, 0.18);
+.project-manifest {
+  display: grid;
+  align-self: stretch;
+  padding: 1.25rem;
+  align-content: space-between;
+  gap: 1.25rem;
+  border: 1px solid rgba(109, 177, 133, 0.18);
+  background: rgba(3, 15, 10, 0.78);
+  backdrop-filter: blur(14px);
+
+  > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    > span {
+      color: var(--dt-color-brand-300);
+      font-family: var(--dt-font-mono);
+      font-size: 0.52rem;
+    }
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border: 1px solid rgba(109, 177, 133, 0.1);
+  }
+
+  dl > div {
+    display: grid;
+    min-height: 6rem;
+    padding: 0.9rem;
+    align-content: space-between;
+    border-right: 1px solid rgba(109, 177, 133, 0.08);
+    border-bottom: 1px solid rgba(109, 177, 133, 0.08);
+  }
+
+  dl > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  dl > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  dt {
+    color: var(--dt-color-text-muted);
+    font-family: var(--dt-font-mono);
+    font-size: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--dt-color-text-primary);
+    font-family: var(--dt-font-display);
+    font-size: 1.35rem;
+  }
+
+  .dt-button {
+    min-height: 3.3rem;
+    border-radius: 0;
+    box-shadow: 0 1rem 3rem rgba(34, 237, 95, 0.16);
+  }
 }
 
 .details-workspace {
@@ -505,8 +571,8 @@
     min-height: 27rem;
     padding-inline: 0;
   }
-  .details-hero > .dt-button {
-    justify-self: start;
+  .project-manifest {
+    min-height: 20rem;
   }
   .overview-grid {
     grid-template-columns: 1fr;
@@ -542,7 +608,7 @@
 
 @media (max-width: 40rem) {
   .details-hero h1 {
-    font-size: clamp(3rem, 16vw, 5rem);
+    font-size: clamp(2.8rem, 14vw, 4.6rem);
   }
   .tab-panel {
     padding-inline: 0;

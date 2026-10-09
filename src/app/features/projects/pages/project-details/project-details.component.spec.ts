@@ -140,6 +140,9 @@ describe('ProjectDetailsComponent', () => {
     expect(element.querySelector('dt-badge')?.textContent).toContain('Administrador');
     expect(element.querySelector('dt-badge')?.getAttribute('data-tone')).toBe('info');
     expect(element.querySelector('.owner-profile')?.textContent).toContain('Gabriel Silva');
+    expect(element.querySelector('.project-manifest')?.textContent).toContain('2');
+    expect(element.querySelector('.project-manifest')?.textContent).toContain('Administrador');
+    expect(element.querySelector('.details-hero')?.textContent).not.toContain('PROJECT CONTEXT');
   });
 
   it('should preserve a labels deep link and render the reusable catalog', async () => {

@@ -31,11 +31,16 @@
       <div class="details-hero__content">
         <p class="details-eyebrow">
           <span aria-hidden="true"></span>
-          PROJECT / #{{ project.id }}
+          PROJECT CONTROL / #{{ project.id }}
         </p>
 
         <h1 id="project-details-title">{{ project.name }}</h1>
-        <p>Contexto central do projeto, acesso da sua conta e quadros disponíveis para execução.</p>
+        <p>
+          {{
+            project.description ||
+              'Centralize decisões, pessoas e quadros para transformar contexto em entrega.'
+          }}
+        </p>
 
         <div class="details-hero__meta" aria-label="Metadados principais">
           <dt-badge [tone]="projectRoleTone(project.membershipRole)">
@@ -50,16 +55,42 @@
         </div>
       </div>
 
-      <a
-        dtButton
-        variant="primary"
-        routerLink="/app/kanban"
-        [queryParams]="{ projectId: project.id }"
-        [attr.aria-label]="'Abrir o projeto ' + project.name + ' no Kanban'"
-      >
-        Abrir no Kanban
-        <span aria-hidden="true">→</span>
-      </a>
+      <aside class="project-manifest" aria-label="Resumo operacional do projeto">
+        <header>
+          <p class="details-eyebrow">SINAL DO PROJETO</p>
+          <span>Contexto ativo</span>
+        </header>
+
+        <dl>
+          <div>
+            <dt>Quadros</dt>
+            <dd>{{ boardsLoadError() ? '—' : boards().length }}</dd>
+          </div>
+          <div>
+            <dt>Pessoas</dt>
+            <dd>{{ membersLoadError() ? '—' : members().length }}</dd>
+          </div>
+          <div>
+            <dt>Labels</dt>
+            <dd>{{ labelsLoadError() ? '—' : labels().length }}</dd>
+          </div>
+          <div>
+            <dt>Acesso</dt>
+            <dd>{{ projectRoleLabel(project.membershipRole) }}</dd>
+          </div>
+        </dl>
+
+        <a
+          dtButton
+          variant="primary"
+          routerLink="/app/kanban"
+          [queryParams]="{ projectId: project.id }"
+          [attr.aria-label]="'Abrir o projeto ' + project.name + ' no Kanban'"
+        >
+          Entrar no fluxo
+          <span aria-hidden="true">→</span>
+        </a>
+      </aside>
     </header>
 
     <div class="details-workspace">
