@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 8 de outubro de 2026.
+Última atualização: 9 de outubro de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -12,6 +12,56 @@ e [DevTasker API](https://github.com/gabr1el-aredes011/DevTasker-API).
 - 🚧 Em desenvolvimento
 - 🧭 Planejado
 - 🔧 Refinamento técnico
+
+## Ordem de execução aprovada
+
+Novas áreas não devem interromper o acabamento das superfícies centrais. O
+desenvolvimento atual fica dividido nos portões abaixo, que precisam ser
+respeitados nesta ordem.
+
+### Portão 1 — Fechar os três macroblocos existentes
+
+1. **Dashboard**
+   - Refinar a hierarquia, iconografia e leitura das métricas.
+   - Usar cores semânticas para risco, atenção, progresso e sucesso, evitando que
+     toda informação seja representada em verde.
+   - Consolidar uma identidade tecnológica própria, com movimento sutil e útil,
+     sem copiar a tela de autenticação.
+   - Revisar projetos recentes, prioridades, pipeline, estados vazios,
+     carregamento, erro e comportamento responsivo.
+2. **Projetos**
+   - Substituir elementos genéricos como `PROJECT_INDEX` e o hero provisório por
+     uma identidade editorial própria do catálogo.
+   - Refinar busca, cards, ações, criação e edição em modais profissionais.
+   - Evoluir os detalhes do projeto com contexto, indicadores, alertas e leitura
+     clara de quadros, labels e pessoas.
+   - Preservar o fluxo de convites já aprovado e finalizar a apresentação do
+     catálogo de labels sem expor códigos técnicos de cor.
+3. **Kanban e tarefas**
+   - Consolidar o quadro como central operacional, e não como uma repetição do
+     Dashboard geral.
+   - Finalizar densidade, microinterações, estados vazios, responsividade e
+     acessibilidade das colunas e cartões.
+   - Concluir o refinamento dos modais de criação, edição e detalhes, incluindo
+     Markdown, prioridades, labels, tecnologias, checklist, anexos, comentários,
+     respostas e histórico.
+   - Preservar o painel de inteligência do quadro e o filtro em modal já
+     entregues, refinando-os após validação de uso.
+
+### Portão 2 — Perfil e identidade pessoal
+
+Somente depois dos três macroblocos será iniciada a página de Perfil. Nome,
+foto, informações da conta, idiomas, preferências e segurança serão tratados
+como uma entrega completa. A centralização de avatar e iniciais — incluindo a
+incongruência histórica `G2`/`GT` — pertence a este portão.
+
+### Portão 3 — Novas experiências
+
+Após Perfil, iniciar Arquivados como uma experiência própria de busca,
+restauração e exclusão protegida; depois avançar para Minhas tarefas,
+Notificações, Equipe, Relatórios, Atividades, Configurações e Integrações. Essas
+páginas devem compartilhar o design system, mas nunca ser cópias estruturais
+umas das outras.
 
 ## Estado atual
 
