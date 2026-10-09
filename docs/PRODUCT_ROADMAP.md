@@ -167,6 +167,8 @@ por exemplo, não será uma cópia visual do Kanban.
 - ✅ Histórico das principais ações da tarefa, limitado às 100 atividades mais recentes
 - ✅ Consulta de comentários e histórico em modo somente leitura para `VIEWER`
 - ✅ Descrições em Markdown com edição, pré-visualização e renderização segura
+- ✅ Pulso operacional por quadro com avanço, atrasos, itens sem responsável,
+  distribuição por etapa e carga ativa da equipe
 
 ## Marco atual — Projetos 2.0
 
@@ -331,6 +333,8 @@ Critérios de aceite:
   modais refinados e detalhes com gráficos e sinais de atenção por projeto
 - 🧭 Kanban: evoluir a identidade própria do quadro, microinterações e densidade
   informacional sem perder legibilidade
+  - ✅ Primeira camada de inteligência operacional encapsulada em componente próprio,
+    distinta do Dashboard geral e derivada dos dados reais do quadro
 - 🧭 Tarefas: ampliar o catálogo de tecnologias de forma administrável e avaliar
   integração futura com links de pull request, commits e critérios de aceite
 

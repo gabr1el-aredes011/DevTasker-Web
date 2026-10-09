@@ -1,0 +1,106 @@
+<section class="board-intelligence" aria-labelledby="board-intelligence-title">
+  <div class="board-intelligence__summary">
+    <header class="board-intelligence__header">
+      <div>
+        <p class="eyebrow">Pulso do quadro</p>
+        <h3 id="board-intelligence-title">Leitura operacional</h3>
+        <p>Uma visão rápida da saúde desta entrega, sem sair do fluxo de trabalho.</p>
+      </div>
+
+      <div
+        class="board-progress-orbit"
+        [style.--board-progress]="pulse().completionPercentage + '%'"
+        [attr.aria-label]="pulse().completionPercentage + '% das tarefas concluídas'"
+        role="img"
+      >
+        <strong>{{ pulse().completionPercentage }}%</strong>
+        <span>concluído</span>
+      </div>
+    </header>
+
+    <div class="board-intelligence__metrics">
+      <article data-tone="flow">
+        <span>Em fluxo</span>
+        <strong>{{ pulse().active }}</strong>
+        <small>Tarefas em execução</small>
+      </article>
+
+      <article data-tone="attention">
+        <span>Atenção</span>
+        <strong>{{ pulse().overdue }}</strong>
+        <small>{{ pulse().overdue === 1 ? 'Prazo vencido' : 'Prazos vencidos' }}</small>
+      </article>
+
+      <article data-tone="ownership">
+        <span>Sem responsável</span>
+        <strong>{{ pulse().unassigned }}</strong>
+        <small>Pontos sem definição</small>
+      </article>
+
+      <article data-tone="done">
+        <span>Entregues</span>
+        <strong>{{ pulse().completed }}</strong>
+        <small>De {{ pulse().total }} tarefas</small>
+      </article>
+    </div>
+
+    <div class="board-phase-map" aria-label="Distribuição das tarefas por etapa">
+      @for (phase of pulse().phases; track phase.category) {
+        <div class="board-phase-map__item" [attr.data-category]="phase.category">
+          <div>
+            <span>{{ phase.label }}</span>
+            <strong>{{ phase.count }}</strong>
+          </div>
+          <span class="board-phase-map__track" aria-hidden="true">
+            <span [style.width.%]="phase.percentage"></span>
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <aside class="board-workload" aria-labelledby="board-workload-title">
+    <header>
+      <div>
+        <p class="eyebrow">Distribuição</p>
+        <h3 id="board-workload-title">Carga da equipe</h3>
+      </div>
+      <span>{{ pulse().workloads.length }} em foco</span>
+    </header>
+
+    @if (pulse().workloads.length === 0) {
+      <div class="board-workload__empty">
+        <span aria-hidden="true">◇</span>
+        <p>Atribua tarefas para visualizar a distribuição ativa da equipe.</p>
+      </div>
+    } @else {
+      <ol class="board-workload__list">
+        @for (workload of pulse().workloads; track workload.id) {
+          <li>
+            <span class="board-workload__avatar" aria-hidden="true">
+              {{ workload.name.charAt(0) }}
+            </span>
+            <div>
+              <div class="board-workload__person">
+                <strong>{{ workload.name }}</strong>
+                <span>
+                  {{ workload.taskCount }}
+                  {{ workload.taskCount === 1 ? 'tarefa' : 'tarefas' }}
+                </span>
+              </div>
+              <span class="board-workload__track" aria-hidden="true">
+                <span [style.width.%]="workload.percentage"></span>
+              </span>
+              @if (workload.urgentCount > 0) {
+                <small>
+                  {{ workload.urgentCount }}
+                  {{ workload.urgentCount === 1 ? 'urgente' : 'urgentes' }}
+                </small>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  </aside>
+</section>

@@ -101,6 +101,10 @@
           </div>
         </div>
 
+        @if (kanban(); as currentBoard) {
+          <app-board-intelligence [board]="currentBoard" />
+        }
+
         @if (moveTaskError()) {
           <div class="task-action-error" role="alert" aria-live="assertive">
             <span aria-hidden="true">!</span>

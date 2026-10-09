@@ -57,6 +57,7 @@ import {
   ProjectLabelDialogData,
   ProjectLabelDialogResult,
 } from '../../../projects/components/project-label-dialog/project-label-dialog.component';
+import { BoardIntelligenceComponent } from '../../components/board-intelligence/board-intelligence.component';
 
 type LabelFilterMode = 'ANY' | 'ALL';
 type DueDateFilter = 'ALL' | 'OVERDUE' | 'TODAY' | 'NEXT_7_DAYS' | 'NO_DATE';
@@ -87,6 +88,7 @@ interface AttachmentPreview {
     CdkDragHandle,
     A11yModule,
     DtButtonDirective,
+    BoardIntelligenceComponent,
     TaskMarkdownComponent,
     DatePipe,
   ],
