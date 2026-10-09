@@ -310,6 +310,8 @@ Critérios de aceite:
   - ✅ Sidebar compacta em desktop, sem coluna vazia até o rodapé e com perfil
     permanentemente acessível
   - ✅ Paleta semântica para prioridade, aviso, informação, sucesso e risco
+  - ✅ Pulso operacional do Dashboard orientado pelos dados reais de prazo,
+    prioridade e andamento, com métricas semânticas e acesso direto aos projetos
   - 🚧 Aplicar o conceito Developer Command Deck com navegação em rail, composição
     editorial e trilhos operacionais contínuos
   - 🚧 Aproveitar a superfície disponível com hierarquia, evitando o simples

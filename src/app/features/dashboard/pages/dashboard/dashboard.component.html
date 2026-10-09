@@ -13,11 +13,23 @@
       </p>
     </div>
 
-    <div class="dashboard-header__actions">
-      <div class="workspace-status">
-        <span></span>
+    <aside
+      class="workspace-pulse"
+      [attr.data-tone]="workspacePulse().tone"
+      aria-label="Pulso operacional do workspace"
+    >
+      <div class="workspace-pulse__score" aria-label="Taxa de conclusão">
+        <strong>{{ completionRate() }}%</strong>
+        <small>concluído</small>
+      </div>
 
-        Workspace sincronizado
+      <div class="workspace-pulse__content">
+        <p class="workspace-pulse__status">
+          <span aria-hidden="true"></span>
+          {{ workspacePulse().status }}
+        </p>
+        <h2>{{ workspacePulse().title }}</h2>
+        <p>{{ workspacePulse().description }}</p>
       </div>
 
       <a class="dashboard-primary-action" routerLink="/app/kanban">
@@ -25,7 +37,7 @@
 
         <span aria-hidden="true"> → </span>
       </a>
-    </div>
+    </aside>
   </header>
 
   @if (loading()) {
@@ -58,7 +70,7 @@
     </section>
   } @else if (summary(); as data) {
     <section class="metrics-grid" aria-label="Resumo do workspace">
-      <article class="metric-card">
+      <article class="metric-card" data-metric="projects">
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -80,7 +92,7 @@
         </div>
       </article>
 
-      <article class="metric-card">
+      <article class="metric-card" data-metric="boards">
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -103,7 +115,7 @@
         </div>
       </article>
 
-      <article class="metric-card">
+      <article class="metric-card" data-metric="active">
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -129,7 +141,11 @@
         </div>
       </article>
 
-      <article class="metric-card" [class.metric-card--warning]="data.taskMetrics.overdue > 0">
+      <article
+        class="metric-card"
+        data-metric="overdue"
+        [class.metric-card--warning]="data.taskMetrics.overdue > 0"
+      >
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -186,7 +202,11 @@
         } @else {
           <div class="recent-projects">
             @for (project of data.recentProjects; track project.id) {
-              <article class="recent-project">
+              <a
+                class="recent-project"
+                [routerLink]="['/app/projetos', project.id]"
+                [attr.aria-label]="'Abrir projeto ' + project.name"
+              >
                 <div class="recent-project__symbol" aria-hidden="true">
                   {{ project.name.charAt(0).toUpperCase() }}
                 </div>
@@ -207,15 +227,14 @@
                   </p>
 
                   <footer>
-                    <span> Projeto #{{ project.id }} </span>
-
                     <span>
                       Criado em
                       {{ project.createdAt | date: 'dd/MM/yyyy' }}
                     </span>
+                    <strong>Explorar projeto <span aria-hidden="true">↗</span></strong>
                   </footer>
                 </div>
-              </article>
+              </a>
             }
           </div>
         }

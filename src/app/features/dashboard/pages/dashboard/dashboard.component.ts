@@ -25,6 +25,15 @@ import {
 
 import { DashboardService } from '../../services/dashboard.service';
 
+type WorkspacePulseTone = 'danger' | 'warning' | 'active' | 'stable' | 'loading';
+
+interface WorkspacePulse {
+  readonly tone: WorkspacePulseTone;
+  readonly status: string;
+  readonly title: string;
+  readonly description: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -68,6 +77,59 @@ export class DashboardComponent implements OnInit {
     }
 
     return Math.round((metrics.completed / metrics.total) * 100);
+  });
+
+  readonly workspacePulse = computed<WorkspacePulse>(() => {
+    const summary = this.summary();
+
+    if (!summary) {
+      return {
+        tone: 'loading',
+        status: 'Sincronizando telemetria',
+        title: 'Lendo o workspace',
+        description: 'Projetos, fluxo e riscos serão consolidados em instantes.',
+      };
+    }
+
+    if (summary.taskMetrics.overdue > 0) {
+      return {
+        tone: 'danger',
+        status: 'Intervenção recomendada',
+        title: 'Risco de prazo detectado',
+        description: `${summary.taskMetrics.overdue} ${
+          summary.taskMetrics.overdue === 1 ? 'tarefa vencida precisa' : 'tarefas vencidas precisam'
+        } de atenção.`,
+      };
+    }
+
+    if (summary.attentionTasks.length > 0) {
+      return {
+        tone: 'warning',
+        status: 'Prioridades monitoradas',
+        title: 'Decisões em foco',
+        description: `${summary.attentionTasks.length} ${
+          summary.attentionTasks.length === 1 ? 'item está' : 'itens estão'
+        } no radar operacional.`,
+      };
+    }
+
+    if (summary.taskMetrics.active > 0) {
+      return {
+        tone: 'active',
+        status: 'Fluxo em movimento',
+        title: 'Operação saudável',
+        description: `${summary.taskMetrics.active} ${
+          summary.taskMetrics.active === 1 ? 'tarefa ativa avança' : 'tarefas ativas avançam'
+        } sem riscos de prazo.`,
+      };
+    }
+
+    return {
+      tone: 'stable',
+      status: 'Workspace em ordem',
+      title: 'Tudo sob controle',
+      description: 'Nenhuma pendência operacional exige uma ação imediata.',
+    };
   });
 
   readonly workflowItems = computed(() => {
