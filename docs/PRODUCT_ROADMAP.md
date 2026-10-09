@@ -389,6 +389,8 @@ Critérios de aceite:
   das métricas sem transformar todos os estados em verde
 - 🧭 Projetos: criar seção de arquivados, exclusão definitiva com proteção,
   modais refinados e detalhes com gráficos e sinais de atenção por projeto
+  - ✅ Substituir o hero genérico e `PROJECT_INDEX` por um registro operacional
+    com distribuição entre liderança e colaboração
   - ✅ Remover códigos técnicos de cor do catálogo de labels e comunicar a identidade
     cromática automática em linguagem de produto
 - 🧭 Kanban: evoluir a identidade própria do quadro, microinterações e densidade

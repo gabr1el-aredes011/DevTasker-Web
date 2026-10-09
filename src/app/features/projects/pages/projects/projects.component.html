@@ -3,30 +3,53 @@
     <div class="projects-hero__content">
       <p class="projects-eyebrow">
         <span aria-hidden="true"></span>
-        PROJECTS 2.0
+        PORTFÓLIO OPERACIONAL
       </p>
 
-      <h1 id="projects-title">Projetos que viram <strong>entregas.</strong></h1>
+      <h1 id="projects-title">Mapa de <strong>iniciativas.</strong></h1>
 
       <p>
-        Centralize cada iniciativa, mantenha o contexto visível e siga direto para o quadro onde o
-        trabalho acontece.
+        Encontre o que você lidera, acompanhe onde colabora e entre no contexto certo antes de
+        avançar para a execução.
       </p>
     </div>
 
-    <button
-      dtButton
-      variant="primary"
-      size="lg"
-      type="button"
-      [disabled]="submitting() || loadingDetails() || archiveCandidate()"
-      (click)="openCreateForm()"
-    >
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 5v14M5 12h14" />
-      </svg>
-      Novo projeto
-    </button>
+    <aside class="portfolio-console" aria-label="Resumo do portfólio">
+      <header>
+        <span><i aria-hidden="true"></i> Registro sincronizado</span>
+        <small>PROJECT / REGISTRY</small>
+      </header>
+
+      <div class="portfolio-console__total">
+        <strong>{{ portfolioSummary().total }}</strong>
+        <span>{{ portfolioSummary().total === 1 ? 'projeto ativo' : 'projetos ativos' }}</span>
+      </div>
+
+      <dl>
+        <div>
+          <dt>Sob sua liderança</dt>
+          <dd>{{ portfolioSummary().leadership }}</dd>
+        </div>
+        <div>
+          <dt>Em colaboração</dt>
+          <dd>{{ portfolioSummary().collaboration }}</dd>
+        </div>
+      </dl>
+
+      <button
+        dtButton
+        variant="primary"
+        size="lg"
+        type="button"
+        [disabled]="submitting() || loadingDetails() || archiveCandidate()"
+        (click)="openCreateForm()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Novo projeto
+      </button>
+    </aside>
   </header>
 
   @if (actionMessage()) {

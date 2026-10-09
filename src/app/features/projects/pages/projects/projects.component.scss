@@ -12,26 +12,13 @@
 .projects-hero {
   position: relative;
   display: grid;
-  min-height: clamp(20rem, 35vw, 34rem);
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: clamp(2rem, 5vw, 5rem) clamp(0.25rem, 2vw, 2rem);
-  align-items: end;
+  min-height: clamp(22rem, 31vw, 27rem);
+  grid-template-columns: minmax(24rem, 1fr) minmax(21rem, 0.55fr);
+  padding: clamp(2rem, 4vw, 4rem) clamp(0.25rem, 2vw, 2rem);
+  align-items: center;
   gap: 2rem;
   overflow: hidden;
   border-bottom: 1px solid rgba(109, 177, 133, 0.18);
-}
-
-.projects-hero::before {
-  content: 'PROJECT_INDEX';
-  position: absolute;
-  top: 1rem;
-  right: 0;
-  color: rgba(70, 255, 120, 0.045);
-  font-family: var(--dt-font-mono);
-  font-size: clamp(3rem, 10vw, 10rem);
-  font-weight: 900;
-  letter-spacing: -0.08em;
-  pointer-events: none;
 }
 
 .projects-hero::after {
@@ -57,7 +44,7 @@
     max-width: 12ch;
     margin: 1.2rem 0 0;
     font-family: var(--dt-font-display);
-    font-size: clamp(3.5rem, 8vw, 8.5rem);
+    font-size: clamp(3.5rem, 6vw, 6.5rem);
     font-weight: 900;
     line-height: 0.84;
     letter-spacing: -0.08em;
@@ -97,11 +84,78 @@
   }
 }
 
-.projects-hero > .dt-button {
-  min-width: 10rem;
+.portfolio-console {
+  display: grid;
+  padding: 1.25rem;
+  gap: 1rem;
+  border: 1px solid rgba(109, 177, 133, 0.18);
+  border-radius: 0.8rem;
+  background: rgba(3, 15, 10, 0.76);
+}
+
+.portfolio-console header,
+.portfolio-console dl,
+.portfolio-console__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.portfolio-console header span,
+.portfolio-console header small {
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+  font-size: 0.52rem;
+}
+
+.portfolio-console header i {
+  display: inline-block;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  background: var(--dt-color-brand-400);
+  box-shadow: 0 0 0.8rem var(--dt-color-brand-400);
+}
+
+.portfolio-console__total {
+  justify-content: flex-start;
+  border-block: 1px solid rgba(109, 177, 133, 0.1);
+}
+
+.portfolio-console__total strong {
+  color: var(--dt-color-brand-300);
+  font-family: var(--dt-font-display);
+  font-size: 4.5rem;
+  letter-spacing: -0.08em;
+}
+
+.portfolio-console__total span,
+.portfolio-console dt {
+  color: var(--dt-color-text-secondary);
+  font-size: 0.62rem;
+}
+
+.portfolio-console dl {
+  margin: 0;
+}
+
+.portfolio-console dl div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.portfolio-console dd {
+  margin: 0;
+  color: var(--dt-color-text-primary);
+  font-family: var(--dt-font-mono);
+  font-weight: 800;
+}
+
+.portfolio-console .dt-button {
+  width: 100%;
   min-height: 3.4rem;
-  border-radius: 0;
-  box-shadow: 0 1rem 3rem rgba(34, 237, 95, 0.17);
 
   svg {
     width: 1rem;
@@ -642,9 +696,6 @@
     grid-template-columns: 1fr;
     min-height: 30rem;
     padding-inline: 0;
-  }
-  .projects-hero > .dt-button {
-    justify-self: start;
   }
   .catalog-toolbar {
     align-items: stretch;

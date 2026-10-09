@@ -99,6 +99,19 @@ export class ProjectsComponent implements OnInit {
     );
   });
 
+  readonly portfolioSummary = computed(() => {
+    const projects = this.projects();
+    const leadership = projects.filter(({ membershipRole }) =>
+      ['OWNER', 'ADMIN'].includes(membershipRole),
+    ).length;
+
+    return {
+      total: projects.length,
+      leadership,
+      collaboration: projects.length - leadership,
+    };
+  });
+
   readonly descriptionLength = computed(() => this.descriptionValue().length);
 
   readonly projectRoleLabel = projectRoleLabel;

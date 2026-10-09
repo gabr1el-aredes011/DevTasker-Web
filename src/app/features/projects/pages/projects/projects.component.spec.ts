@@ -68,6 +68,20 @@ describe('ProjectsComponent', () => {
     expect(fixture.componentInstance.filteredProjects().map((project) => project.id)).toEqual([1]);
   });
 
+  it('should summarize projects by leadership and collaboration', () => {
+    const fixture = TestBed.createComponent(ProjectsComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.portfolioSummary()).toEqual({
+      total: 2,
+      leadership: 1,
+      collaboration: 1,
+    });
+    expect(fixture.nativeElement.querySelector('.portfolio-console')?.textContent).toContain(
+      '2projetos ativos',
+    );
+  });
+
   it('should show edit actions only for owner or admin projects', () => {
     const fixture = TestBed.createComponent(ProjectsComponent);
     fixture.detectChanges();
