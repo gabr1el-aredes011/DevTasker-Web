@@ -169,6 +169,8 @@ por exemplo, não será uma cópia visual do Kanban.
 - ✅ Descrições em Markdown com edição, pré-visualização e renderização segura
 - ✅ Pulso operacional por quadro com avanço, atrasos, itens sem responsável,
   distribuição por etapa e carga ativa da equipe
+- ✅ Filtros avançados em modal dedicado, com resumo persistente no quadro,
+  foco controlado, fechamento por `Escape` e estado compartilhável preservado
 
 ## Marco atual — Projetos 2.0
 

@@ -1783,152 +1783,220 @@
             <button type="button" (click)="retryKanban()">Tentar novamente</button>
           </div>
         } @else if (filteredKanban(); as board) {
-          <section class="kanban-filters" aria-labelledby="kanban-filters-title">
-            <header class="kanban-filters__header">
-              <div>
-                <p class="eyebrow">Visualização</p>
-                <h3 id="kanban-filters-title">Filtrar tarefas</h3>
-              </div>
-
-              <div class="kanban-filters__summary">
-                <span class="kanban-filters__count" role="status" aria-live="polite">
-                  {{ visibleTaskCount() }} de {{ totalTaskCount() }} tarefas
-                  @if (hasActiveKanbanFilters()) {
-                    · {{ activeFilterCount() }}
-                    {{ activeFilterCount() === 1 ? 'filtro' : 'filtros' }}
-                  }
+          <section class="kanban-command-bar" aria-label="Controles de visualização do quadro">
+            <div>
+              <span class="kanban-command-bar__signal" aria-hidden="true"></span>
+              <p>
+                <strong>{{ visibleTaskCount() }}</strong> de {{ totalTaskCount() }} tarefas visíveis
+              </p>
+              @if (hasActiveKanbanFilters()) {
+                <span class="kanban-command-bar__active">
+                  {{ activeFilterCount() }}
+                  {{ activeFilterCount() === 1 ? 'filtro ativo' : 'filtros ativos' }}
                 </span>
+              }
+            </div>
 
+            <div class="kanban-command-bar__actions">
+              @if (hasActiveKanbanFilters()) {
+                <button type="button" (click)="clearAllFilters()">Limpar filtros</button>
+              }
+
+              <button
+                class="kanban-command-bar__filter"
+                type="button"
+                [attr.aria-expanded]="filterPanelOpen()"
+                aria-controls="kanban-filter-panel"
+                (click)="openFilterPanel()"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 6h16M7 12h10M10 18h4" />
+                </svg>
+                Refinar visualização
                 @if (hasActiveKanbanFilters()) {
-                  <button class="kanban-filters__clear" type="button" (click)="clearAllFilters()">
-                    Limpar tudo
-                  </button>
+                  <strong>{{ activeFilterCount() }}</strong>
                 }
-              </div>
-            </header>
+              </button>
+            </div>
+          </section>
 
-            <div class="kanban-filters__grid">
-              <fieldset class="kanban-filters__group">
-                <legend>Prioridade</legend>
-                <div class="kanban-filters__options">
-                  @for (option of priorityFilterOptions; track option.value) {
-                    <button
-                      type="button"
-                      class="kanban-filter-chip"
-                      [class.is-selected]="isPriorityFilterSelected(option.value)"
-                      [attr.data-priority]="option.value"
-                      [attr.aria-pressed]="isPriorityFilterSelected(option.value)"
-                      (click)="togglePriorityFilter(option.value)"
-                    >
-                      {{ option.label }}
-                    </button>
-                  }
-                </div>
-              </fieldset>
+          @if (filterPanelOpen()) {
+            <div class="workspace-view-modal" (click)="closeFilterPanel()">
+              <section
+                id="kanban-filter-panel"
+                class="kanban-filters kanban-filter-modal workspace-view-modal__surface"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="kanban-filters-title"
+                cdkTrapFocus
+                [cdkTrapFocusAutoCapture]="true"
+                (click)="$event.stopPropagation()"
+              >
+                <header class="kanban-filters__header">
+                  <div>
+                    <p class="eyebrow">Visualização</p>
+                    <h3 id="kanban-filters-title">Filtrar tarefas</h3>
+                    <p>Combine critérios sem alterar a organização real do quadro.</p>
+                  </div>
 
-              <label class="kanban-filters__group kanban-filters__due">
-                <span>Prazo</span>
-                <select [value]="dueDateFilter()" (change)="updateDueDateFilter($event)">
-                  @for (option of dueDateFilterOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
-                </select>
-              </label>
+                  <div class="kanban-filters__summary">
+                    <span class="kanban-filters__count" role="status" aria-live="polite">
+                      {{ visibleTaskCount() }} de {{ totalTaskCount() }} tarefas
+                      @if (hasActiveKanbanFilters()) {
+                        · {{ activeFilterCount() }}
+                        {{ activeFilterCount() === 1 ? 'filtro' : 'filtros' }}
+                      }
+                    </span>
 
-              <fieldset class="kanban-filters__group">
-                <legend>Responsável</legend>
-                @if (availableAssigneeFilters().length === 0) {
-                  <p class="kanban-filters__state">Nenhum responsável presente neste quadro.</p>
-                } @else {
-                  <div class="kanban-filters__options">
-                    @for (assignee of availableAssigneeFilters(); track assignee.id) {
+                    @if (hasActiveKanbanFilters()) {
                       <button
+                        class="kanban-filters__clear"
                         type="button"
-                        class="kanban-filter-chip"
-                        [class.is-selected]="isAssigneeFilterSelected(assignee.id)"
-                        [attr.aria-pressed]="isAssigneeFilterSelected(assignee.id)"
-                        (click)="toggleAssigneeFilter(assignee.id)"
+                        (click)="clearAllFilters()"
                       >
-                        {{ assignee.name }}
+                        Limpar tudo
                       </button>
                     }
+
+                    <button
+                      class="kanban-filters__close"
+                      type="button"
+                      aria-label="Fechar filtros"
+                      (click)="closeFilterPanel()"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m6 6 12 12M18 6 6 18" />
+                      </svg>
+                    </button>
                   </div>
-                }
-              </fieldset>
+                </header>
 
-              <fieldset class="kanban-filters__group kanban-filters__group--labels">
-                <legend>Labels</legend>
-
-                @if (loadingProjectLabels()) {
-                  <p class="kanban-filters__state">Carregando catálogo de labels...</p>
-                } @else {
-                  @if (projectLabelsError()) {
-                    <p class="kanban-filters__warning" role="alert">
-                      {{ projectLabelsError() }} Os filtros incluem apenas labels presentes neste
-                      quadro.
-                    </p>
-                  }
-
-                  @if (availableLabelFilters().length === 0) {
-                    <p class="kanban-filters__state">Nenhuma label disponível para filtragem.</p>
-                  } @else {
-                    <div
-                      class="kanban-filters__label-mode"
-                      role="group"
-                      aria-label="Modo de correspondência de labels"
-                    >
-                      <button
-                        type="button"
-                        [class.is-active]="labelFilterMode() === 'ANY'"
-                        [attr.aria-pressed]="labelFilterMode() === 'ANY'"
-                        (click)="setLabelFilterMode('ANY')"
-                      >
-                        Qualquer
-                      </button>
-                      <button
-                        type="button"
-                        [class.is-active]="labelFilterMode() === 'ALL'"
-                        [attr.aria-pressed]="labelFilterMode() === 'ALL'"
-                        (click)="setLabelFilterMode('ALL')"
-                      >
-                        Todas
-                      </button>
-                    </div>
-
-                    <div
-                      class="kanban-filters__options"
-                      role="group"
-                      aria-label="Labels disponíveis"
-                    >
-                      @for (label of availableLabelFilters(); track label.id) {
+                <div class="kanban-filters__grid">
+                  <fieldset class="kanban-filters__group">
+                    <legend>Prioridade</legend>
+                    <div class="kanban-filters__options">
+                      @for (option of priorityFilterOptions; track option.value) {
                         <button
                           type="button"
-                          class="kanban-label-filter"
-                          [class.is-selected]="isLabelFilterSelected(label.id)"
-                          [attr.data-label-color]="label.color"
-                          [attr.aria-pressed]="isLabelFilterSelected(label.id)"
-                          (click)="toggleLabelFilter(label.id)"
+                          class="kanban-filter-chip"
+                          [class.is-selected]="isPriorityFilterSelected(option.value)"
+                          [attr.data-priority]="option.value"
+                          [attr.aria-pressed]="isPriorityFilterSelected(option.value)"
+                          (click)="togglePriorityFilter(option.value)"
                         >
-                          <span aria-hidden="true"></span>
-                          {{ label.name }}
-                          @if (label.archived) {
-                            <small>Arquivada</small>
-                          }
+                          {{ option.label }}
                         </button>
                       }
                     </div>
-                  }
-                }
-              </fieldset>
-            </div>
+                  </fieldset>
 
-            @if (hasActiveKanbanFilters()) {
-              <p class="kanban-filters__hint">
-                A movimentação fica pausada durante a filtragem para preservar a ordem real das
-                tarefas.
-              </p>
-            }
-          </section>
+                  <label class="kanban-filters__group kanban-filters__due">
+                    <span>Prazo</span>
+                    <select [value]="dueDateFilter()" (change)="updateDueDateFilter($event)">
+                      @for (option of dueDateFilterOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <fieldset class="kanban-filters__group">
+                    <legend>Responsável</legend>
+                    @if (availableAssigneeFilters().length === 0) {
+                      <p class="kanban-filters__state">Nenhum responsável presente neste quadro.</p>
+                    } @else {
+                      <div class="kanban-filters__options">
+                        @for (assignee of availableAssigneeFilters(); track assignee.id) {
+                          <button
+                            type="button"
+                            class="kanban-filter-chip"
+                            [class.is-selected]="isAssigneeFilterSelected(assignee.id)"
+                            [attr.aria-pressed]="isAssigneeFilterSelected(assignee.id)"
+                            (click)="toggleAssigneeFilter(assignee.id)"
+                          >
+                            {{ assignee.name }}
+                          </button>
+                        }
+                      </div>
+                    }
+                  </fieldset>
+
+                  <fieldset class="kanban-filters__group kanban-filters__group--labels">
+                    <legend>Labels</legend>
+
+                    @if (loadingProjectLabels()) {
+                      <p class="kanban-filters__state">Carregando catálogo de labels...</p>
+                    } @else {
+                      @if (projectLabelsError()) {
+                        <p class="kanban-filters__warning" role="alert">
+                          {{ projectLabelsError() }} Os filtros incluem apenas labels presentes
+                          neste quadro.
+                        </p>
+                      }
+
+                      @if (availableLabelFilters().length === 0) {
+                        <p class="kanban-filters__state">
+                          Nenhuma label disponível para filtragem.
+                        </p>
+                      } @else {
+                        <div
+                          class="kanban-filters__label-mode"
+                          role="group"
+                          aria-label="Modo de correspondência de labels"
+                        >
+                          <button
+                            type="button"
+                            [class.is-active]="labelFilterMode() === 'ANY'"
+                            [attr.aria-pressed]="labelFilterMode() === 'ANY'"
+                            (click)="setLabelFilterMode('ANY')"
+                          >
+                            Qualquer
+                          </button>
+                          <button
+                            type="button"
+                            [class.is-active]="labelFilterMode() === 'ALL'"
+                            [attr.aria-pressed]="labelFilterMode() === 'ALL'"
+                            (click)="setLabelFilterMode('ALL')"
+                          >
+                            Todas
+                          </button>
+                        </div>
+
+                        <div
+                          class="kanban-filters__options"
+                          role="group"
+                          aria-label="Labels disponíveis"
+                        >
+                          @for (label of availableLabelFilters(); track label.id) {
+                            <button
+                              type="button"
+                              class="kanban-label-filter"
+                              [class.is-selected]="isLabelFilterSelected(label.id)"
+                              [attr.data-label-color]="label.color"
+                              [attr.aria-pressed]="isLabelFilterSelected(label.id)"
+                              (click)="toggleLabelFilter(label.id)"
+                            >
+                              <span aria-hidden="true"></span>
+                              {{ label.name }}
+                              @if (label.archived) {
+                                <small>Arquivada</small>
+                              }
+                            </button>
+                          }
+                        </div>
+                      }
+                    }
+                  </fieldset>
+                </div>
+
+                @if (hasActiveKanbanFilters()) {
+                  <p class="kanban-filters__hint">
+                    A movimentação fica pausada durante a filtragem para preservar a ordem real das
+                    tarefas.
+                  </p>
+                }
+              </section>
+            </div>
+          }
 
           @if (board.columns.length === 0) {
             <div class="state-card">

@@ -146,6 +146,20 @@ describe('KanbanComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  it('should open the filter experience and close it with Escape', () => {
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+    const event = new Event('keydown', { cancelable: true });
+
+    component.openFilterPanel();
+    expect(component.filterPanelOpen()).toBe(true);
+
+    component.handleModalEscape(event);
+
+    expect(component.filterPanelOpen()).toBe(false);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it('should automatically open the project default board', () => {
     queryParams.set('projectId', '7');
     projectService.findAll.mockReturnValue(of([project]));

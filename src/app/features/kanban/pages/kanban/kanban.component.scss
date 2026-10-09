@@ -210,56 +210,6 @@
   font-size: 0.62rem;
 }
 
-/* Filtros: uma HUD contínua, não outro bloco de cartões. */
-.kanban-filters {
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-block: 1px solid rgba(122, 166, 142, 0.14);
-  border-radius: 0;
-  background: rgba(2, 12, 8, 0.62);
-  backdrop-filter: blur(18px);
-}
-
-.kanban-filters__header {
-  min-height: 4.5rem;
-  padding: 0.8rem 1rem;
-  border-bottom: 1px solid rgba(122, 166, 142, 0.1);
-}
-
-.kanban-filters__header h3 {
-  font-size: 0.9rem;
-}
-
-.kanban-filters__grid {
-  grid-template-columns: 1.15fr 0.8fr 1.2fr;
-  gap: 0;
-}
-
-.kanban-filters__group {
-  padding: 1rem;
-  border: 0;
-  border-right: 1px solid rgba(122, 166, 142, 0.1);
-  border-radius: 0;
-  background: transparent;
-}
-
-.kanban-filters__group--labels {
-  border-top: 1px solid rgba(122, 166, 142, 0.1);
-  border-right: 0;
-}
-
-.kanban-filters__hint {
-  padding: 0.75rem 1rem;
-}
-
-.kanban-filter-chip,
-.kanban-label-filter,
-.kanban-filters__label-mode button {
-  border-radius: 0.3rem;
-}
-
 /* Board: cinco trilhos contínuos, sem a sensação de cartões empilhados. */
 .kanban-board {
   position: relative;
@@ -736,14 +686,6 @@
 }
 
 @media (max-width: 64rem) {
-  .kanban-filters__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .kanban-filters__group--labels {
-    grid-column: 1 / -1;
-  }
-
   .task-details-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -768,21 +710,9 @@
     width: 100%;
   }
 
-  .kanban-filters__header,
-  .kanban-filters__summary {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .kanban-filters__grid,
   .task-form-row,
   .task-details-grid {
     grid-template-columns: 1fr;
-  }
-
-  .kanban-filters__group {
-    border-right: 0;
-    border-bottom: 1px solid rgba(122, 166, 142, 0.1);
   }
 
   .task-form-actions,

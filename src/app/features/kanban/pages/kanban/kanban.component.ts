@@ -271,6 +271,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   readonly kanbanLoadError = signal<string | null>(null);
 
   readonly taskFormOpen = signal(false);
+  readonly filterPanelOpen = signal(false);
   readonly creatingTask = signal(false);
 
   readonly createTaskError = signal<string | null>(null);
@@ -1385,6 +1386,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.createTaskError.set(null);
   }
 
+  openFilterPanel(): void {
+    this.filterPanelOpen.set(true);
+  }
+
+  closeFilterPanel(): void {
+    this.filterPanelOpen.set(false);
+  }
+
   @HostListener('document:keydown.escape', ['$event'])
   handleModalEscape(event: Event): void {
     if (this.attachmentPreview()) {
@@ -1396,6 +1405,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (this.taskFormOpen()) {
       event.preventDefault();
       this.closeCreateTaskForm();
+      return;
+    }
+
+    if (this.filterPanelOpen()) {
+      event.preventDefault();
+      this.closeFilterPanel();
       return;
     }
 
