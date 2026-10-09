@@ -1137,6 +1137,34 @@ table {
   margin-inline: auto;
 }
 
+/* Profundidade ambiental reutilizável para superfícies operacionais. */
+.dt-signal-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(70, 255, 120, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 255, 120, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 72% 32%, rgba(99, 215, 255, 0.16) 0 1px, transparent 2px),
+    radial-gradient(circle at 88% 70%, rgba(182, 156, 255, 0.13) 0 1px, transparent 2px);
+  background-size:
+    4rem 4rem,
+    4rem 4rem,
+    13rem 11rem,
+    17rem 14rem;
+  mask-image: linear-gradient(90deg, transparent 18%, #000 68%, transparent);
+  opacity: 0.62;
+  pointer-events: none;
+  animation: dt-signal-field 18s ease-in-out infinite alternate;
+}
+
+@keyframes dt-signal-field {
+  to {
+    transform: translate3d(0.75rem, -0.45rem, 0);
+    opacity: 0.82;
+  }
+}
+
 /* =========================================================
    RESPONSIVIDADE GLOBAL
    ========================================================= */

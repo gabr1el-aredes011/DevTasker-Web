@@ -32,9 +32,12 @@
   box-shadow: 0 0 1.8rem rgba(70, 255, 120, 0.28);
 }
 
-.dashboard-header > div:first-child {
+.dashboard-header > * {
   position: relative;
-  z-index: 2;
+  z-index: 1;
+}
+
+.dashboard-header > div:first-child {
   max-width: 58rem;
 }
 
@@ -392,7 +395,6 @@
   color: var(--dt-color-text-disabled);
   font-family: var(--dt-font-mono);
   font-size: 0.5rem;
-
 }
 
 .dashboard-panel__link {
