@@ -111,11 +111,16 @@ describe('TaskService', () => {
     expect(collaborationRequest.request.method).toBe('GET');
     collaborationRequest.flush({ comments: [], activities: [] });
 
-    service.addComment(19, { content: 'Contexto da entrega.' }).subscribe();
+    service
+      .addComment(19, { content: 'Contexto da entrega.', parentCommentId: 4 })
+      .subscribe();
 
     const createRequest = http.expectOne(`${environment.apiUrl}/tasks/19/comments`);
     expect(createRequest.request.method).toBe('POST');
-    expect(createRequest.request.body).toEqual({ content: 'Contexto da entrega.' });
+    expect(createRequest.request.body).toEqual({
+      content: 'Contexto da entrega.',
+      parentCommentId: 4,
+    });
     createRequest.flush({ comments: [], activities: [] });
 
     service.editComment(19, 4, { content: 'Contexto atualizado.' }).subscribe();

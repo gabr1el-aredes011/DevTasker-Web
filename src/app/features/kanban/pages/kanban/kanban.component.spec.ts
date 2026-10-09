@@ -396,6 +396,62 @@ describe('KanbanComponent', () => {
     );
   });
 
+  it('should publish a contextual reply and keep it grouped with the root comment', () => {
+    const rootComment = {
+      id: 4,
+      content: 'Precisamos revisar esta entrega.',
+      author: { id: 3, name: 'Bianca', profileImageUrl: null },
+      parentCommentId: null,
+      replyToAuthor: null,
+      canEdit: false,
+      canDelete: false,
+      edited: false,
+      createdAt: '2026-09-25T15:00:00Z',
+      updatedAt: '2026-09-25T15:00:00Z',
+    };
+    const reply = {
+      id: 5,
+      content: 'Vou ajustar ainda hoje.',
+      author: { id: 2, name: 'Gabriel', profileImageUrl: null },
+      parentCommentId: 4,
+      replyToAuthor: rootComment.author,
+      canEdit: true,
+      canDelete: true,
+      edited: false,
+      createdAt: '2026-09-25T15:05:00Z',
+      updatedAt: '2026-09-25T15:05:00Z',
+    };
+    const collaboration = { comments: [rootComment, reply], activities: [] };
+    taskService.addComment.mockReturnValue(of(collaboration));
+
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+    component.selectedProject.set(project);
+    component.selectedTaskId.set(19);
+    component.taskCollaboration.set({ comments: [rootComment], activities: [] });
+
+    component.startCommentReply(rootComment);
+    component.replyCommentForm.setValue({ content: '  Vou ajustar ainda hoje.  ' });
+    component.submitCommentReply(rootComment.id);
+
+    expect(taskService.addComment).toHaveBeenCalledWith(19, {
+      content: 'Vou ajustar ainda hoje.',
+      parentCommentId: rootComment.id,
+    });
+    expect(component.replyingToCommentId()).toBeNull();
+    expect(component.replyCommentForm.controls.content.value).toBe('');
+    expect(component.displayedComments()).toEqual([
+      { comment: rootComment, isReply: false },
+      { comment: reply, isReply: true },
+    ]);
+    expect(TestBed.inject(DtToastService).toasts()).toContainEqual(
+      expect.objectContaining({
+        message: 'Resposta publicada com sucesso.',
+        tone: 'success',
+      }),
+    );
+  });
+
   it('should load operational members and send the selected assignee when creating a task', () => {
     queryParams.set('projectId', '7');
     projectService.findAll.mockReturnValue(of([project]));

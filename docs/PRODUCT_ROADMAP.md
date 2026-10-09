@@ -233,6 +233,8 @@ Critérios de aceite:
 - ✅ Filtros de produtividade por prioridade, responsável, tarefas sem responsável e situação do prazo
 - ✅ Subtarefas e checklist persistentes, com conclusão, remoção e progresso agregado
 - ✅ Comentários e histórico persistentes, com autorização por função e linha do tempo prospectiva
+- ✅ Respostas contextuais em comentários, organizadas em threads rasas para preservar
+  legibilidade sem criar níveis infinitos de aninhamento
 - ✅ Anexos persistentes com upload, download, exclusão lógica, limites e permissões por função
 - ✅ Seleção, pré-visualização local e confirmação antes do envio de anexos
 - ✅ Visualização autenticada de imagens, PDFs e arquivos textuais já anexados

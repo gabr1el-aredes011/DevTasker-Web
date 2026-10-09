@@ -167,12 +167,15 @@ export interface TaskAttachment {
 
 export interface TaskCommentRequest {
   readonly content: string;
+  readonly parentCommentId?: number | null;
 }
 
 export interface TaskComment {
   readonly id: number;
   readonly content: string;
   readonly author: TaskUserSummary;
+  readonly parentCommentId?: number | null;
+  readonly replyToAuthor?: TaskUserSummary | null;
   readonly canEdit: boolean;
   readonly canDelete: boolean;
   readonly edited: boolean;

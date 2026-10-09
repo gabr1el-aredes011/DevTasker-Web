@@ -77,6 +77,11 @@ interface AttachmentPreview {
   readonly textContent: string | null;
 }
 
+interface DisplayTaskComment {
+  readonly comment: TaskComment;
+  readonly isReply: boolean;
+}
+
 @Component({
   selector: 'app-kanban',
   standalone: true,
@@ -302,7 +307,36 @@ export class KanbanComponent implements OnInit, OnDestroy {
   readonly managingComment = signal(false);
   readonly commentActionError = signal<string | null>(null);
   readonly editingCommentId = signal<number | null>(null);
+  readonly replyingToCommentId = signal<number | null>(null);
   readonly commentPendingDeletionId = signal<number | null>(null);
+
+  readonly displayedComments = computed<readonly DisplayTaskComment[]>(() => {
+    const comments = this.taskCollaboration()?.comments ?? [];
+    const commentsById = new Map(comments.map((comment) => [comment.id, comment]));
+    const repliesByParent = new Map<number, TaskComment[]>();
+    const roots: TaskComment[] = [];
+
+    for (const comment of comments) {
+      const parentId = comment.parentCommentId ?? null;
+
+      if (parentId === null || !commentsById.has(parentId)) {
+        roots.push(comment);
+        continue;
+      }
+
+      const replies = repliesByParent.get(parentId) ?? [];
+      replies.push(comment);
+      repliesByParent.set(parentId, replies);
+    }
+
+    return roots.flatMap((comment) => [
+      { comment, isReply: (comment.parentCommentId ?? null) !== null },
+      ...(repliesByParent.get(comment.id) ?? []).map((reply) => ({
+        comment: reply,
+        isReply: true,
+      })),
+    ]);
+  });
 
   readonly taskAttachments = signal<readonly TaskAttachment[]>([]);
   readonly loadingTaskAttachments = signal(false);
@@ -385,6 +419,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
   });
 
   readonly editCommentForm = this.formBuilder.nonNullable.group({
+    content: ['', [Validators.required, Validators.maxLength(2000)]],
+  });
+
+  readonly replyCommentForm = this.formBuilder.nonNullable.group({
     content: ['', [Validators.required, Validators.maxLength(2000)]],
   });
 
@@ -933,6 +971,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.cancelCommentReply();
     this.managingComment.set(true);
     this.commentActionError.set(null);
 
@@ -959,9 +998,77 @@ export class KanbanComponent implements OnInit, OnDestroy {
     }
 
     this.editingCommentId.set(comment.id);
+    this.cancelCommentReply();
     this.commentPendingDeletionId.set(null);
     this.commentActionError.set(null);
     this.editCommentForm.reset({ content: comment.content });
+  }
+
+  startCommentReply(comment: TaskComment): void {
+    if (!this.canWriteTasks() || this.managingComment()) {
+      return;
+    }
+
+    this.editingCommentId.set(null);
+    this.commentPendingDeletionId.set(null);
+    this.replyingToCommentId.set(comment.id);
+    this.commentActionError.set(null);
+    this.replyCommentForm.reset({ content: '' });
+  }
+
+  cancelCommentReply(): void {
+    if (this.managingComment()) {
+      return;
+    }
+
+    this.replyingToCommentId.set(null);
+    this.replyCommentForm.reset({ content: '' });
+  }
+
+  submitCommentReply(commentId: number): void {
+    const taskId = this.selectedTaskId();
+
+    if (
+      !this.canWriteTasks() ||
+      taskId === null ||
+      this.replyingToCommentId() !== commentId ||
+      this.managingComment()
+    ) {
+      return;
+    }
+
+    if (this.replyCommentForm.invalid) {
+      this.replyCommentForm.markAllAsTouched();
+      return;
+    }
+
+    const content = this.replyCommentForm.controls.content.value.trim();
+
+    if (!content) {
+      this.replyCommentForm.controls.content.setErrors({ required: true });
+      this.replyCommentForm.controls.content.markAsTouched();
+      return;
+    }
+
+    this.managingComment.set(true);
+    this.commentActionError.set(null);
+
+    this.taskService
+      .addComment(taskId, { content, parentCommentId: commentId })
+      .pipe(finalize(() => this.managingComment.set(false)))
+      .subscribe({
+        next: (collaboration) => {
+          this.taskCollaboration.set(collaboration);
+          this.replyingToCommentId.set(null);
+          this.replyCommentForm.reset({ content: '' });
+          this.toast.success('Resposta publicada com sucesso.');
+        },
+        error: (error: unknown) => {
+          this.commentActionError.set(
+            this.extractApiError(error, 'Não foi possível publicar a resposta.'),
+          );
+        },
+      });
   }
 
   cancelCommentEdit(): void {
@@ -1025,6 +1132,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     }
 
     this.editingCommentId.set(null);
+    this.cancelCommentReply();
     this.commentPendingDeletionId.set(comment.id);
     this.commentActionError.set(null);
   }
@@ -1417,6 +1525,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (this.editingTask()) {
       event.preventDefault();
       this.cancelTaskEdit();
+      return;
+    }
+
+    if (this.replyingToCommentId() !== null) {
+      event.preventDefault();
+      this.cancelCommentReply();
       return;
     }
 
@@ -2504,9 +2618,11 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.managingComment.set(false);
     this.commentActionError.set(null);
     this.editingCommentId.set(null);
+    this.replyingToCommentId.set(null);
     this.commentPendingDeletionId.set(null);
     this.commentForm.reset({ content: '' });
     this.editCommentForm.reset({ content: '' });
+    this.replyCommentForm.reset({ content: '' });
   }
 
   private loadTaskAttachments(taskId: number): void {

@@ -1613,8 +1613,12 @@
                           </p>
                         } @else {
                           <ul class="task-comments">
-                            @for (comment of collaboration.comments; track comment.id) {
-                              <li class="task-comment">
+                            @for (entry of displayedComments(); track entry.comment.id) {
+                              @let comment = entry.comment;
+                              <li
+                                class="task-comment"
+                                [class.task-comment--reply]="entry.isReply"
+                              >
                                 <header>
                                   <span class="task-comment__avatar" aria-hidden="true">
                                     {{ comment.author.name.charAt(0).toUpperCase() }}
@@ -1629,6 +1633,18 @@
                                     </small>
                                   </div>
                                 </header>
+
+                                @if (entry.isReply && comment.replyToAuthor) {
+                                  <p class="task-comment__reply-context">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                      <path
+                                        d="M9 8 4 12l5 4m-5-4h9a7 7 0 0 1 7 7"
+                                      ></path>
+                                    </svg>
+                                    Em resposta a
+                                    <strong>{{ comment.replyToAuthor.name }}</strong>
+                                  </p>
+                                }
 
                                 @if (editingCommentId() === comment.id) {
                                   <form
@@ -1669,10 +1685,23 @@
                                 } @else {
                                   <p>{{ comment.content }}</p>
 
-                                  @if (comment.canEdit || comment.canDelete) {
+                                  @if (canWriteTasks() || comment.canEdit || comment.canDelete) {
                                     <footer class="task-comment__actions">
+                                      @if (canWriteTasks()) {
+                                        <button
+                                          type="button"
+                                          [disabled]="managingComment()"
+                                          (click)="startCommentReply(comment)"
+                                        >
+                                          Responder
+                                        </button>
+                                      }
                                       @if (comment.canEdit) {
-                                        <button type="button" (click)="startCommentEdit(comment)">
+                                        <button
+                                          type="button"
+                                          [disabled]="managingComment()"
+                                          (click)="startCommentEdit(comment)"
+                                        >
                                           Editar
                                         </button>
                                       }
@@ -1680,12 +1709,74 @@
                                         <button
                                           class="task-comment__remove"
                                           type="button"
+                                          [disabled]="managingComment()"
                                           (click)="requestCommentRemoval(comment)"
                                         >
                                           Remover
                                         </button>
                                       }
                                     </footer>
+                                  }
+
+                                  @if (replyingToCommentId() === comment.id) {
+                                    <form
+                                      class="task-comment-form task-comment-form--reply"
+                                      [formGroup]="replyCommentForm"
+                                      (ngSubmit)="submitCommentReply(comment.id)"
+                                      novalidate
+                                    >
+                                      <label [for]="'reply-comment-' + comment.id">
+                                        Responder a {{ comment.author.name }}
+                                      </label>
+                                      <textarea
+                                        [id]="'reply-comment-' + comment.id"
+                                        rows="3"
+                                        maxlength="2000"
+                                        formControlName="content"
+                                        placeholder="Escreva uma resposta contextual..."
+                                      ></textarea>
+                                      <footer>
+                                        <small>
+                                          {{ replyCommentForm.controls.content.value.length }} /
+                                          2000
+                                        </small>
+                                        <div>
+                                          <button
+                                            type="button"
+                                            [disabled]="managingComment()"
+                                            (click)="cancelCommentReply()"
+                                          >
+                                            Cancelar
+                                          </button>
+                                          <button
+                                            class="primary-button"
+                                            type="submit"
+                                            [disabled]="managingComment()"
+                                          >
+                                            @if (managingComment()) {
+                                              Respondendo...
+                                            } @else {
+                                              Responder
+                                            }
+                                          </button>
+                                        </div>
+                                      </footer>
+
+                                      @if (
+                                        replyCommentForm.controls.content.touched &&
+                                        replyCommentForm.controls.content.hasError('required')
+                                      ) {
+                                        <small class="task-collaboration__validation">
+                                          Escreva uma resposta antes de publicar.
+                                        </small>
+                                      } @else if (
+                                        replyCommentForm.controls.content.hasError('maxlength')
+                                      ) {
+                                        <small class="task-collaboration__validation">
+                                          Use no máximo 2000 caracteres.
+                                        </small>
+                                      }
+                                    </form>
                                   }
 
                                   @if (commentPendingDeletionId() === comment.id) {
