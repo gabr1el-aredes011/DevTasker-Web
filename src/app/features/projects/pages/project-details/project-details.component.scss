@@ -435,6 +435,24 @@
   box-shadow: 0 0 1rem color-mix(in srgb, var(--label-color, #46ff78) 35%, transparent);
 }
 
+.label-card__tone {
+  display: flex;
+  margin-top: 0.35rem;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--dt-color-text-muted);
+  font-family: var(--dt-font-mono);
+  font-size: 0.52rem;
+}
+
+.label-card__tone > span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--task-label-color, var(--dt-color-text-tertiary));
+  box-shadow: 0 0 0.65rem color-mix(in srgb, var(--task-label-color) 55%, transparent);
+}
+
 .labels-search {
   display: flex;
   min-width: 18rem;
@@ -479,30 +497,6 @@
 .pending-invitations__error {
   border-color: var(--dt-color-danger);
   color: #ffc2c2;
-}
-
-.board-action-message,
-.label-action-message,
-.member-action-message {
-  margin: 1rem 0;
-  padding: 0.8rem 1rem;
-  border-left: 2px solid var(--dt-color-brand-400);
-  background: rgba(70, 255, 120, 0.045);
-  color: var(--dt-color-text-secondary);
-  font-size: 0.68rem;
-}
-
-.board-action-message--error,
-.label-action-message--error,
-.member-action-message--error {
-  border-color: var(--dt-color-danger);
-  color: #ffc2c2;
-}
-
-.board-action-message--success,
-.label-action-message--success,
-.member-action-message--success {
-  color: #c9ffd8;
 }
 
 @media (max-width: 58rem) {

@@ -13,6 +13,7 @@ import {
   ProjectMemberSummary,
 } from '../../models/project.models';
 import { ProjectService } from '../../services/project.service';
+import { DtToastService } from '../../../../shared/ui';
 import { ProjectDetailsComponent } from './project-details.component';
 
 describe('ProjectDetailsComponent', () => {
@@ -95,6 +96,10 @@ describe('ProjectDetailsComponent', () => {
   const dialog = {
     open: vi.fn(),
   };
+  const toast = {
+    success: vi.fn(),
+    error: vi.fn(),
+  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -116,6 +121,7 @@ describe('ProjectDetailsComponent', () => {
         ]),
         { provide: ProjectService, useValue: projectService },
         { provide: Dialog, useValue: dialog },
+        { provide: DtToastService, useValue: toast },
       ],
     }).compileComponents();
   });
@@ -144,6 +150,8 @@ describe('ProjectDetailsComponent', () => {
     expect((element.querySelector('#project-panel-labels') as HTMLElement).hidden).toBe(false);
     expect(element.querySelector('.labels-list')?.textContent).toContain('Backend');
     expect(element.querySelector('.labels-list')?.textContent).toContain('3');
+    expect(element.querySelector('.labels-list')?.textContent).toContain('Cor automática');
+    expect(element.querySelector('.labels-list')?.textContent).not.toContain('BLUE');
 
     component.labelQuery.set('frontend');
     expect(component.filteredLabels()).toEqual([]);
@@ -227,7 +235,9 @@ describe('ProjectDetailsComponent', () => {
       { ...boards[1], defaultBoard: true },
       { ...boards[0], defaultBoard: false },
     ]);
-    expect(component.boardActionSuccess()).toContain('Descoberta');
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringContaining('Descoberta agora é o quadro padrão'),
+    );
   });
 
   it('should hide board management actions from viewers', async () => {

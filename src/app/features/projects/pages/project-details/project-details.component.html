@@ -186,17 +186,6 @@
           </div>
         </header>
 
-        @if (boardActionSuccess()) {
-          <p class="board-action-message board-action-message--success" role="status">
-            {{ boardActionSuccess() }}
-          </p>
-        }
-        @if (boardActionError()) {
-          <p class="board-action-message board-action-message--error" role="alert">
-            {{ boardActionError() }}
-          </p>
-        }
-
         @if (boardsLoadError()) {
           <dt-feedback-state
             class="boards-feedback"
@@ -331,17 +320,6 @@
           </div>
         </header>
 
-        @if (labelActionSuccess()) {
-          <p class="label-action-message label-action-message--success" role="status">
-            {{ labelActionSuccess() }}
-          </p>
-        }
-        @if (labelActionError()) {
-          <p class="label-action-message label-action-message--error" role="alert">
-            {{ labelActionError() }}
-          </p>
-        }
-
         @if (labelsLoadError()) {
           <dt-feedback-state
             class="labels-feedback"
@@ -385,7 +363,10 @@
                 ></span>
                 <div class="label-card__identity">
                   <strong>{{ label.name }}</strong>
-                  <span>{{ label.color }}</span>
+                  <span class="label-card__tone">
+                    <span [attr.data-label-color]="label.color" aria-hidden="true"></span>
+                    Cor automática
+                  </span>
                 </div>
                 <div class="label-card__usage">
                   <strong>{{ label.usageCount }}</strong>
@@ -455,17 +436,6 @@
             }
           </div>
         </header>
-
-        @if (collaborationActionSuccess()) {
-          <p class="member-action-message member-action-message--success" role="status">
-            {{ collaborationActionSuccess() }}
-          </p>
-        }
-        @if (collaborationActionError()) {
-          <p class="member-action-message member-action-message--error" role="alert">
-            {{ collaborationActionError() }}
-          </p>
-        }
 
         @if (membersLoadError()) {
           <dt-feedback-state

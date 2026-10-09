@@ -247,6 +247,8 @@ Critérios de aceite:
 > preservando o comportamento funcional já estabilizado.
 
 - ✅ Migrar feedbacks transitórios do Kanban para o sistema global de Toast
+- ✅ Migrar feedbacks de quadros, labels e colaboração dos detalhes do projeto para
+  notificações temporárias com tons semânticos
 - 🚧 Consolidar a linguagem visual do shell, Dashboard, Projetos, detalhes e Kanban
   - ✅ Atmosfera exclusiva do workspace, visualmente relacionada à marca sem
     copiar a cena de partículas da autenticação
@@ -333,6 +335,8 @@ Critérios de aceite:
   das métricas sem transformar todos os estados em verde
 - 🧭 Projetos: criar seção de arquivados, exclusão definitiva com proteção,
   modais refinados e detalhes com gráficos e sinais de atenção por projeto
+  - ✅ Remover códigos técnicos de cor do catálogo de labels e comunicar a identidade
+    cromática automática em linguagem de produto
 - 🧭 Kanban: evoluir a identidade própria do quadro, microinterações e densidade
   informacional sem perder legibilidade
   - ✅ Primeira camada de inteligência operacional encapsulada em componente próprio,

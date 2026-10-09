@@ -31,6 +31,7 @@ import {
   DtBadgeComponent,
   DtButtonDirective,
   DtFeedbackStateComponent,
+  DtToastService,
 } from '../../../../shared/ui';
 import {
   BoardManagementDialogComponent,
@@ -72,6 +73,7 @@ export class ProjectDetailsComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly projectService = inject(ProjectService);
   private readonly dialog = inject(Dialog);
+  private readonly toast = inject(DtToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reload = new Subject<void>();
 
@@ -83,16 +85,10 @@ export class ProjectDetailsComponent implements OnInit {
   readonly membersLoadError = signal<string | null>(null);
   readonly labels = signal<readonly ProjectLabel[]>([]);
   readonly labelsLoadError = signal<string | null>(null);
-  readonly labelActionError = signal<string | null>(null);
-  readonly labelActionSuccess = signal<string | null>(null);
   readonly labelQuery = signal('');
   readonly invitations = signal<readonly ProjectInvitationSummary[]>([]);
   readonly invitationsLoadError = signal<string | null>(null);
-  readonly collaborationActionError = signal<string | null>(null);
-  readonly collaborationActionSuccess = signal<string | null>(null);
   readonly settingDefaultBoardId = signal<number | null>(null);
-  readonly boardActionError = signal<string | null>(null);
-  readonly boardActionSuccess = signal<string | null>(null);
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
   readonly activeTab = signal<ProjectDetailsTab>('overview');
@@ -305,8 +301,6 @@ export class ProjectDetailsComponent implements OnInit {
     }
 
     this.settingDefaultBoardId.set(board.id);
-    this.boardActionError.set(null);
-    this.boardActionSuccess.set(null);
 
     this.projectService
       .setDefaultBoard(board.id)
@@ -321,10 +315,10 @@ export class ProjectDetailsComponent implements OnInit {
               })),
             ),
           );
-          this.boardActionSuccess.set(`${defaultBoard.name} agora é o quadro padrão do projeto.`);
+          this.toast.success(`${defaultBoard.name} agora é o quadro padrão do projeto.`);
         },
         error: (error: unknown) => {
-          this.boardActionError.set(
+          this.toast.error(
             this.extractErrorMessage(error, 'Não foi possível definir o quadro padrão.'),
           );
         },
@@ -349,9 +343,6 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   private openBoardDialog(data: BoardManagementDialogData): void {
-    this.boardActionError.set(null);
-    this.boardActionSuccess.set(null);
-
     this.dialog
       .open<BoardManagementDialogResult>(BoardManagementDialogComponent, {
         data,
@@ -383,6 +374,7 @@ export class ProjectDetailsComponent implements OnInit {
 
             return this.sortBoards(remainingBoards);
           });
+          this.toast.success('Quadro arquivado sem apagar o histórico do projeto.');
           return;
         }
 
@@ -394,13 +386,15 @@ export class ProjectDetailsComponent implements OnInit {
 
           return this.sortBoards(nextBoards);
         });
+        this.toast.success(
+          result.action === 'created'
+            ? 'Quadro criado com sucesso.'
+            : 'Quadro atualizado com sucesso.',
+        );
       });
   }
 
   private openCollaborationDialog(data: ProjectCollaborationDialogData): void {
-    this.collaborationActionError.set(null);
-    this.collaborationActionSuccess.set(null);
-
     this.dialog
       .open<ProjectCollaborationDialogResult>(ProjectCollaborationDialogComponent, {
         data,
@@ -415,38 +409,31 @@ export class ProjectDetailsComponent implements OnInit {
         switch (result.action) {
           case 'invited':
             this.invitations.update((items) => [result.invitation, ...items]);
-            this.collaborationActionSuccess.set(
-              `Convite enviado para ${result.invitation.invitedEmail}.`,
-            );
+            this.toast.success(`Convite enviado para ${result.invitation.invitedEmail}.`);
             break;
           case 'updated':
             this.members.update((items) =>
               items.map((member) => (member.id === result.member.id ? result.member : member)),
             );
-            this.collaborationActionSuccess.set(
-              `A função de ${result.member.name} foi atualizada.`,
-            );
+            this.toast.success(`A função de ${result.member.name} foi atualizada.`);
             break;
           case 'removed':
             this.members.update((items) =>
               items.filter((member) => member.id !== result.membershipId),
             );
-            this.collaborationActionSuccess.set('O membro foi removido do projeto.');
+            this.toast.success('O membro foi removido do projeto.');
             break;
           case 'revoked':
             this.invitations.update((items) =>
               items.filter((item) => item.id !== result.invitationId),
             );
-            this.collaborationActionSuccess.set('O convite pendente foi revogado.');
+            this.toast.success('O convite pendente foi revogado.');
             break;
         }
       });
   }
 
   private openLabelDialog(data: ProjectLabelDialogData): void {
-    this.labelActionError.set(null);
-    this.labelActionSuccess.set(null);
-
     this.dialog
       .open<ProjectLabelDialogResult>(ProjectLabelDialogComponent, {
         data,
@@ -463,7 +450,7 @@ export class ProjectDetailsComponent implements OnInit {
 
         if (result.action === 'archived') {
           this.labels.update((labels) => labels.filter((label) => label.id !== result.labelId));
-          this.labelActionSuccess.set('A label foi arquivada sem apagar o histórico das tarefas.');
+          this.toast.success('A label foi arquivada sem apagar o histórico das tarefas.');
           return;
         }
 
@@ -472,7 +459,7 @@ export class ProjectDetailsComponent implements OnInit {
             ? [...labels, result.label].sort((left, right) => left.name.localeCompare(right.name))
             : labels.map((label) => (label.id === result.label.id ? result.label : label)),
         );
-        this.labelActionSuccess.set(
+        this.toast.success(
           result.action === 'created' ? 'Label criada com sucesso.' : 'Label atualizada com sucesso.',
         );
       });
@@ -521,14 +508,8 @@ export class ProjectDetailsComponent implements OnInit {
     this.labels.set([]);
     this.labelQuery.set('');
     this.labelsLoadError.set(null);
-    this.labelActionError.set(null);
-    this.labelActionSuccess.set(null);
     this.invitations.set([]);
     this.invitationsLoadError.set(null);
-    this.collaborationActionError.set(null);
-    this.collaborationActionSuccess.set(null);
-    this.boardActionError.set(null);
-    this.boardActionSuccess.set(null);
     this.loadError.set(null);
 
     if (projectId === null) {
