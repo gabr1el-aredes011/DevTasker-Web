@@ -217,7 +217,7 @@ por exemplo, não será uma cópia visual do Kanban.
 - ✅ Deep links de projeto, board e tarefa
 - ✅ Estado refletido na URL
 - ✅ Atribuição de um responsável entre participantes com permissão operacional
-- 🧭 Atribuição de múltiplos responsáveis por tarefa, com avatares agrupados,
+- ✅ Atribuição de múltiplos responsáveis por tarefa, com avatares agrupados,
   filtros coerentes e histórico de alterações
 - ✅ Limpeza automática da atribuição ao remover ou tornar um membro `VIEWER`
 - ✅ Catálogo reutilizável de labels por projeto, com identidade, cores e arquivamento lógico
@@ -289,7 +289,7 @@ Critérios de aceite:
 
 - ✅ Descrição avançada em Markdown, limitada a 4.000 caracteres e sem HTML arbitrário
 - ✅ Responsável com validação de participação e permissões
-- 🧭 Múltiplos responsáveis com tabela associativa, migração segura do vínculo
+- ✅ Múltiplos responsáveis com tabela associativa, migração segura do vínculo
   atual e limpeza automática quando uma participação perde acesso operacional
 - ✅ Catálogo de labels por projeto com nomes únicos, gestão por `OWNER`/`ADMIN`
   e identidade cromática automática, sem configuração manual de cor
