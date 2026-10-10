@@ -358,17 +358,36 @@
                     </div>
 
                     <div class="task-form-field">
-                      <label for="task-assignee"> Responsável </label>
+                      <div class="task-form-field__label">
+                        <label id="task-assignees-label"> Responsáveis </label>
+                        <small>{{ createTaskForm.controls.assigneeIds.value.length }} / 5</small>
+                      </div>
 
-                      <select id="task-assignee" formControlName="assigneeId">
-                        <option [ngValue]="null">Sem responsável</option>
-
+                      <div
+                        class="task-assignee-picker"
+                        role="group"
+                        aria-labelledby="task-assignees-label"
+                      >
                         @for (member of assignableMembers(); track member.userId) {
-                          <option [ngValue]="member.userId">
-                            {{ member.name }} · {{ member.role }}
-                          </option>
+                          <label
+                            [class.is-selected]="isTaskAssigneeSelected('create', member.userId)"
+                          >
+                            <input
+                              type="checkbox"
+                              [checked]="isTaskAssigneeSelected('create', member.userId)"
+                              [disabled]="isTaskAssigneeDisabled('create', member.userId)"
+                              (change)="toggleTaskAssignee('create', member.userId)"
+                            />
+                            <span class="task-assignee-picker__avatar" aria-hidden="true">
+                              {{ member.name.charAt(0).toUpperCase() }}
+                            </span>
+                            <span>
+                              <strong>{{ member.name }}</strong>
+                              <small>{{ member.role }}</small>
+                            </span>
+                          </label>
                         }
-                      </select>
+                      </div>
 
                       @if (loadingAssignableMembers()) {
                         <small>Carregando participantes disponíveis...</small>
@@ -836,17 +855,40 @@
                           </div>
 
                           <div class="task-form-field">
-                            <label for="edit-task-assignee"> Responsável </label>
+                            <div class="task-form-field__label">
+                              <label id="edit-task-assignees-label"> Responsáveis </label>
+                              <small
+                                >{{ editTaskForm.controls.assigneeIds.value.length }} / 5</small
+                              >
+                            </div>
 
-                            <select id="edit-task-assignee" formControlName="assigneeId">
-                              <option [ngValue]="null">Sem responsável</option>
-
+                            <div
+                              class="task-assignee-picker"
+                              role="group"
+                              aria-labelledby="edit-task-assignees-label"
+                            >
                               @for (member of assignableMembers(); track member.userId) {
-                                <option [ngValue]="member.userId">
-                                  {{ member.name }} · {{ member.role }}
-                                </option>
+                                <label
+                                  [class.is-selected]="
+                                    isTaskAssigneeSelected('edit', member.userId)
+                                  "
+                                >
+                                  <input
+                                    type="checkbox"
+                                    [checked]="isTaskAssigneeSelected('edit', member.userId)"
+                                    [disabled]="isTaskAssigneeDisabled('edit', member.userId)"
+                                    (change)="toggleTaskAssignee('edit', member.userId)"
+                                  />
+                                  <span class="task-assignee-picker__avatar" aria-hidden="true">
+                                    {{ member.name.charAt(0).toUpperCase() }}
+                                  </span>
+                                  <span>
+                                    <strong>{{ member.name }}</strong>
+                                    <small>{{ member.role }}</small>
+                                  </span>
+                                </label>
                               }
-                            </select>
+                            </div>
 
                             @if (loadingAssignableMembers()) {
                               <small>Carregando participantes disponíveis...</small>
@@ -1096,9 +1138,15 @@
                       </div>
 
                       <div>
-                        <dt>Responsável</dt>
-                        <dd>
-                          {{ task.assignee?.name ?? 'Sem responsável' }}
+                        <dt>Responsáveis</dt>
+                        <dd class="task-assignee-summary">
+                          @if (task.assignees.length === 0) {
+                            Sem responsável
+                          } @else {
+                            @for (assignee of task.assignees; track assignee.id) {
+                              <span>{{ assignee.name }}</span>
+                            }
+                          }
                         </dd>
                       </div>
 
@@ -1184,668 +1232,669 @@
 
                   @if (!editingTask()) {
                     <section class="task-checklist" aria-labelledby="task-checklist-title">
-                    <header class="task-checklist__header">
-                      <div>
-                        <p class="eyebrow">Execução</p>
-                        <h4 id="task-checklist-title">Checklist da tarefa</h4>
-                      </div>
-
-                      <strong>
-                        {{ checklistCompletedCount() }} / {{ task.checklistItems.length }}
-                      </strong>
-                    </header>
-
-                    @if (task.checklistItems.length > 0) {
-                      <progress
-                        class="task-checklist__progress"
-                        [value]="checklistCompletedCount()"
-                        [max]="task.checklistItems.length"
-                        [attr.aria-label]="
-                          checklistCompletedCount() +
-                          ' de ' +
-                          task.checklistItems.length +
-                          ' itens concluídos'
-                        "
-                      ></progress>
-                    }
-
-                    @if (canWriteTasks()) {
-                      <form
-                        class="task-form task-checklist__form"
-                        [formGroup]="checklistItemForm"
-                        (ngSubmit)="addChecklistItem()"
-                        novalidate
-                      >
-                        <div class="task-form-field">
-                          <label for="task-checklist-item">Nova subtarefa</label>
-                          <input
-                            id="task-checklist-item"
-                            type="text"
-                            maxlength="180"
-                            formControlName="title"
-                            placeholder="Ex.: Validar cenário de cadastro"
-                          />
+                      <header class="task-checklist__header">
+                        <div>
+                          <p class="eyebrow">Execução</p>
+                          <h4 id="task-checklist-title">Checklist da tarefa</h4>
                         </div>
 
-                        <button
-                          class="primary-button"
-                          type="submit"
-                          [disabled]="managingChecklist() || task.checklistItems.length >= 50"
-                        >
-                          Adicionar
-                        </button>
-                      </form>
+                        <strong>
+                          {{ checklistCompletedCount() }} / {{ task.checklistItems.length }}
+                        </strong>
+                      </header>
 
-                      @if (
-                        checklistItemForm.controls.title.touched &&
-                        checklistItemForm.controls.title.hasError('required')
-                      ) {
-                        <small class="task-checklist__validation"
-                          >Informe o título da subtarefa.</small
-                        >
-                      } @else if (checklistItemForm.controls.title.hasError('maxlength')) {
-                        <small class="task-checklist__validation">
-                          Use no máximo 180 caracteres.
-                        </small>
-                      }
-                    }
-
-                    @if (checklistError()) {
-                      <div
-                        class="task-checklist__message task-checklist__message--error"
-                        role="alert"
-                      >
-                        {{ checklistError() }}
-                      </div>
-                    }
-
-                    @if (task.checklistItems.length === 0) {
-                      <p class="task-checklist__empty">
-                        Nenhuma subtarefa adicionada. Use a checklist para dividir a entrega em
-                        passos menores.
-                      </p>
-                    } @else {
-                      <ul class="task-checklist__items">
-                        @for (item of task.checklistItems; track item.id) {
-                          <li [class.task-checklist__item--completed]="item.completed">
-                            <label>
-                              <input
-                                type="checkbox"
-                                [checked]="item.completed"
-                                [disabled]="!canWriteTasks() || managingChecklist()"
-                                (change)="toggleChecklistItem(item)"
-                              />
-                              <span>{{ item.title }}</span>
-                            </label>
-
-                            @if (canWriteTasks()) {
-                              <button
-                                type="button"
-                                [disabled]="managingChecklist()"
-                                [attr.aria-label]="'Remover subtarefa ' + item.title"
-                                (click)="removeChecklistItem(item)"
-                              >
-                                Remover
-                              </button>
-                            }
-                          </li>
-                        }
-                      </ul>
-                    }
-
-                    @if (isReadOnly()) {
-                      <p class="task-checklist__readonly">
-                        Visualizadores acompanham o progresso, sem alterar a checklist.
-                      </p>
-                    }
-                  </section>
-
-                  <section class="task-attachments" aria-labelledby="task-attachments-title">
-                    <header class="task-attachments__header">
-                      <div>
-                        <p class="eyebrow">Arquivos</p>
-                        <h4 id="task-attachments-title">Anexos da tarefa</h4>
-                        <p>Centralize evidências, documentos e materiais desta entrega.</p>
-                      </div>
-
-                      <strong>{{ taskAttachments().length }} / 10</strong>
-                    </header>
-
-                    @if (canWriteTasks()) {
-                      <div class="task-attachments__upload">
-                        <label
-                          for="task-attachment-file"
-                          [class.task-attachments__upload-label--disabled]="
-                            managingAttachment() || taskAttachments().length >= 10
+                      @if (task.checklistItems.length > 0) {
+                        <progress
+                          class="task-checklist__progress"
+                          [value]="checklistCompletedCount()"
+                          [max]="task.checklistItems.length"
+                          [attr.aria-label]="
+                            checklistCompletedCount() +
+                            ' de ' +
+                            task.checklistItems.length +
+                            ' itens concluídos'
                           "
-                        >
-                          Selecionar arquivo
-                        </label>
-                        <input
-                          id="task-attachment-file"
-                          class="visually-hidden"
-                          type="file"
-                          accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.json,.zip"
-                          [disabled]="managingAttachment() || taskAttachments().length >= 10"
-                          (change)="selectAttachment($event)"
-                        />
-                        <small>PDF, imagens, TXT, JSON ou ZIP · máximo de 10 MB</small>
-                      </div>
+                        ></progress>
+                      }
 
-                      @if (pendingAttachment(); as pendingFile) {
-                        <div class="task-attachments__pending">
-                          @if (pendingAttachmentThumbnailUrl(); as thumbnailUrl) {
-                            <img [src]="thumbnailUrl" [alt]="'Prévia de ' + pendingFile.name" />
-                          } @else {
-                            <span class="task-attachments__file-icon" aria-hidden="true">
-                              {{ attachmentKind(pendingFile.type) }}
-                            </span>
-                          }
-                          <div class="task-attachments__metadata">
-                            <small>Pronto para enviar</small>
-                            <strong>{{ pendingFile.name }}</strong>
-                            <small>{{ formatFileSize(pendingFile.size) }}</small>
+                      @if (canWriteTasks()) {
+                        <form
+                          class="task-form task-checklist__form"
+                          [formGroup]="checklistItemForm"
+                          (ngSubmit)="addChecklistItem()"
+                          novalidate
+                        >
+                          <div class="task-form-field">
+                            <label for="task-checklist-item">Nova subtarefa</label>
+                            <input
+                              id="task-checklist-item"
+                              type="text"
+                              maxlength="180"
+                              formControlName="title"
+                              placeholder="Ex.: Validar cenário de cadastro"
+                            />
                           </div>
-                          <div class="task-attachments__actions">
-                            <button type="button" (click)="previewPendingAttachment()">
-                              Visualizar
-                            </button>
-                            <button
-                              type="button"
-                              [disabled]="managingAttachment()"
-                              (click)="cancelPendingAttachment()"
-                            >
-                              Cancelar
-                            </button>
-                            <button
-                              class="task-attachments__send"
-                              type="button"
-                              [disabled]="managingAttachment()"
-                              (click)="confirmAttachmentUpload()"
-                            >
-                              {{ managingAttachment() ? 'Enviando...' : 'Enviar anexo' }}
-                            </button>
-                          </div>
+
+                          <button
+                            class="primary-button"
+                            type="submit"
+                            [disabled]="managingChecklist() || task.checklistItems.length >= 50"
+                          >
+                            Adicionar
+                          </button>
+                        </form>
+
+                        @if (
+                          checklistItemForm.controls.title.touched &&
+                          checklistItemForm.controls.title.hasError('required')
+                        ) {
+                          <small class="task-checklist__validation"
+                            >Informe o título da subtarefa.</small
+                          >
+                        } @else if (checklistItemForm.controls.title.hasError('maxlength')) {
+                          <small class="task-checklist__validation">
+                            Use no máximo 180 caracteres.
+                          </small>
+                        }
+                      }
+
+                      @if (checklistError()) {
+                        <div
+                          class="task-checklist__message task-checklist__message--error"
+                          role="alert"
+                        >
+                          {{ checklistError() }}
                         </div>
                       }
-                    } @else {
-                      <p class="task-attachments__readonly">
-                        Visualizadores podem consultar e baixar arquivos, sem adicionar ou remover.
-                      </p>
-                    }
 
-                    @if (attachmentActionError()) {
-                      <div
-                        class="task-attachments__message task-attachments__message--error"
-                        role="alert"
-                      >
-                        {{ attachmentActionError() }}
-                      </div>
-                    }
+                      @if (task.checklistItems.length === 0) {
+                        <p class="task-checklist__empty">
+                          Nenhuma subtarefa adicionada. Use a checklist para dividir a entrega em
+                          passos menores.
+                        </p>
+                      } @else {
+                        <ul class="task-checklist__items">
+                          @for (item of task.checklistItems; track item.id) {
+                            <li [class.task-checklist__item--completed]="item.completed">
+                              <label>
+                                <input
+                                  type="checkbox"
+                                  [checked]="item.completed"
+                                  [disabled]="!canWriteTasks() || managingChecklist()"
+                                  (change)="toggleChecklistItem(item)"
+                                />
+                                <span>{{ item.title }}</span>
+                              </label>
 
-                    @if (loadingTaskAttachments()) {
-                      <div class="task-attachments__state" role="status">Carregando anexos...</div>
-                    } @else if (taskAttachmentsError()) {
-                      <div
-                        class="task-attachments__state task-attachments__state--error"
-                        role="alert"
-                      >
-                        <span>{{ taskAttachmentsError() }}</span>
-                        <button type="button" (click)="retryTaskAttachments()">
-                          Tentar novamente
-                        </button>
-                      </div>
-                    } @else if (taskAttachments().length === 0) {
-                      <p class="task-attachments__empty">Nenhum arquivo anexado a esta tarefa.</p>
-                    } @else {
-                      <ul class="task-attachments__list">
-                        @for (attachment of taskAttachments(); track attachment.id) {
-                          <li>
-                            <div class="task-attachments__file-icon" aria-hidden="true">
-                              {{ attachmentKind(attachment.contentType) }}
-                            </div>
-                            <div class="task-attachments__metadata">
-                              <strong>{{ attachment.originalFileName }}</strong>
-                              <small>
-                                {{ formatFileSize(attachment.sizeBytes) }} · enviado por
-                                {{ attachment.uploader.name }} ·
-                                {{ formatTaskTimestamp(attachment.createdAt) }}
-                              </small>
-                            </div>
-
-                            <div class="task-attachments__actions">
-                              <button
-                                type="button"
-                                [disabled]="previewingAttachmentId() !== null"
-                                (click)="previewAttachment(attachment)"
-                              >
-                                @if (previewingAttachmentId() === attachment.id) {
-                                  Abrindo...
-                                } @else {
-                                  Visualizar
-                                }
-                              </button>
-                              <button
-                                type="button"
-                                [disabled]="downloadingAttachmentId() !== null"
-                                (click)="downloadAttachment(attachment)"
-                              >
-                                @if (downloadingAttachmentId() === attachment.id) {
-                                  Baixando...
-                                } @else {
-                                  Baixar
-                                }
-                              </button>
-
-                              @if (attachment.canDelete) {
+                              @if (canWriteTasks()) {
                                 <button
-                                  class="task-attachments__remove"
                                   type="button"
-                                  [disabled]="managingAttachment()"
-                                  (click)="requestAttachmentRemoval(attachment)"
+                                  [disabled]="managingChecklist()"
+                                  [attr.aria-label]="'Remover subtarefa ' + item.title"
+                                  (click)="removeChecklistItem(item)"
                                 >
                                   Remover
                                 </button>
                               }
-                            </div>
+                            </li>
+                          }
+                        </ul>
+                      }
 
-                            @if (attachmentPendingDeletionId() === attachment.id) {
-                              <div class="task-attachments__confirmation">
-                                <span>Remover este anexo permanentemente?</span>
-                                <div>
-                                  <button
-                                    type="button"
-                                    [disabled]="managingAttachment()"
-                                    (click)="cancelAttachmentRemoval()"
-                                  >
-                                    Cancelar
-                                  </button>
+                      @if (isReadOnly()) {
+                        <p class="task-checklist__readonly">
+                          Visualizadores acompanham o progresso, sem alterar a checklist.
+                        </p>
+                      }
+                    </section>
+
+                    <section class="task-attachments" aria-labelledby="task-attachments-title">
+                      <header class="task-attachments__header">
+                        <div>
+                          <p class="eyebrow">Arquivos</p>
+                          <h4 id="task-attachments-title">Anexos da tarefa</h4>
+                          <p>Centralize evidências, documentos e materiais desta entrega.</p>
+                        </div>
+
+                        <strong>{{ taskAttachments().length }} / 10</strong>
+                      </header>
+
+                      @if (canWriteTasks()) {
+                        <div class="task-attachments__upload">
+                          <label
+                            for="task-attachment-file"
+                            [class.task-attachments__upload-label--disabled]="
+                              managingAttachment() || taskAttachments().length >= 10
+                            "
+                          >
+                            Selecionar arquivo
+                          </label>
+                          <input
+                            id="task-attachment-file"
+                            class="visually-hidden"
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.json,.zip"
+                            [disabled]="managingAttachment() || taskAttachments().length >= 10"
+                            (change)="selectAttachment($event)"
+                          />
+                          <small>PDF, imagens, TXT, JSON ou ZIP · máximo de 10 MB</small>
+                        </div>
+
+                        @if (pendingAttachment(); as pendingFile) {
+                          <div class="task-attachments__pending">
+                            @if (pendingAttachmentThumbnailUrl(); as thumbnailUrl) {
+                              <img [src]="thumbnailUrl" [alt]="'Prévia de ' + pendingFile.name" />
+                            } @else {
+                              <span class="task-attachments__file-icon" aria-hidden="true">
+                                {{ attachmentKind(pendingFile.type) }}
+                              </span>
+                            }
+                            <div class="task-attachments__metadata">
+                              <small>Pronto para enviar</small>
+                              <strong>{{ pendingFile.name }}</strong>
+                              <small>{{ formatFileSize(pendingFile.size) }}</small>
+                            </div>
+                            <div class="task-attachments__actions">
+                              <button type="button" (click)="previewPendingAttachment()">
+                                Visualizar
+                              </button>
+                              <button
+                                type="button"
+                                [disabled]="managingAttachment()"
+                                (click)="cancelPendingAttachment()"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                class="task-attachments__send"
+                                type="button"
+                                [disabled]="managingAttachment()"
+                                (click)="confirmAttachmentUpload()"
+                              >
+                                {{ managingAttachment() ? 'Enviando...' : 'Enviar anexo' }}
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      } @else {
+                        <p class="task-attachments__readonly">
+                          Visualizadores podem consultar e baixar arquivos, sem adicionar ou
+                          remover.
+                        </p>
+                      }
+
+                      @if (attachmentActionError()) {
+                        <div
+                          class="task-attachments__message task-attachments__message--error"
+                          role="alert"
+                        >
+                          {{ attachmentActionError() }}
+                        </div>
+                      }
+
+                      @if (loadingTaskAttachments()) {
+                        <div class="task-attachments__state" role="status">
+                          Carregando anexos...
+                        </div>
+                      } @else if (taskAttachmentsError()) {
+                        <div
+                          class="task-attachments__state task-attachments__state--error"
+                          role="alert"
+                        >
+                          <span>{{ taskAttachmentsError() }}</span>
+                          <button type="button" (click)="retryTaskAttachments()">
+                            Tentar novamente
+                          </button>
+                        </div>
+                      } @else if (taskAttachments().length === 0) {
+                        <p class="task-attachments__empty">Nenhum arquivo anexado a esta tarefa.</p>
+                      } @else {
+                        <ul class="task-attachments__list">
+                          @for (attachment of taskAttachments(); track attachment.id) {
+                            <li>
+                              <div class="task-attachments__file-icon" aria-hidden="true">
+                                {{ attachmentKind(attachment.contentType) }}
+                              </div>
+                              <div class="task-attachments__metadata">
+                                <strong>{{ attachment.originalFileName }}</strong>
+                                <small>
+                                  {{ formatFileSize(attachment.sizeBytes) }} · enviado por
+                                  {{ attachment.uploader.name }} ·
+                                  {{ formatTaskTimestamp(attachment.createdAt) }}
+                                </small>
+                              </div>
+
+                              <div class="task-attachments__actions">
+                                <button
+                                  type="button"
+                                  [disabled]="previewingAttachmentId() !== null"
+                                  (click)="previewAttachment(attachment)"
+                                >
+                                  @if (previewingAttachmentId() === attachment.id) {
+                                    Abrindo...
+                                  } @else {
+                                    Visualizar
+                                  }
+                                </button>
+                                <button
+                                  type="button"
+                                  [disabled]="downloadingAttachmentId() !== null"
+                                  (click)="downloadAttachment(attachment)"
+                                >
+                                  @if (downloadingAttachmentId() === attachment.id) {
+                                    Baixando...
+                                  } @else {
+                                    Baixar
+                                  }
+                                </button>
+
+                                @if (attachment.canDelete) {
                                   <button
                                     class="task-attachments__remove"
                                     type="button"
                                     [disabled]="managingAttachment()"
-                                    (click)="confirmAttachmentRemoval(attachment.id)"
+                                    (click)="requestAttachmentRemoval(attachment)"
                                   >
-                                    Confirmar
+                                    Remover
                                   </button>
+                                }
+                              </div>
+
+                              @if (attachmentPendingDeletionId() === attachment.id) {
+                                <div class="task-attachments__confirmation">
+                                  <span>Remover este anexo permanentemente?</span>
+                                  <div>
+                                    <button
+                                      type="button"
+                                      [disabled]="managingAttachment()"
+                                      (click)="cancelAttachmentRemoval()"
+                                    >
+                                      Cancelar
+                                    </button>
+                                    <button
+                                      class="task-attachments__remove"
+                                      type="button"
+                                      [disabled]="managingAttachment()"
+                                      (click)="confirmAttachmentRemoval(attachment.id)"
+                                    >
+                                      Confirmar
+                                    </button>
+                                  </div>
                                 </div>
+                              }
+                            </li>
+                          }
+                        </ul>
+                      }
+                    </section>
+
+                    @if (attachmentPreview(); as preview) {
+                      <div
+                        class="attachment-preview"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="attachment-preview-title"
+                      >
+                        <div class="attachment-preview__surface">
+                          <header>
+                            <div>
+                              <p class="eyebrow">Pré-visualização segura</p>
+                              <h4 id="attachment-preview-title">{{ preview.name }}</h4>
+                            </div>
+                            <button
+                              type="button"
+                              aria-label="Fechar pré-visualização"
+                              (click)="closeAttachmentPreview()"
+                            >
+                              ×
+                            </button>
+                          </header>
+
+                          <div class="attachment-preview__content">
+                            @if (isImageContentType(preview.contentType)) {
+                              <img [src]="preview.objectUrl" [alt]="preview.name" />
+                            } @else if (isPdfContentType(preview.contentType)) {
+                              <iframe [src]="preview.safeUrl" [title]="preview.name"></iframe>
+                            } @else if (preview.textContent !== null) {
+                              <pre>{{ preview.textContent }}</pre>
+                            } @else {
+                              <div class="attachment-preview__unsupported">
+                                <span aria-hidden="true">{{
+                                  attachmentKind(preview.contentType)
+                                }}</span>
+                                <strong>Prévia indisponível para este formato</strong>
+                                <p>O arquivo permanece disponível para download.</p>
                               </div>
                             }
-                          </li>
-                        }
-                      </ul>
-                    }
-                  </section>
-
-                  @if (attachmentPreview(); as preview) {
-                    <div
-                      class="attachment-preview"
-                      role="dialog"
-                      aria-modal="true"
-                      aria-labelledby="attachment-preview-title"
-                    >
-                      <div class="attachment-preview__surface">
-                        <header>
-                          <div>
-                            <p class="eyebrow">Pré-visualização segura</p>
-                            <h4 id="attachment-preview-title">{{ preview.name }}</h4>
                           </div>
-                          <button
-                            type="button"
-                            aria-label="Fechar pré-visualização"
-                            (click)="closeAttachmentPreview()"
-                          >
-                            ×
-                          </button>
-                        </header>
-
-                        <div class="attachment-preview__content">
-                          @if (isImageContentType(preview.contentType)) {
-                            <img [src]="preview.objectUrl" [alt]="preview.name" />
-                          } @else if (isPdfContentType(preview.contentType)) {
-                            <iframe [src]="preview.safeUrl" [title]="preview.name"></iframe>
-                          } @else if (preview.textContent !== null) {
-                            <pre>{{ preview.textContent }}</pre>
-                          } @else {
-                            <div class="attachment-preview__unsupported">
-                              <span aria-hidden="true">{{
-                                attachmentKind(preview.contentType)
-                              }}</span>
-                              <strong>Prévia indisponível para este formato</strong>
-                              <p>O arquivo permanece disponível para download.</p>
-                            </div>
-                          }
                         </div>
                       </div>
-                    </div>
-                  }
+                    }
 
                     <section class="task-collaboration" aria-labelledby="task-comments-title">
-                    <div class="task-collaboration__column">
-                      <header class="task-collaboration__header">
-                        <div>
-                          <p class="eyebrow">Colaboração</p>
-                          <h4 id="task-comments-title">Comentários</h4>
-                        </div>
-
-                        <strong>{{ taskCollaboration()?.comments?.length ?? 0 }}</strong>
-                      </header>
-
-                      @if (canWriteTasks()) {
-                        <form
-                          class="task-comment-form"
-                          [formGroup]="commentForm"
-                          (ngSubmit)="addComment()"
-                          novalidate
-                        >
-                          <label for="task-comment">Novo comentário</label>
-                          <textarea
-                            id="task-comment"
-                            rows="3"
-                            maxlength="2000"
-                            formControlName="content"
-                            placeholder="Compartilhe contexto, uma decisão ou uma atualização..."
-                          ></textarea>
-
-                          <div class="task-comment-form__footer">
-                            <small>{{ commentForm.controls.content.value.length }} / 2000</small>
-                            <button
-                              class="primary-button"
-                              type="submit"
-                              [disabled]="managingComment()"
-                            >
-                              @if (managingComment()) {
-                                Publicando...
-                              } @else {
-                                Publicar comentário
-                              }
-                            </button>
+                      <div class="task-collaboration__column">
+                        <header class="task-collaboration__header">
+                          <div>
+                            <p class="eyebrow">Colaboração</p>
+                            <h4 id="task-comments-title">Comentários</h4>
                           </div>
 
-                          @if (
-                            commentForm.controls.content.touched &&
-                            commentForm.controls.content.hasError('required')
-                          ) {
-                            <small class="task-collaboration__validation">
-                              Escreva uma mensagem antes de publicar.
-                            </small>
-                          } @else if (commentForm.controls.content.hasError('maxlength')) {
-                            <small class="task-collaboration__validation">
-                              Use no máximo 2000 caracteres.
-                            </small>
-                          }
-                        </form>
-                      } @else if (isReadOnly()) {
-                        <p class="task-collaboration__readonly">
-                          Visualizadores podem acompanhar a conversa, sem publicar ou alterar
-                          comentários.
-                        </p>
-                      }
+                          <strong>{{ taskCollaboration()?.comments?.length ?? 0 }}</strong>
+                        </header>
 
-                      @if (commentActionError()) {
-                        <div
-                          class="task-collaboration__message task-collaboration__message--error"
-                          role="alert"
-                        >
-                          {{ commentActionError() }}
-                        </div>
-                      }
+                        @if (canWriteTasks()) {
+                          <form
+                            class="task-comment-form"
+                            [formGroup]="commentForm"
+                            (ngSubmit)="addComment()"
+                            novalidate
+                          >
+                            <label for="task-comment">Novo comentário</label>
+                            <textarea
+                              id="task-comment"
+                              rows="3"
+                              maxlength="2000"
+                              formControlName="content"
+                              placeholder="Compartilhe contexto, uma decisão ou uma atualização..."
+                            ></textarea>
 
-                      @if (loadingTaskCollaboration()) {
-                        <div class="task-collaboration__state" role="status">
-                          <span class="loading-indicator" aria-hidden="true"></span>
-                          <span>Carregando colaboração...</span>
-                        </div>
-                      } @else if (taskCollaborationError()) {
-                        <div
-                          class="task-collaboration__state task-collaboration__state--error"
-                          role="alert"
-                        >
-                          <span>{{ taskCollaborationError() }}</span>
-                          <button type="button" (click)="retryTaskCollaboration()">
-                            Tentar novamente
-                          </button>
-                        </div>
-                      } @else if (taskCollaboration(); as collaboration) {
-                        @if (collaboration.comments.length === 0) {
-                          <p class="task-collaboration__empty">
-                            Ainda não há comentários nesta tarefa.
-                          </p>
-                        } @else {
-                          <ul class="task-comments">
-                            @for (entry of displayedComments(); track entry.comment.id) {
-                              @let comment = entry.comment;
-                              <li
-                                class="task-comment"
-                                [class.task-comment--reply]="entry.isReply"
+                            <div class="task-comment-form__footer">
+                              <small>{{ commentForm.controls.content.value.length }} / 2000</small>
+                              <button
+                                class="primary-button"
+                                type="submit"
+                                [disabled]="managingComment()"
                               >
-                                <header>
-                                  <span class="task-comment__avatar" aria-hidden="true">
-                                    {{ comment.author.name.charAt(0).toUpperCase() }}
-                                  </span>
-                                  <div>
-                                    <strong>{{ comment.author.name }}</strong>
-                                    <small>
-                                      {{ formatTaskTimestamp(comment.createdAt) }}
-                                      @if (comment.edited) {
-                                        · editado
-                                      }
-                                    </small>
-                                  </div>
-                                </header>
-
-                                @if (entry.isReply && comment.replyToAuthor) {
-                                  <p class="task-comment__reply-context">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                      <path
-                                        d="M9 8 4 12l5 4m-5-4h9a7 7 0 0 1 7 7"
-                                      ></path>
-                                    </svg>
-                                    Em resposta a
-                                    <strong>{{ comment.replyToAuthor.name }}</strong>
-                                  </p>
-                                }
-
-                                @if (editingCommentId() === comment.id) {
-                                  <form
-                                    class="task-comment-form task-comment-form--editing"
-                                    [formGroup]="editCommentForm"
-                                    (ngSubmit)="submitCommentEdit(comment.id)"
-                                    novalidate
-                                  >
-                                    <label
-                                      class="visually-hidden"
-                                      [for]="'edit-comment-' + comment.id"
-                                    >
-                                      Editar comentário
-                                    </label>
-                                    <textarea
-                                      [id]="'edit-comment-' + comment.id"
-                                      rows="3"
-                                      maxlength="2000"
-                                      formControlName="content"
-                                    ></textarea>
-                                    <footer>
-                                      <button
-                                        type="button"
-                                        [disabled]="managingComment()"
-                                        (click)="cancelCommentEdit()"
-                                      >
-                                        Cancelar
-                                      </button>
-                                      <button
-                                        class="primary-button"
-                                        type="submit"
-                                        [disabled]="managingComment()"
-                                      >
-                                        Salvar
-                                      </button>
-                                    </footer>
-                                  </form>
+                                @if (managingComment()) {
+                                  Publicando...
                                 } @else {
-                                  <p>{{ comment.content }}</p>
+                                  Publicar comentário
+                                }
+                              </button>
+                            </div>
 
-                                  @if (canWriteTasks() || comment.canEdit || comment.canDelete) {
-                                    <footer class="task-comment__actions">
-                                      @if (canWriteTasks()) {
-                                        <button
-                                          type="button"
-                                          [disabled]="managingComment()"
-                                          (click)="startCommentReply(comment)"
-                                        >
-                                          Responder
-                                        </button>
-                                      }
-                                      @if (comment.canEdit) {
-                                        <button
-                                          type="button"
-                                          [disabled]="managingComment()"
-                                          (click)="startCommentEdit(comment)"
-                                        >
-                                          Editar
-                                        </button>
-                                      }
-                                      @if (comment.canDelete) {
-                                        <button
-                                          class="task-comment__remove"
-                                          type="button"
-                                          [disabled]="managingComment()"
-                                          (click)="requestCommentRemoval(comment)"
-                                        >
-                                          Remover
-                                        </button>
-                                      }
-                                    </footer>
+                            @if (
+                              commentForm.controls.content.touched &&
+                              commentForm.controls.content.hasError('required')
+                            ) {
+                              <small class="task-collaboration__validation">
+                                Escreva uma mensagem antes de publicar.
+                              </small>
+                            } @else if (commentForm.controls.content.hasError('maxlength')) {
+                              <small class="task-collaboration__validation">
+                                Use no máximo 2000 caracteres.
+                              </small>
+                            }
+                          </form>
+                        } @else if (isReadOnly()) {
+                          <p class="task-collaboration__readonly">
+                            Visualizadores podem acompanhar a conversa, sem publicar ou alterar
+                            comentários.
+                          </p>
+                        }
+
+                        @if (commentActionError()) {
+                          <div
+                            class="task-collaboration__message task-collaboration__message--error"
+                            role="alert"
+                          >
+                            {{ commentActionError() }}
+                          </div>
+                        }
+
+                        @if (loadingTaskCollaboration()) {
+                          <div class="task-collaboration__state" role="status">
+                            <span class="loading-indicator" aria-hidden="true"></span>
+                            <span>Carregando colaboração...</span>
+                          </div>
+                        } @else if (taskCollaborationError()) {
+                          <div
+                            class="task-collaboration__state task-collaboration__state--error"
+                            role="alert"
+                          >
+                            <span>{{ taskCollaborationError() }}</span>
+                            <button type="button" (click)="retryTaskCollaboration()">
+                              Tentar novamente
+                            </button>
+                          </div>
+                        } @else if (taskCollaboration(); as collaboration) {
+                          @if (collaboration.comments.length === 0) {
+                            <p class="task-collaboration__empty">
+                              Ainda não há comentários nesta tarefa.
+                            </p>
+                          } @else {
+                            <ul class="task-comments">
+                              @for (entry of displayedComments(); track entry.comment.id) {
+                                @let comment = entry.comment;
+                                <li
+                                  class="task-comment"
+                                  [class.task-comment--reply]="entry.isReply"
+                                >
+                                  <header>
+                                    <span class="task-comment__avatar" aria-hidden="true">
+                                      {{ comment.author.name.charAt(0).toUpperCase() }}
+                                    </span>
+                                    <div>
+                                      <strong>{{ comment.author.name }}</strong>
+                                      <small>
+                                        {{ formatTaskTimestamp(comment.createdAt) }}
+                                        @if (comment.edited) {
+                                          · editado
+                                        }
+                                      </small>
+                                    </div>
+                                  </header>
+
+                                  @if (entry.isReply && comment.replyToAuthor) {
+                                    <p class="task-comment__reply-context">
+                                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M9 8 4 12l5 4m-5-4h9a7 7 0 0 1 7 7"></path>
+                                      </svg>
+                                      Em resposta a
+                                      <strong>{{ comment.replyToAuthor.name }}</strong>
+                                    </p>
                                   }
 
-                                  @if (replyingToCommentId() === comment.id) {
+                                  @if (editingCommentId() === comment.id) {
                                     <form
-                                      class="task-comment-form task-comment-form--reply"
-                                      [formGroup]="replyCommentForm"
-                                      (ngSubmit)="submitCommentReply(comment.id)"
+                                      class="task-comment-form task-comment-form--editing"
+                                      [formGroup]="editCommentForm"
+                                      (ngSubmit)="submitCommentEdit(comment.id)"
                                       novalidate
                                     >
-                                      <label [for]="'reply-comment-' + comment.id">
-                                        Responder a {{ comment.author.name }}
+                                      <label
+                                        class="visually-hidden"
+                                        [for]="'edit-comment-' + comment.id"
+                                      >
+                                        Editar comentário
                                       </label>
                                       <textarea
-                                        [id]="'reply-comment-' + comment.id"
+                                        [id]="'edit-comment-' + comment.id"
                                         rows="3"
                                         maxlength="2000"
                                         formControlName="content"
-                                        placeholder="Escreva uma resposta contextual..."
                                       ></textarea>
                                       <footer>
-                                        <small>
-                                          {{ replyCommentForm.controls.content.value.length }} /
-                                          2000
-                                        </small>
-                                        <div>
-                                          <button
-                                            type="button"
-                                            [disabled]="managingComment()"
-                                            (click)="cancelCommentReply()"
-                                          >
-                                            Cancelar
-                                          </button>
-                                          <button
-                                            class="primary-button"
-                                            type="submit"
-                                            [disabled]="managingComment()"
-                                          >
-                                            @if (managingComment()) {
-                                              Respondendo...
-                                            } @else {
-                                              Responder
-                                            }
-                                          </button>
-                                        </div>
-                                      </footer>
-
-                                      @if (
-                                        replyCommentForm.controls.content.touched &&
-                                        replyCommentForm.controls.content.hasError('required')
-                                      ) {
-                                        <small class="task-collaboration__validation">
-                                          Escreva uma resposta antes de publicar.
-                                        </small>
-                                      } @else if (
-                                        replyCommentForm.controls.content.hasError('maxlength')
-                                      ) {
-                                        <small class="task-collaboration__validation">
-                                          Use no máximo 2000 caracteres.
-                                        </small>
-                                      }
-                                    </form>
-                                  }
-
-                                  @if (commentPendingDeletionId() === comment.id) {
-                                    <div class="task-comment__confirmation" role="alert">
-                                      <span>Remover este comentário?</span>
-                                      <div>
                                         <button
                                           type="button"
                                           [disabled]="managingComment()"
-                                          (click)="cancelCommentRemoval()"
+                                          (click)="cancelCommentEdit()"
                                         >
                                           Cancelar
                                         </button>
                                         <button
-                                          class="task-comment__remove"
-                                          type="button"
+                                          class="primary-button"
+                                          type="submit"
                                           [disabled]="managingComment()"
-                                          (click)="confirmCommentRemoval(comment.id)"
                                         >
-                                          Confirmar
+                                          Salvar
                                         </button>
+                                      </footer>
+                                    </form>
+                                  } @else {
+                                    <p>{{ comment.content }}</p>
+
+                                    @if (canWriteTasks() || comment.canEdit || comment.canDelete) {
+                                      <footer class="task-comment__actions">
+                                        @if (canWriteTasks()) {
+                                          <button
+                                            type="button"
+                                            [disabled]="managingComment()"
+                                            (click)="startCommentReply(comment)"
+                                          >
+                                            Responder
+                                          </button>
+                                        }
+                                        @if (comment.canEdit) {
+                                          <button
+                                            type="button"
+                                            [disabled]="managingComment()"
+                                            (click)="startCommentEdit(comment)"
+                                          >
+                                            Editar
+                                          </button>
+                                        }
+                                        @if (comment.canDelete) {
+                                          <button
+                                            class="task-comment__remove"
+                                            type="button"
+                                            [disabled]="managingComment()"
+                                            (click)="requestCommentRemoval(comment)"
+                                          >
+                                            Remover
+                                          </button>
+                                        }
+                                      </footer>
+                                    }
+
+                                    @if (replyingToCommentId() === comment.id) {
+                                      <form
+                                        class="task-comment-form task-comment-form--reply"
+                                        [formGroup]="replyCommentForm"
+                                        (ngSubmit)="submitCommentReply(comment.id)"
+                                        novalidate
+                                      >
+                                        <label [for]="'reply-comment-' + comment.id">
+                                          Responder a {{ comment.author.name }}
+                                        </label>
+                                        <textarea
+                                          [id]="'reply-comment-' + comment.id"
+                                          rows="3"
+                                          maxlength="2000"
+                                          formControlName="content"
+                                          placeholder="Escreva uma resposta contextual..."
+                                        ></textarea>
+                                        <footer>
+                                          <small>
+                                            {{ replyCommentForm.controls.content.value.length }} /
+                                            2000
+                                          </small>
+                                          <div>
+                                            <button
+                                              type="button"
+                                              [disabled]="managingComment()"
+                                              (click)="cancelCommentReply()"
+                                            >
+                                              Cancelar
+                                            </button>
+                                            <button
+                                              class="primary-button"
+                                              type="submit"
+                                              [disabled]="managingComment()"
+                                            >
+                                              @if (managingComment()) {
+                                                Respondendo...
+                                              } @else {
+                                                Responder
+                                              }
+                                            </button>
+                                          </div>
+                                        </footer>
+
+                                        @if (
+                                          replyCommentForm.controls.content.touched &&
+                                          replyCommentForm.controls.content.hasError('required')
+                                        ) {
+                                          <small class="task-collaboration__validation">
+                                            Escreva uma resposta antes de publicar.
+                                          </small>
+                                        } @else if (
+                                          replyCommentForm.controls.content.hasError('maxlength')
+                                        ) {
+                                          <small class="task-collaboration__validation">
+                                            Use no máximo 2000 caracteres.
+                                          </small>
+                                        }
+                                      </form>
+                                    }
+
+                                    @if (commentPendingDeletionId() === comment.id) {
+                                      <div class="task-comment__confirmation" role="alert">
+                                        <span>Remover este comentário?</span>
+                                        <div>
+                                          <button
+                                            type="button"
+                                            [disabled]="managingComment()"
+                                            (click)="cancelCommentRemoval()"
+                                          >
+                                            Cancelar
+                                          </button>
+                                          <button
+                                            class="task-comment__remove"
+                                            type="button"
+                                            [disabled]="managingComment()"
+                                            (click)="confirmCommentRemoval(comment.id)"
+                                          >
+                                            Confirmar
+                                          </button>
+                                        </div>
                                       </div>
-                                    </div>
+                                    }
                                   }
-                                }
-                              </li>
-                            }
-                          </ul>
-                        }
-                      }
-                    </div>
-
-                    <div class="task-collaboration__column" aria-labelledby="task-activity-title">
-                      <header class="task-collaboration__header">
-                        <div>
-                          <p class="eyebrow">Histórico</p>
-                          <h4 id="task-activity-title">Atividade da tarefa</h4>
-                        </div>
-
-                        <strong>{{ taskCollaboration()?.activities?.length ?? 0 }}</strong>
-                      </header>
-
-                      @if (!loadingTaskCollaboration() && !taskCollaborationError()) {
-                        @if (taskCollaboration(); as collaboration) {
-                          @if (collaboration.activities.length === 0) {
-                            <p class="task-collaboration__empty">
-                              As próximas alterações desta tarefa aparecerão aqui.
-                            </p>
-                          } @else {
-                            <ol class="task-activity">
-                              @for (activity of collaboration.activities; track activity.id) {
-                                <li>
-                                  <span class="task-activity__marker" aria-hidden="true"></span>
-                                  <div>
-                                    <p>
-                                      <strong>{{ activity.actor.name }}</strong>
-                                      {{ activity.description }}
-                                    </p>
-                                    <time [attr.datetime]="activity.createdAt">
-                                      {{ formatTaskTimestamp(activity.createdAt) }}
-                                    </time>
-                                  </div>
                                 </li>
                               }
-                            </ol>
+                            </ul>
                           }
                         }
-                      }
-                    </div>
+                      </div>
+
+                      <div class="task-collaboration__column" aria-labelledby="task-activity-title">
+                        <header class="task-collaboration__header">
+                          <div>
+                            <p class="eyebrow">Histórico</p>
+                            <h4 id="task-activity-title">Atividade da tarefa</h4>
+                          </div>
+
+                          <strong>{{ taskCollaboration()?.activities?.length ?? 0 }}</strong>
+                        </header>
+
+                        @if (!loadingTaskCollaboration() && !taskCollaborationError()) {
+                          @if (taskCollaboration(); as collaboration) {
+                            @if (collaboration.activities.length === 0) {
+                              <p class="task-collaboration__empty">
+                                As próximas alterações desta tarefa aparecerão aqui.
+                              </p>
+                            } @else {
+                              <ol class="task-activity">
+                                @for (activity of collaboration.activities; track activity.id) {
+                                  <li>
+                                    <span class="task-activity__marker" aria-hidden="true"></span>
+                                    <div>
+                                      <p>
+                                        <strong>{{ activity.actor.name }}</strong>
+                                        {{ activity.description }}
+                                      </p>
+                                      <time [attr.datetime]="activity.createdAt">
+                                        {{ formatTaskTimestamp(activity.createdAt) }}
+                                      </time>
+                                    </div>
+                                  </li>
+                                }
+                              </ol>
+                            }
+                          }
+                        }
+                      </div>
                     </section>
                   }
                 </div>
@@ -2220,10 +2269,27 @@
                             </div>
 
                             <div>
-                              <dt>Responsável</dt>
+                              <dt>Responsáveis</dt>
 
-                              <dd>
-                                {{ task.assigneeName ?? 'Sem responsável' }}
+                              <dd class="task-card__assignees">
+                                @if (task.assignees.length === 0) {
+                                  Sem responsável
+                                } @else {
+                                  <span class="task-card__avatar-stack" aria-hidden="true">
+                                    @for (
+                                      assignee of task.assignees.slice(0, 3);
+                                      track assignee.id
+                                    ) {
+                                      <span>{{ assignee.name.charAt(0).toUpperCase() }}</span>
+                                    }
+                                  </span>
+                                  <span>
+                                    {{ task.assignees[0].name }}
+                                    @if (task.assignees.length > 1) {
+                                      +{{ task.assignees.length - 1 }}
+                                    }
+                                  </span>
+                                }
                               </dd>
                             </div>
                           </dl>

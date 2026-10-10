@@ -95,7 +95,7 @@ describe('KanbanComponent', () => {
         dueDate: null,
         position: 0,
         creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
-        assignee: null,
+        assignees: [],
         labels: [{ id: 4, name: 'Backend', color: 'BLUE' as const, archived: false }],
         technologies: ['JAVA'] as const,
         checklistItems: [
@@ -245,8 +245,7 @@ describe('KanbanComponent', () => {
                 priority: 'MEDIUM',
                 dueDate: null,
                 position: 0,
-                assigneeId: null,
-                assigneeName: null,
+                assignees: [],
                 labels: [{ id: 9, name: 'Permissões', color: 'VIOLET' as const, archived: false }],
                 technologies: [],
                 completedChecklistItems: 0,
@@ -336,7 +335,7 @@ describe('KanbanComponent', () => {
       dueDate: null,
       position: 0,
       creator: { id: 2, name: 'Gabriel', profileImageUrl: null },
-      assignee: null,
+      assignees: [],
       labels: [],
       technologies: ['JAVA'],
       checklistItems: [],
@@ -459,6 +458,16 @@ describe('KanbanComponent', () => {
     projectService.findMembersByProjectId.mockReturnValue(
       of([
         {
+          id: 40,
+          userId: 2,
+          name: 'Gabriel',
+          email: 'gabriel@example.com',
+          profileImageUrl: null,
+          role: 'ADMIN' as const,
+          joinedAt: '2026-08-30T10:00:00Z',
+          currentUser: true,
+        },
+        {
           id: 41,
           userId: 3,
           name: 'Bianca',
@@ -522,12 +531,12 @@ describe('KanbanComponent', () => {
     fixture.detectChanges();
     const component = fixture.componentInstance;
 
-    expect(component.assignableMembers().map((member) => member.userId)).toEqual([3]);
+    expect(component.assignableMembers().map((member) => member.userId)).toEqual([2, 3]);
 
     component.openCreateTaskForm();
     component.createTaskForm.patchValue({
       title: 'Preparar publicação',
-      assigneeId: 3,
+      assigneeIds: [2, 3],
       labelIds: [4, 7],
       technologies: ['JAVA', 'ANGULAR'],
     });
@@ -537,7 +546,7 @@ describe('KanbanComponent', () => {
       31,
       expect.objectContaining({
         title: 'Preparar publicação',
-        assigneeId: 3,
+        assigneeIds: [2, 3],
         labelIds: [4, 7],
         technologies: ['JAVA', 'ANGULAR'],
       }),
@@ -564,8 +573,7 @@ describe('KanbanComponent', () => {
               priority: 'HIGH' as const,
               dueDate: null,
               position: 0,
-              assigneeId: null,
-              assigneeName: null,
+              assignees: [],
               labels: [
                 { id: 4, name: 'Backend', color: 'BLUE' as const, archived: false },
                 { id: 7, name: 'Urgente', color: 'RED' as const, archived: false },
@@ -580,8 +588,7 @@ describe('KanbanComponent', () => {
               priority: 'LOW' as const,
               dueDate: null,
               position: 1,
-              assigneeId: null,
-              assigneeName: null,
+              assignees: [],
               labels: [{ id: 4, name: 'Backend', color: 'BLUE' as const, archived: false }],
               technologies: [],
               completedChecklistItems: 0,
@@ -593,8 +600,7 @@ describe('KanbanComponent', () => {
               priority: 'URGENT' as const,
               dueDate: null,
               position: 2,
-              assigneeId: null,
-              assigneeName: null,
+              assignees: [],
               labels: [{ id: 7, name: 'Urgente', color: 'RED' as const, archived: false }],
               technologies: [],
               completedChecklistItems: 0,
@@ -677,8 +683,7 @@ describe('KanbanComponent', () => {
                 priority: 'MEDIUM',
                 dueDate: null,
                 position: 0,
-                assigneeId: null,
-                assigneeName: null,
+                assignees: [],
                 labels: [{ id: 9, name: 'Legada', color: 'GRAY' as const, archived: true }],
                 technologies: [],
                 completedChecklistItems: 0,
@@ -732,8 +737,7 @@ describe('KanbanComponent', () => {
               priority: 'HIGH',
               dueDate: toDateKey(-1),
               position: 0,
-              assigneeId: 2,
-              assigneeName: 'Gabriel',
+              assignees: [{ id: 2, name: 'Gabriel', profileImageUrl: null }],
               labels: [],
               technologies: [],
               completedChecklistItems: 0,
@@ -745,8 +749,7 @@ describe('KanbanComponent', () => {
               priority: 'HIGH',
               dueDate: toDateKey(3),
               position: 1,
-              assigneeId: 3,
-              assigneeName: 'Bianca',
+              assignees: [{ id: 3, name: 'Bianca', profileImageUrl: null }],
               labels: [],
               technologies: [],
               completedChecklistItems: 0,
@@ -758,8 +761,7 @@ describe('KanbanComponent', () => {
               priority: 'LOW',
               dueDate: null,
               position: 2,
-              assigneeId: null,
-              assigneeName: null,
+              assignees: [],
               labels: [],
               technologies: [],
               completedChecklistItems: 0,
@@ -831,8 +833,7 @@ describe('KanbanComponent', () => {
                 priority: 'LOW' as const,
                 dueDate: null,
                 position: 0,
-                assigneeId: null,
-                assigneeName: null,
+                assignees: [],
                 labels: [],
                 technologies: [],
                 completedChecklistItems: 0,

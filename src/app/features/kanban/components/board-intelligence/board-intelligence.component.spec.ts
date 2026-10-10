@@ -29,8 +29,10 @@ describe('BoardIntelligenceComponent', () => {
               priority: 'URGENT',
               dueDate: overdueDate,
               position: 0,
-              assigneeId: 2,
-              assigneeName: 'Gabriel',
+              assignees: [
+                { id: 2, name: 'Gabriel', profileImageUrl: null },
+                { id: 3, name: 'Bianca', profileImageUrl: null },
+              ],
               labels: [],
               technologies: [],
               completedChecklistItems: 0,
@@ -42,8 +44,7 @@ describe('BoardIntelligenceComponent', () => {
               priority: 'MEDIUM',
               dueDate: null,
               position: 1,
-              assigneeId: null,
-              assigneeName: null,
+              assignees: [],
               labels: [],
               technologies: [],
               completedChecklistItems: 0,
@@ -63,8 +64,7 @@ describe('BoardIntelligenceComponent', () => {
               priority: 'LOW',
               dueDate: overdueDate,
               position: 0,
-              assigneeId: 2,
-              assigneeName: 'Gabriel',
+              assignees: [{ id: 2, name: 'Gabriel', profileImageUrl: null }],
               labels: [],
               technologies: [],
               completedChecklistItems: 0,
@@ -90,13 +90,8 @@ describe('BoardIntelligenceComponent', () => {
       }),
     );
     expect(component.pulse().workloads).toEqual([
-      expect.objectContaining({
-        id: 2,
-        name: 'Gabriel',
-        taskCount: 1,
-        urgentCount: 1,
-        percentage: 100,
-      }),
+      expect.objectContaining({ id: 3, name: 'Bianca', taskCount: 1, urgentCount: 1 }),
+      expect.objectContaining({ id: 2, name: 'Gabriel', taskCount: 1, urgentCount: 1 }),
     ]);
     expect(component.pulse().phases.find((phase) => phase.category === 'DONE')).toEqual(
       expect.objectContaining({ count: 1, percentage: 33 }),

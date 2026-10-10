@@ -480,6 +480,48 @@
   text-align: right;
 }
 
+.task-card__assignees {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.task-card__avatar-stack {
+  display: flex;
+
+  > span {
+    display: grid;
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-left: -0.3rem;
+    place-items: center;
+    border: 1px solid rgba(70, 255, 120, 0.35);
+    border-radius: 50%;
+    background: #07160f;
+    color: var(--dt-color-brand-300);
+    font-family: var(--dt-font-mono);
+    font-size: 0.46rem;
+  }
+
+  > span:first-child {
+    margin-left: 0;
+  }
+}
+
+.task-assignee-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+
+  > span {
+    padding: 0.25rem 0.45rem;
+    border: 1px solid rgba(70, 255, 120, 0.2);
+    border-radius: 999px;
+    color: var(--dt-color-brand-200);
+    font-size: 0.58rem;
+  }
+}
+
 .task-card__footer {
   margin-top: 0.8rem;
   padding-top: 0.65rem;

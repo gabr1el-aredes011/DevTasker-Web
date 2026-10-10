@@ -52,7 +52,7 @@ export class BoardIntelligenceComponent {
       ({ task, category }) => category !== 'DONE' && task.dueDate !== null && task.dueDate < today,
     ).length;
     const unassigned = tasks.filter(
-      ({ task, category }) => category !== 'DONE' && task.assigneeId === null,
+      ({ task, category }) => category !== 'DONE' && task.assignees.length === 0,
     ).length;
     const categoryLabels: Readonly<Record<KanbanColumn['category'], string>> = {
       BACKLOG: 'Backlog',
@@ -84,16 +84,18 @@ export class BoardIntelligenceComponent {
     >();
 
     for (const { task, category } of tasks) {
-      if (category === 'DONE' || task.assigneeId === null) continue;
+      if (category === 'DONE') continue;
 
-      const workload = workloadsByAssignee.get(task.assigneeId) ?? {
-        name: task.assigneeName ?? `Usuário #${task.assigneeId}`,
-        taskCount: 0,
-        urgentCount: 0,
-      };
-      workload.taskCount += 1;
-      if (task.priority === 'URGENT') workload.urgentCount += 1;
-      workloadsByAssignee.set(task.assigneeId, workload);
+      for (const assignee of task.assignees) {
+        const workload = workloadsByAssignee.get(assignee.id) ?? {
+          name: assignee.name,
+          taskCount: 0,
+          urgentCount: 0,
+        };
+        workload.taskCount += 1;
+        if (task.priority === 'URGENT') workload.urgentCount += 1;
+        workloadsByAssignee.set(assignee.id, workload);
+      }
     }
 
     const orderedWorkloads = [...workloadsByAssignee.entries()]

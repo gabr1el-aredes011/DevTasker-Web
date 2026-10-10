@@ -97,7 +97,7 @@ export interface CreateTaskRequest {
   readonly description: string | null;
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
-  readonly assigneeId: number | null;
+  readonly assigneeIds: readonly number[];
   readonly labelIds: readonly number[];
   readonly technologies: readonly TaskTechnology[];
 }
@@ -107,7 +107,7 @@ export interface UpdateTaskRequest {
   readonly description: string | null;
   readonly priority: TaskPriority;
   readonly dueDate: string | null;
-  readonly assigneeId: number | null;
+  readonly assigneeIds: readonly number[];
   readonly labelIds: readonly number[];
   readonly technologies: readonly TaskTechnology[];
 }
@@ -205,7 +205,7 @@ export interface TaskResponse {
   readonly dueDate: string | null;
   readonly position: number;
   readonly creator: TaskUserSummary;
-  readonly assignee: TaskUserSummary | null;
+  readonly assignees: readonly TaskUserSummary[];
   readonly labels: readonly TaskLabel[];
   readonly technologies: readonly TaskTechnology[];
   readonly checklistItems: readonly TaskChecklistItem[];

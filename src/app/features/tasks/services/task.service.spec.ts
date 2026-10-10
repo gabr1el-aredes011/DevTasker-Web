@@ -27,7 +27,7 @@ describe('TaskService', () => {
         description: null,
         priority: 'HIGH',
         dueDate: null,
-        assigneeId: 3,
+        assigneeIds: [3, 4],
         labelIds: [4, 7],
         technologies: ['JAVA'],
       })
@@ -36,7 +36,7 @@ describe('TaskService', () => {
     const request = http.expectOne(`${environment.apiUrl}/columns/31/tasks`);
 
     expect(request.request.method).toBe('POST');
-    expect(request.request.body.assigneeId).toBe(3);
+    expect(request.request.body.assigneeIds).toEqual([3, 4]);
     expect(request.request.body.labelIds).toEqual([4, 7]);
     expect(request.request.body.technologies).toEqual(['JAVA']);
     request.flush({});
@@ -49,7 +49,7 @@ describe('TaskService', () => {
         description: null,
         priority: 'MEDIUM',
         dueDate: null,
-        assigneeId: null,
+        assigneeIds: [],
         labelIds: [],
         technologies: [],
       })
@@ -58,7 +58,7 @@ describe('TaskService', () => {
     const request = http.expectOne(`${environment.apiUrl}/tasks/19`);
 
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body.assigneeId).toBeNull();
+    expect(request.request.body.assigneeIds).toEqual([]);
     expect(request.request.body.labelIds).toEqual([]);
     expect(request.request.body.technologies).toEqual([]);
     request.flush({});

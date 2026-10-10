@@ -178,10 +178,12 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     for (const column of this.kanban()?.columns ?? []) {
       for (const task of column.tasks) {
-        if (task.assigneeId === null) {
+        if (task.assignees.length === 0) {
           hasUnassignedTasks = true;
         } else {
-          assigneesById.set(task.assigneeId, task.assigneeName ?? `Usuário #${task.assigneeId}`);
+          for (const assignee of task.assignees) {
+            assigneesById.set(assignee.id, assignee.name);
+          }
         }
       }
     }
@@ -238,7 +240,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
           const matchesPriority =
             selectedPriorities.length === 0 || selectedPriorities.includes(task.priority);
           const matchesAssignee =
-            selectedAssignees.length === 0 || selectedAssignees.includes(task.assigneeId);
+            selectedAssignees.length === 0 ||
+            (task.assignees.length === 0 && selectedAssignees.includes(null)) ||
+            task.assignees.some((assignee) => selectedAssignees.includes(assignee.id));
           const matchesDueDate = this.matchesDueDateFilter(
             task.dueDate,
             dueDateFilter,
@@ -387,7 +391,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     dueDate: [''],
 
-    assigneeId: [null as number | null],
+    assigneeIds: [[] as number[]],
 
     labelIds: [[] as number[]],
 
@@ -403,7 +407,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
 
     dueDate: [''],
 
-    assigneeId: [null as number | null],
+    assigneeIds: [[] as number[]],
 
     labelIds: [[] as number[]],
 
@@ -702,7 +706,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       description: '',
       priority: 'MEDIUM',
       dueDate: '',
-      assigneeId: null,
+      assigneeIds: [],
       labelIds: [],
       technologies: [],
     });
@@ -724,7 +728,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       description: task.description ?? '',
       priority: task.priority,
       dueDate: task.dueDate ?? '',
-      assigneeId: task.assignee?.id ?? null,
+      assigneeIds: task.assignees.map((assignee) => assignee.id),
       labelIds: task.labels.filter((label) => !label.archived).map((label) => label.id),
       technologies: [...task.technologies],
     });
@@ -784,7 +788,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       priority: formValue.priority,
 
       dueDate: formValue.dueDate || null,
-      assigneeId: formValue.assigneeId,
+      assigneeIds: formValue.assigneeIds,
       labelIds: formValue.labelIds,
       technologies: formValue.technologies,
     };
@@ -1580,7 +1584,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       priority: formValue.priority,
 
       dueDate: formValue.dueDate || null,
-      assigneeId: formValue.assigneeId,
+      assigneeIds: formValue.assigneeIds,
       labelIds: formValue.labelIds,
       technologies: formValue.technologies,
     };
@@ -1983,6 +1987,40 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.assignableMembers.set([]);
     this.loadingAssignableMembers.set(false);
     this.assignableMembersError.set(null);
+  }
+
+  isTaskAssigneeSelected(mode: 'create' | 'edit', userId: number): boolean {
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.assigneeIds
+        : this.editTaskForm.controls.assigneeIds;
+    return control.value.includes(userId);
+  }
+
+  isTaskAssigneeDisabled(mode: 'create' | 'edit', userId: number): boolean {
+    if (this.isTaskAssigneeSelected(mode, userId)) return false;
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.assigneeIds
+        : this.editTaskForm.controls.assigneeIds;
+    return control.value.length >= 5;
+  }
+
+  toggleTaskAssignee(mode: 'create' | 'edit', userId: number): void {
+    const control =
+      mode === 'create'
+        ? this.createTaskForm.controls.assigneeIds
+        : this.editTaskForm.controls.assigneeIds;
+    const selected = control.value;
+
+    control.setValue(
+      selected.includes(userId)
+        ? selected.filter((currentId) => currentId !== userId)
+        : this.isTaskAssigneeDisabled(mode, userId)
+          ? selected
+          : [...selected, userId],
+    );
+    control.markAsDirty();
   }
 
   isTaskLabelSelected(mode: 'create' | 'edit', labelId: number): boolean {
