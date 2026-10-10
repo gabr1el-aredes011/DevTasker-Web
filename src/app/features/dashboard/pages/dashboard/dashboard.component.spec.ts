@@ -42,6 +42,22 @@ describe('DashboardComponent', () => {
         overdue: true,
       },
     ],
+    recentActivities: [
+      {
+        id: 31,
+        type: 'TASK_MOVED',
+        description: 'moveu a tarefa para "Em desenvolvimento".',
+        createdAt: '2026-10-09T15:40:00Z',
+        actorId: 2,
+        actorName: 'Gabriel Teste',
+        actorProfileImageUrl: null,
+        taskId: 19,
+        taskTitle: 'Corrigir prazo',
+        boardId: 11,
+        projectId: 7,
+        projectName: 'DevTasker',
+      },
+    ],
     workflow: { backlog: 1, todo: 2, doing: 2, review: 0, done: 3 },
   };
   const dashboardService = { getSummary: vi.fn() };
@@ -88,6 +104,20 @@ describe('DashboardComponent', () => {
 
     expect(projectLink.getAttribute('href')).toBe('/app/projetos/7');
     expect(projectLink.textContent).toContain('Explorar projeto');
+  });
+
+  it('should expose real recent activity with task deep links', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    const activityLink = fixture.nativeElement.querySelector(
+      '.activity-event a',
+    ) as HTMLAnchorElement;
+
+    expect(activityLink.getAttribute('href')).toBe(
+      '/app/kanban?projectId=7&boardId=11&taskId=19',
+    );
+    expect(activityLink.textContent).toContain('Gabriel Teste');
+    expect(activityLink.textContent).toContain('Corrigir prazo');
   });
 
   it('should report a healthy active flow when there are no attention items', () => {

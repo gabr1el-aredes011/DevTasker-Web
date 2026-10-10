@@ -16,6 +16,7 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../../core/auth/auth.service';
+import { RecentActivityComponent } from '../../components/recent-activity/recent-activity.component';
 
 import {
   DashboardProjectRole,
@@ -38,7 +39,7 @@ interface WorkspacePulse {
   selector: 'app-dashboard',
   standalone: true,
 
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, RecentActivityComponent],
 
   templateUrl: './dashboard.component.html',
 

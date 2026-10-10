@@ -1,0 +1,72 @@
+<section class="activity-panel" aria-labelledby="activity-panel-title">
+  <header class="activity-panel__header">
+    <div>
+      <p class="activity-panel__eyebrow">SINAL AO VIVO</p>
+      <h2 id="activity-panel-title">Atividade recente</h2>
+    </div>
+
+    <span class="activity-panel__status">
+      <span aria-hidden="true"></span>
+      Eventos reais
+    </span>
+  </header>
+
+  @if (activities().length === 0) {
+    <div class="activity-panel__empty">
+      <span aria-hidden="true">◎</span>
+      <strong>Nenhum evento recente</strong>
+      <p>Criações, movimentos e conversas das tarefas aparecerão aqui.</p>
+    </div>
+  } @else {
+    <ol class="activity-stream">
+      @for (activity of activities(); track activity.id; let eventIndex = $index) {
+        <li class="activity-event" [attr.data-tone]="activityTone(activity.type)">
+          <a
+            [routerLink]="['/app/kanban']"
+            [queryParams]="{
+              projectId: activity.projectId,
+              boardId: activity.boardId,
+              taskId: activity.taskId,
+            }"
+            [attr.aria-label]="'Abrir atividade da tarefa ' + activity.taskTitle"
+          >
+            <header>
+              <span class="activity-event__sequence" aria-hidden="true">
+                {{ (eventIndex + 1).toString().padStart(2, '0') }}
+              </span>
+
+              <time [attr.datetime]="activity.createdAt">
+                {{ activity.createdAt | date: 'dd/MM, HH:mm' }}
+              </time>
+            </header>
+
+            <div class="activity-event__actor">
+              <span class="activity-event__avatar" aria-hidden="true">
+                @if (activity.actorProfileImageUrl) {
+                  <img [src]="activity.actorProfileImageUrl" alt="" />
+                } @else {
+                  {{ activity.actorName.charAt(0).toUpperCase() }}
+                }
+              </span>
+
+              <p>
+                <strong>{{ activity.actorName }}</strong>
+                {{ activity.description }}
+              </p>
+            </div>
+
+            <div class="activity-event__context">
+              <strong>{{ activity.taskTitle }}</strong>
+              <span>{{ activity.projectName }}</span>
+            </div>
+
+            <footer>
+              <span>Inspecionar contexto</span>
+              <span aria-hidden="true">↗</span>
+            </footer>
+          </a>
+        </li>
+      }
+    </ol>
+  }
+</section>

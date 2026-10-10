@@ -292,6 +292,8 @@
       </section>
     </div>
 
+    <app-recent-activity [activities]="data.recentActivities" />
+
     <section
       class="dashboard-panel attention-panel"
       [class.attention-panel--clear]="data.attentionTasks.length === 0"

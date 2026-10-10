@@ -47,6 +47,35 @@ export interface DashboardAttentionTask {
   readonly overdue: boolean;
 }
 
+export type DashboardActivityType =
+  | 'TASK_CREATED'
+  | 'TASK_UPDATED'
+  | 'TASK_MOVED'
+  | 'TASK_ARCHIVED'
+  | 'CHECKLIST_ITEM_ADDED'
+  | 'CHECKLIST_ITEM_UPDATED'
+  | 'CHECKLIST_ITEM_REMOVED'
+  | 'COMMENT_ADDED'
+  | 'COMMENT_EDITED'
+  | 'COMMENT_REMOVED'
+  | 'ATTACHMENT_ADDED'
+  | 'ATTACHMENT_REMOVED';
+
+export interface DashboardActivity {
+  readonly id: number;
+  readonly type: DashboardActivityType;
+  readonly description: string;
+  readonly createdAt: string;
+  readonly actorId: number;
+  readonly actorName: string;
+  readonly actorProfileImageUrl: string | null;
+  readonly taskId: number;
+  readonly taskTitle: string;
+  readonly boardId: number;
+  readonly projectId: number;
+  readonly projectName: string;
+}
+
 export interface DashboardSummary {
   readonly projectCount: number;
   readonly boardCount: number;
@@ -56,6 +85,8 @@ export interface DashboardSummary {
   readonly recentProjects: readonly DashboardRecentProject[];
 
   readonly attentionTasks: readonly DashboardAttentionTask[];
+
+  readonly recentActivities: readonly DashboardActivity[];
 
   readonly workflow: DashboardWorkflow;
 }
