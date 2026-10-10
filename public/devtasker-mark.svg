@@ -1,20 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
   <title id="title">DevTasker</title>
-  <desc id="description">Monograma D da plataforma DevTasker</desc>
+  <desc id="description">Monograma D com símbolo de comando da plataforma DevTasker</desc>
+
   <defs>
-    <linearGradient id="surface" x1="8" y1="6" x2="54" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#10261a"/>
-      <stop offset="1" stop-color="#04100a"/>
-    </linearGradient>
-    <linearGradient id="signal" x1="15" y1="14" x2="52" y2="52" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8dffab"/>
-      <stop offset="0.48" stop-color="#46ff78"/>
+    <linearGradient id="devtasker-signal" x1="11" y1="8" x2="56" y2="57" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b9ffcb"/>
+      <stop offset="0.42" stop-color="#55ff83"/>
       <stop offset="1" stop-color="#13c94c"/>
     </linearGradient>
+
+    <filter id="devtasker-glow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
+      <feFlood flood-color="#22ed5f" flood-opacity="0.34"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#surface)" stroke="#28683d" stroke-width="2"/>
-  <path d="M17 15h14c13 0 22 6.8 22 17s-9 17-22 17H17V15Z" fill="none" stroke="url(#signal)" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M28 25h4c5.4 0 9 2.5 9 7s-3.6 7-9 7h-4V25Z" fill="#dffff0"/>
-  <path d="M12 32h8" stroke="#46ff78" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="51" cy="12" r="3" fill="#46ff78"/>
+
+  <path
+    d="M10 7h22c15.4 0 26 9.9 26 25S47.4 57 32 57H10V7Zm10 10v30h12c9.7 0 16-5.8 16-15s-6.3-15-16-15H20Z"
+    fill="url(#devtasker-signal)"
+    fill-rule="evenodd"
+    filter="url(#devtasker-glow)"
+  />
+
+  <path
+    d="m27 24 8 8-8 8"
+    fill="none"
+    stroke="#03160b"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="m27 24 8 8-8 8"
+    fill="none"
+    stroke="#effff4"
+    stroke-width="3.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <path d="M38 40h8" stroke="#03160b" stroke-width="7" stroke-linecap="round"/>
+  <path d="M38 40h8" stroke="#effff4" stroke-width="3.6" stroke-linecap="round"/>
 </svg>
