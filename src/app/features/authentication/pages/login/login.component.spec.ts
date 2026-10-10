@@ -73,7 +73,7 @@ describe('LoginComponent', () => {
     });
   });
 
-  it('should open the Dashboard after a regular successful login', () => {
+  it('should prepare the transition before opening the Dashboard', () => {
     const component = TestBed.createComponent(LoginComponent).componentInstance;
     component.form.setValue({
       email: 'user@example.com',
@@ -82,7 +82,14 @@ describe('LoginComponent', () => {
 
     component.submit();
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/dashboard');
+    expect(component.authenticatedDestination()).toBe('/app/dashboard');
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+
+    component.completeLoginTransition();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/dashboard', {
+      state: { workspaceEntrance: true },
+    });
   });
 
   it('should preserve a protected internal destination after login', () => {
@@ -97,7 +104,13 @@ describe('LoginComponent', () => {
 
     component.submit();
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/projetos/42?tab=members');
+    expect(component.authenticatedDestination()).toBe('/app/projetos/42?tab=members');
+
+    component.completeLoginTransition();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/projetos/42?tab=members', {
+      state: { workspaceEntrance: true },
+    });
   });
 
   it('should reject an external returnUrl and use the Dashboard', () => {
@@ -112,6 +125,12 @@ describe('LoginComponent', () => {
 
     component.submit();
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/dashboard');
+    expect(component.authenticatedDestination()).toBe('/app/dashboard');
+
+    component.completeLoginTransition();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/dashboard', {
+      state: { workspaceEntrance: true },
+    });
   });
 });

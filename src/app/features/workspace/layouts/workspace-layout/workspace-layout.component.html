@@ -1,4 +1,8 @@
-<div class="workspace-shell" [class.workspace-shell--sidebar-open]="sidebarOpen()">
+<div
+  class="workspace-shell"
+  [class.workspace-shell--sidebar-open]="sidebarOpen()"
+  [class.workspace-shell--entering]="enteringWorkspace"
+>
   <div class="workspace-atmosphere" aria-hidden="true">
     <span class="workspace-atmosphere__grid"></span>
     <span class="workspace-atmosphere__beam"></span>

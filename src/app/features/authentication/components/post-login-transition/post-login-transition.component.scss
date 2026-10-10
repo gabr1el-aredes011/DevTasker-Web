@@ -1,0 +1,584 @@
+:host {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: block;
+  background: #010503;
+}
+
+.access-transition {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 20rem;
+  min-height: 100dvh;
+  overflow: hidden;
+  place-items: center;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(30, 210, 88, 0.095), transparent 24rem),
+    linear-gradient(145deg, #010503, #020b07 52%, #010503);
+  color: var(--dt-color-text-primary);
+  animation: access-scene-enter 360ms ease-out both;
+}
+
+.access-transition__atmosphere,
+.access-transition__grid,
+.access-transition__scan,
+.access-transition__bloom,
+.access-transition__horizon {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.access-transition__grid {
+  inset: -4rem;
+  background-image:
+    linear-gradient(rgba(96, 255, 144, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 255, 144, 0.035) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  mask-image: radial-gradient(circle at center, #000 0%, transparent 68%);
+  opacity: 0;
+  transform: perspective(45rem) rotateX(62deg) translateY(32%);
+  animation: access-grid-enter 1.15s 180ms ease-out both;
+}
+
+.access-transition__scan {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 46%,
+    rgba(120, 255, 160, 0.03) 49%,
+    rgba(120, 255, 160, 0.34) 50%,
+    rgba(120, 255, 160, 0.03) 51%,
+    transparent 54%
+  );
+  opacity: 0;
+  transform: translateY(-54%);
+  animation: access-scan 1.45s 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.access-transition__bloom {
+  inset: 50% auto auto 50%;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: rgba(70, 255, 120, 0.16);
+  filter: blur(2.75rem);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: access-bloom 1.8s 420ms ease-out both;
+}
+
+.access-transition__horizon {
+  inset: auto 0 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(70, 255, 120, 0.2), transparent);
+  opacity: 0;
+  transform: scaleX(0.2);
+  animation: access-horizon 1s 1.15s ease-out both;
+}
+
+.access-transition__stage {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: min(92vw, 38rem);
+  place-items: center;
+  transform: translateY(-1.4rem);
+}
+
+.hologram {
+  position: relative;
+  width: clamp(15rem, 34vw, 21rem);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 0 1.6rem rgba(45, 238, 101, 0.12));
+}
+
+.hologram__axis {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  background: linear-gradient(90deg, transparent, rgba(108, 255, 151, 0.18), transparent);
+  opacity: 0;
+  animation: access-axis-enter 700ms 350ms ease-out both;
+}
+
+.hologram__axis--horizontal {
+  width: 118%;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.hologram__axis--vertical {
+  width: 1px;
+  height: 118%;
+  background: linear-gradient(transparent, rgba(108, 255, 151, 0.15), transparent);
+  transform: translate(-50%, -50%);
+}
+
+.hologram__orbit,
+.hologram__ring,
+.hologram__core {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.hologram__orbit {
+  inset: 6%;
+  animation: access-orbit-spin 8s 1.1s linear infinite;
+}
+
+.hologram__orbit--satellite {
+  inset: 18%;
+  animation-direction: reverse;
+  animation-duration: 5.4s;
+}
+
+.hologram__tile {
+  --orbit-radius: clamp(6.55rem, 14.9vw, 9.25rem);
+  --tile-angle: calc(var(--tile-index) * 12.857deg);
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(0.28rem, 0.75vw, 0.48rem);
+  height: clamp(0.28rem, 0.75vw, 0.48rem);
+  border: 1px solid rgba(154, 255, 184, 0.76);
+  background: linear-gradient(145deg, rgba(181, 255, 201, 0.42), rgba(32, 218, 88, 0.1));
+  box-shadow:
+    inset 0 0 0.3rem rgba(218, 255, 229, 0.35),
+    0 0 0.75rem rgba(70, 255, 120, 0.62);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--tile-angle))
+    translateY(calc(-1 * var(--orbit-radius))) rotate(calc(-1 * var(--tile-angle))) scale(0.2);
+  animation: access-tile-materialize 580ms calc(260ms + var(--tile-index) * 24ms)
+    cubic-bezier(0.18, 0.82, 0.2, 1) both;
+}
+
+.hologram__orbit--primary .hologram__tile:nth-child(4n) {
+  width: clamp(0.42rem, 0.9vw, 0.62rem);
+  height: clamp(0.42rem, 0.9vw, 0.62rem);
+}
+
+.hologram__orbit--primary .hologram__tile:nth-child(5n) {
+  border-radius: 35%;
+  background: rgba(176, 255, 199, 0.62);
+}
+
+.hologram__orbit--satellite .hologram__tile {
+  --orbit-radius: clamp(4.05rem, 9.2vw, 5.75rem);
+  --tile-angle: calc(var(--tile-index) * 30deg);
+  width: 0.25rem;
+  height: 0.25rem;
+  border-color: rgba(116, 255, 160, 0.44);
+  opacity: 0;
+}
+
+.hologram__ring {
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(88, 255, 137, 0.14);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35);
+}
+
+.hologram__ring--inner {
+  width: 48%;
+  height: 48%;
+  border-style: dashed;
+  animation:
+    access-ring-enter 750ms 700ms ease-out both,
+    access-ring-spin 10s 1.45s linear infinite;
+}
+
+.hologram__ring--pulse {
+  width: 62%;
+  height: 62%;
+  border-color: rgba(114, 255, 156, 0.2);
+  animation:
+    access-ring-enter 820ms 570ms ease-out both,
+    access-ring-pulse 1.8s 1.35s ease-in-out infinite;
+}
+
+.hologram__core {
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: clamp(4rem, 9vw, 5.5rem);
+  height: clamp(4rem, 9vw, 5.5rem);
+  place-items: center;
+  border: 1px solid rgba(121, 255, 160, 0.2);
+  background: rgba(5, 25, 14, 0.52);
+  box-shadow:
+    inset 0 0 2.2rem rgba(70, 255, 120, 0.07),
+    0 0 2.8rem rgba(34, 237, 95, 0.13);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+  backdrop-filter: blur(1rem);
+  animation: access-core-enter 720ms 740ms cubic-bezier(0.18, 0.8, 0.2, 1) both;
+}
+
+.hologram__core::after {
+  position: absolute;
+  inset: -0.45rem;
+  border: 1px solid rgba(113, 255, 156, 0.12);
+  border-radius: 50%;
+  content: '';
+}
+
+.hologram__core img {
+  width: 68%;
+  height: 68%;
+  filter: drop-shadow(0 0 0.8rem rgba(70, 255, 120, 0.34));
+}
+
+.access-transition__brand {
+  display: grid;
+  margin-top: -1.3rem;
+  place-items: center;
+  opacity: 0;
+  animation: access-brand-enter 650ms 1.05s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.access-transition__wordmark {
+  position: relative;
+  overflow: hidden;
+  color: var(--dt-color-text-primary);
+  font-family: var(--dt-font-display);
+  font-size: clamp(2.35rem, 7vw, 4.3rem);
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: -0.075em;
+}
+
+.access-transition__wordmark::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -20%;
+  width: 22%;
+  content: '';
+  background: linear-gradient(90deg, transparent, rgba(211, 255, 224, 0.78), transparent);
+  filter: blur(0.2rem);
+  animation: access-wordmark-scan 720ms 1.2s ease-out both;
+}
+
+.access-transition__wordmark strong {
+  color: var(--dt-color-brand-400);
+  font-weight: inherit;
+  text-shadow: 0 0 1.7rem rgba(70, 255, 120, 0.22);
+}
+
+.access-transition__brand > p {
+  margin: 0.8rem 0 0;
+  color: rgba(151, 185, 162, 0.72);
+  font-family: var(--dt-font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.access-transition__status {
+  display: grid;
+  width: min(82vw, 20rem);
+  margin-top: 2.1rem;
+  gap: 0.75rem;
+  opacity: 0;
+  animation: access-status-enter 420ms 1.48s ease-out both;
+}
+
+.access-transition__status-line {
+  height: 1px;
+  overflow: hidden;
+  background: rgba(133, 180, 148, 0.12);
+}
+
+.access-transition__status-line > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--dt-color-brand-400), #bbffcd);
+  box-shadow: 0 0 0.8rem rgba(70, 255, 120, 0.55);
+  transform: translateX(-100%);
+  animation: access-progress 930ms 1.56s cubic-bezier(0.15, 0.75, 0.2, 1) both;
+}
+
+.access-transition__status-copy {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.access-transition__status-copy p,
+.access-transition__status-copy small {
+  margin: 0;
+  font-family: var(--dt-font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.access-transition__status-copy p {
+  color: var(--dt-color-brand-300);
+}
+
+.access-transition__status-copy small {
+  color: var(--dt-color-text-muted);
+}
+
+.access-transition__status-signal {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: var(--dt-color-brand-400);
+  box-shadow: 0 0 0.8rem rgba(70, 255, 120, 0.72);
+  animation: access-signal-pulse 850ms ease-in-out infinite alternate;
+}
+
+.access-transition--departing {
+  animation: access-scene-depart 620ms cubic-bezier(0.65, 0, 0.85, 0.3) both;
+}
+
+.access-transition--departing .access-transition__stage {
+  animation: access-stage-depart 560ms ease-in both;
+}
+
+.access-transition--departing .access-transition__bloom {
+  animation: access-bloom-depart 580ms ease-in both;
+}
+
+@keyframes access-scene-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes access-grid-enter {
+  from {
+    opacity: 0;
+    transform: perspective(45rem) rotateX(62deg) translateY(42%) scale(1.08);
+  }
+
+  to {
+    opacity: 0.72;
+    transform: perspective(45rem) rotateX(62deg) translateY(32%) scale(1);
+  }
+}
+
+@keyframes access-scan {
+  0% {
+    opacity: 0;
+    transform: translateY(-55%);
+  }
+
+  18%,
+  75% {
+    opacity: 0.72;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(55%);
+  }
+}
+
+@keyframes access-bloom {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.38;
+    transform: translate(-50%, -50%) scale(5.5);
+  }
+}
+
+@keyframes access-horizon {
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes access-axis-enter {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes access-tile-materialize {
+  0% {
+    opacity: 0;
+    filter: blur(0.35rem);
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.82;
+    filter: blur(0);
+    transform: translate(-50%, -50%) rotate(var(--tile-angle))
+      translateY(calc(-1 * var(--orbit-radius))) rotate(calc(-1 * var(--tile-angle))) scale(1);
+  }
+}
+
+@keyframes access-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes access-ring-enter {
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes access-ring-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes access-ring-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    box-shadow: 0 0 0 rgba(70, 255, 120, 0);
+  }
+
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 2.2rem rgba(70, 255, 120, 0.12);
+  }
+}
+
+@keyframes access-core-enter {
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes access-brand-enter {
+  from {
+    opacity: 0;
+    filter: blur(0.7rem);
+    transform: translateY(0.8rem) scaleX(0.88);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scaleX(1);
+  }
+}
+
+@keyframes access-wordmark-scan {
+  to {
+    left: 108%;
+  }
+}
+
+@keyframes access-status-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes access-progress {
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes access-signal-pulse {
+  to {
+    opacity: 0.45;
+  }
+}
+
+@keyframes access-stage-depart {
+  to {
+    opacity: 0;
+    filter: blur(0.55rem);
+    transform: translateY(-1.4rem) scale(1.08);
+  }
+}
+
+@keyframes access-bloom-depart {
+  from {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(5.5);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(18);
+  }
+}
+
+@keyframes access-scene-depart {
+  0%,
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 36rem) {
+  .access-transition__stage {
+    transform: translateY(-0.5rem);
+  }
+
+  .access-transition__status-copy {
+    grid-template-columns: auto 1fr;
+  }
+
+  .access-transition__status-copy small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .access-transition,
+  .access-transition *,
+  .access-transition *::before,
+  .access-transition *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .hologram__tile,
+  .hologram__ring,
+  .hologram__core {
+    opacity: 1;
+  }
+}

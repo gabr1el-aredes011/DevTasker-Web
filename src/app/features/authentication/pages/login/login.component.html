@@ -207,3 +207,7 @@
     </footer>
   </section>
 </app-auth-layout>
+
+@if (authenticatedDestination()) {
+  <app-post-login-transition (completed)="completeLoginTransition()" />
+}

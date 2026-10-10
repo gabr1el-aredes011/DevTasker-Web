@@ -32,6 +32,9 @@ export class WorkspaceLayoutComponent implements OnInit {
 
   readonly sidebarOpen = signal(false);
 
+  readonly enteringWorkspace =
+    typeof history !== 'undefined' && history.state?.['workspaceEntrance'] === true;
+
   readonly userInitials = computed(() => {
     const user = this.currentUser();
 

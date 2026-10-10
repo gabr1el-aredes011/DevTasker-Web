@@ -8,10 +8,11 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { AuthNavigationContextService } from '../../../../core/auth/auth-navigation-context.service';
 import { ApiError } from '../../../../core/http/api-error.model';
+import { PostLoginTransitionComponent } from '../../components/post-login-transition/post-login-transition.component';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayoutComponent, PostLoginTransitionComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +28,7 @@ export class LoginComponent {
 
   readonly submitting = signal(false);
   readonly apiError = signal<string | null>(null);
+  readonly authenticatedDestination = signal<string | null>(null);
   readonly successMessage =
     this.loginState?.feedback === 'email-verified'
       ? 'E-mail confirmado com sucesso. Sua conta está pronta para uso.'
@@ -37,10 +39,7 @@ export class LoginComponent {
   readonly verificationRequired = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
-    email: [
-      this.loginState?.email ?? '',
-      [Validators.required, Validators.email],
-    ],
+    email: [this.loginState?.email ?? '', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
@@ -76,7 +75,7 @@ export class LoginComponent {
       )
       .subscribe({
         next: () => {
-          void this.router.navigateByUrl(this.resolveAuthenticatedDestination());
+          this.authenticatedDestination.set(this.resolveAuthenticatedDestination());
         },
 
         error: (error: unknown) => {
@@ -91,6 +90,20 @@ export class LoginComponent {
           this.apiError.set(this.extractErrorMessage(error));
         },
       });
+  }
+
+  completeLoginTransition(): void {
+    const destination = this.authenticatedDestination();
+
+    if (!destination) {
+      return;
+    }
+
+    void this.router.navigateByUrl(destination, {
+      state: {
+        workspaceEntrance: true,
+      },
+    });
   }
 
   private resolveAuthenticatedDestination(): string {

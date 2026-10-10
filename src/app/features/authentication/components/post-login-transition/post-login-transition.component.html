@@ -1,0 +1,62 @@
+<main
+  class="access-transition"
+  [class.access-transition--departing]="departing()"
+  role="status"
+  aria-live="polite"
+  aria-label="Acesso confirmado. Preparando o workspace DevTasker."
+>
+  <div class="access-transition__atmosphere" aria-hidden="true">
+    <span class="access-transition__grid"></span>
+    <span class="access-transition__scan"></span>
+    <span class="access-transition__bloom"></span>
+    <span class="access-transition__horizon"></span>
+  </div>
+
+  <section class="access-transition__stage">
+    <div class="hologram" aria-hidden="true">
+      <span class="hologram__axis hologram__axis--horizontal"></span>
+      <span class="hologram__axis hologram__axis--vertical"></span>
+
+      <div class="hologram__orbit hologram__orbit--primary">
+        @for (tile of orbitTiles; track tile) {
+          <span class="hologram__tile" [style.--tile-index]="tile"></span>
+        }
+      </div>
+
+      <div class="hologram__orbit hologram__orbit--satellite">
+        @for (tile of satelliteTiles; track tile) {
+          <span class="hologram__tile" [style.--tile-index]="tile"></span>
+        }
+      </div>
+
+      <span class="hologram__ring hologram__ring--inner"></span>
+      <span class="hologram__ring hologram__ring--pulse"></span>
+
+      <div class="hologram__core">
+        <img src="devtasker-mark.svg" alt="" />
+      </div>
+    </div>
+
+    <div class="access-transition__brand">
+      <div class="access-transition__wordmark" aria-label="DevTasker">
+        <span>Dev</span><strong>Tasker</strong>
+      </div>
+
+      <p>Workspace intelligence</p>
+    </div>
+
+    <div class="access-transition__status">
+      <div class="access-transition__status-line" aria-hidden="true">
+        <span></span>
+      </div>
+
+      <div class="access-transition__status-copy">
+        <span class="access-transition__status-signal" aria-hidden="true"></span>
+        <p>Identidade confirmada</p>
+        <small>Sincronizando ambiente</small>
+      </div>
+    </div>
+  </section>
+
+  <p class="visually-hidden">Login realizado. O workspace será aberto em instantes.</p>
+</main>
