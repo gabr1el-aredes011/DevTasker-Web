@@ -33,8 +33,8 @@ respeitados nesta ordem.
    - Introduzir profundidade ambiental discreta e acessível (grade, luz e poucos
      pontos de sinal), sempre subordinada ao conteúdo e desativada quando o
      usuário preferir movimento reduzido.
-   - Planejar atividade recente com autoria somente a partir de eventos reais da
-     API; a interface não deve simular pessoas, produtividade ou ações.
+   - ✅ Exibir atividade recente com autoria somente a partir de eventos reais da
+     API, sem simular pessoas, produtividade ou ações.
    - Revisar projetos recentes, prioridades, pipeline, estados vazios,
      carregamento, erro e comportamento responsivo.
 2. **Projetos**
@@ -403,7 +403,7 @@ Critérios de aceite:
 - 🚧 Dashboard: reforçar a identidade tecnológica, a leitura visual e a iconografia
   das métricas sem transformar todos os estados em verde
   - 🚧 Aplicar profundidade tecnológica sutil sem repetir a cena da autenticação
-  - 🧭 Exibir atividade recente com autoria a partir de dados reais do workspace
+  - ✅ Exibir atividade recente com autoria a partir de dados reais do workspace
 - 🧭 Projetos: criar seção de arquivados, exclusão definitiva com proteção,
   modais refinados e detalhes com gráficos e sinais de atenção por projeto
   - ✅ Substituir o hero genérico e `PROJECT_INDEX` por um registro operacional
