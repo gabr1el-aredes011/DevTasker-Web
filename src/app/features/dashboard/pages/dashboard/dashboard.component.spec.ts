@@ -98,12 +98,34 @@ describe('DashboardComponent', () => {
   it('should expose recent projects as direct navigation targets', () => {
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
-    const projectLink = fixture.nativeElement.querySelector(
-      '.recent-project',
-    ) as HTMLAnchorElement;
+    const projectLink = fixture.nativeElement.querySelector('.recent-project') as HTMLAnchorElement;
 
     expect(projectLink.getAttribute('href')).toBe('/app/projetos/7');
     expect(projectLink.textContent).toContain('Explorar projeto');
+  });
+
+  it('should turn workspace metrics into useful navigation shortcuts', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    const metricLinks = Array.from(
+      fixture.nativeElement.querySelectorAll('.metric-card'),
+    ) as HTMLAnchorElement[];
+
+    expect(metricLinks.map((link) => link.getAttribute('href'))).toEqual([
+      '/app/projetos',
+      '/app/kanban',
+      '/app/kanban',
+      '/app/kanban?due=overdue',
+    ]);
+  });
+
+  it('should calculate workflow distribution against the real task total', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.workflowItems().map((item) => item.percentage)).toEqual([
+      13, 25, 25, 0, 38,
+    ]);
   });
 
   it('should expose real recent activity with task deep links', () => {
@@ -113,9 +135,7 @@ describe('DashboardComponent', () => {
       '.activity-event a',
     ) as HTMLAnchorElement;
 
-    expect(activityLink.getAttribute('href')).toBe(
-      '/app/kanban?projectId=7&boardId=11&taskId=19',
-    );
+    expect(activityLink.getAttribute('href')).toBe('/app/kanban?projectId=7&boardId=11&taskId=19');
     expect(activityLink.textContent).toContain('Gabriel Teste');
     expect(activityLink.textContent).toContain('Corrigir prazo');
   });

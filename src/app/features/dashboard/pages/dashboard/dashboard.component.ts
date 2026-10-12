@@ -145,35 +145,39 @@ export class DashboardComponent implements OnInit {
         key: 'backlog',
         label: 'Backlog',
         count: workflow.backlog,
+        color: 'var(--dt-color-text-muted)',
       },
       {
         key: 'todo',
         label: 'A Fazer',
         count: workflow.todo,
+        color: '#63d7ff',
       },
       {
         key: 'doing',
         label: 'Em desenvolvimento',
         count: workflow.doing,
+        color: 'var(--dt-color-warning)',
       },
       {
         key: 'review',
         label: 'Em revisão',
         count: workflow.review,
+        color: '#b69cff',
       },
       {
         key: 'done',
         label: 'Concluído',
         count: workflow.done,
+        color: 'var(--dt-color-brand-400)',
       },
     ] as const;
 
-    const maximum = Math.max(...items.map((item) => item.count), 1);
+    const total = items.reduce((sum, item) => sum + item.count, 0);
 
     return items.map((item) => ({
       ...item,
-
-      percentage: Math.round((item.count / maximum) * 100),
+      percentage: total === 0 ? 0 : Math.round((item.count / total) * 100),
     }));
   });
 

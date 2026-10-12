@@ -70,7 +70,12 @@
     </section>
   } @else if (summary(); as data) {
     <section class="metrics-grid" aria-label="Resumo do workspace">
-      <article class="metric-card" data-metric="projects">
+      <a
+        class="metric-card"
+        data-metric="projects"
+        routerLink="/app/projetos"
+        aria-label="Explorar todos os projetos"
+      >
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -78,7 +83,7 @@
             </svg>
           </span>
 
-          <span class="metric-card__code"> PROJECTS </span>
+          <span class="metric-card__code"> PROJECTS ↗ </span>
         </header>
 
         <strong>
@@ -90,9 +95,14 @@
 
           <small> no seu workspace </small>
         </div>
-      </article>
+      </a>
 
-      <article class="metric-card" data-metric="boards">
+      <a
+        class="metric-card"
+        data-metric="boards"
+        routerLink="/app/kanban"
+        aria-label="Abrir os quadros do workspace"
+      >
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -101,7 +111,7 @@
             </svg>
           </span>
 
-          <span class="metric-card__code"> BOARDS </span>
+          <span class="metric-card__code"> BOARDS ↗ </span>
         </header>
 
         <strong>
@@ -113,9 +123,14 @@
 
           <small> disponíveis </small>
         </div>
-      </article>
+      </a>
 
-      <article class="metric-card" data-metric="active">
+      <a
+        class="metric-card"
+        data-metric="active"
+        routerLink="/app/kanban"
+        aria-label="Acompanhar tarefas ativas no Kanban"
+      >
         <header>
           <span class="metric-card__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -124,7 +139,7 @@
             </svg>
           </span>
 
-          <span class="metric-card__code"> ACTIVE </span>
+          <span class="metric-card__code"> ACTIVE ↗ </span>
         </header>
 
         <strong>
@@ -139,12 +154,17 @@
             em desenvolvimento
           </small>
         </div>
-      </article>
+      </a>
 
-      <article
+      <a
         class="metric-card"
         data-metric="overdue"
         [class.metric-card--warning]="data.taskMetrics.overdue > 0"
+        routerLink="/app/kanban"
+        [queryParams]="data.taskMetrics.overdue > 0 ? { due: 'overdue' } : null"
+        [attr.aria-label]="
+          data.taskMetrics.overdue > 0 ? 'Abrir tarefas atrasadas no Kanban' : 'Abrir o Kanban'
+        "
       >
         <header>
           <span class="metric-card__icon" aria-hidden="true">
@@ -156,7 +176,7 @@
             </svg>
           </span>
 
-          <span class="metric-card__code"> OVERDUE </span>
+          <span class="metric-card__code"> OVERDUE ↗ </span>
         </header>
 
         <strong>
@@ -174,7 +194,7 @@
             }
           </small>
         </div>
-      </article>
+      </a>
     </section>
 
     <div class="dashboard-main-grid">
@@ -436,7 +456,7 @@
 
       <div class="workflow-grid">
         @for (item of workflowItems(); track item.key) {
-          <article class="workflow-item">
+          <article class="workflow-item" [style.--workflow-color]="item.color">
             <header>
               <span>
                 {{ item.label }}
@@ -447,13 +467,18 @@
               </strong>
             </header>
 
-            <div class="workflow-track">
+            <div
+              class="workflow-track"
+              role="progressbar"
+              [attr.aria-label]="item.label + ': ' + item.percentage + '% das tarefas'"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="item.percentage"
+            >
               <span [style.width.%]="item.percentage"></span>
             </div>
 
-            <small>
-              {{ item.key.toUpperCase() }}
-            </small>
+            <small> {{ item.percentage }}% do fluxo </small>
           </article>
         }
       </div>
