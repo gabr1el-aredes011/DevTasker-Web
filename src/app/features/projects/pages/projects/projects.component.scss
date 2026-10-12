@@ -193,6 +193,31 @@
   gap: 1rem;
 }
 
+.portfolio-filter {
+  display: flex;
+  min-height: 2.8rem;
+  padding: 0.25rem;
+  align-items: center;
+  border: 1px solid rgba(109, 177, 133, 0.14);
+  background: rgba(2, 12, 8, 0.35);
+
+  button {
+    min-height: 2.2rem;
+    padding-inline: 0.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--dt-color-text-muted);
+    font-family: var(--dt-font-mono);
+    font-size: 0.54rem;
+  }
+
+  button.is-active {
+    background: rgba(70, 255, 120, 0.09);
+    color: var(--dt-color-brand-300);
+    box-shadow: inset 0 -1px var(--dt-color-brand-400);
+  }
+}
+
 .search-field {
   display: flex;
   min-width: min(22rem, 45vw);
@@ -704,6 +729,12 @@
   .catalog-toolbar__tools {
     align-items: stretch;
     flex-direction: column;
+  }
+  .portfolio-filter {
+    overflow-x: auto;
+  }
+  .portfolio-filter button {
+    flex: 1;
   }
   .search-field {
     min-width: 0;

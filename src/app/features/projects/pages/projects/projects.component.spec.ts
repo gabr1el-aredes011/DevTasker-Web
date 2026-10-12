@@ -82,6 +82,25 @@ describe('ProjectsComponent', () => {
     );
   });
 
+  it('should filter the portfolio by leadership and collaboration', () => {
+    const fixture = TestBed.createComponent(ProjectsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    component.setPortfolioFilter('LEADERSHIP');
+    expect(component.filteredProjects().map((project) => project.id)).toEqual([1]);
+
+    component.setPortfolioFilter('COLLABORATION');
+    expect(component.filteredProjects().map((project) => project.id)).toEqual([2]);
+
+    component.searchControl.setValue('mobile');
+    expect(component.filteredProjects()).toEqual([]);
+
+    component.clearCatalogFilters();
+    expect(component.portfolioFilter()).toBe('ALL');
+    expect(component.filteredProjects()).toHaveLength(2);
+  });
+
   it('should show edit actions only for owner or admin projects', () => {
     const fixture = TestBed.createComponent(ProjectsComponent);
     fixture.detectChanges();

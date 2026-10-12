@@ -316,6 +316,19 @@
       </div>
 
       <div class="catalog-toolbar__tools">
+        <div class="portfolio-filter" role="group" aria-label="Filtrar projetos por participação">
+          @for (option of portfolioFilterOptions; track option.value) {
+            <button
+              type="button"
+              [class.is-active]="portfolioFilter() === option.value"
+              [attr.aria-pressed]="portfolioFilter() === option.value"
+              (click)="setPortfolioFilter(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+
         <label class="search-field">
           <span class="visually-hidden">Pesquisar projetos por nome ou descrição</span>
           <span aria-hidden="true">
@@ -387,12 +400,18 @@
       <dt-feedback-state
         state="empty"
         [headingLevel]="3"
-        title="Nenhum projeto corresponde à pesquisa"
-        description="Tente outro nome ou procure por uma palavra da descrição."
+        title="Nenhum projeto nesta perspectiva"
+        description="Ajuste a participação selecionada ou procure por outro termo."
       >
         <span dtFeedbackVisual aria-hidden="true">⌕</span>
-        <button dtButton dtFeedbackAction variant="secondary" type="button" (click)="clearSearch()">
-          Limpar pesquisa
+        <button
+          dtButton
+          dtFeedbackAction
+          variant="secondary"
+          type="button"
+          (click)="clearCatalogFilters()"
+        >
+          Limpar filtros
         </button>
       </dt-feedback-state>
     } @else {

@@ -33,6 +33,7 @@ import { projectRoleLabel, projectRoleTone } from '../../presentation/project-ro
 import { ProjectService } from '../../services/project.service';
 
 type ProjectFormMode = 'create' | 'edit';
+type PortfolioFilter = 'ALL' | 'LEADERSHIP' | 'COLLABORATION';
 
 @Component({
   selector: 'app-projects',
@@ -71,6 +72,12 @@ export class ProjectsComponent implements OnInit {
   readonly archiveError = signal<string | null>(null);
 
   readonly searchControl = this.formBuilder.nonNullable.control('');
+  readonly portfolioFilter = signal<PortfolioFilter>('ALL');
+  readonly portfolioFilterOptions = [
+    { value: 'ALL', label: 'Todos' },
+    { value: 'LEADERSHIP', label: 'Liderança' },
+    { value: 'COLLABORATION', label: 'Colaboração' },
+  ] as const satisfies readonly { value: PortfolioFilter; label: string }[];
 
   readonly projectForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
@@ -89,14 +96,20 @@ export class ProjectsComponent implements OnInit {
 
   readonly filteredProjects = computed(() => {
     const search = this.normalizedSearch();
+    const portfolioFilter = this.portfolioFilter();
 
-    if (!search) {
-      return this.projects();
-    }
+    return this.projects().filter((project) => {
+      const matchesSearch =
+        !search ||
+        this.normalizeSearch(`${project.name} ${project.description ?? ''}`).includes(search);
+      const leadsProject = ['OWNER', 'ADMIN'].includes(project.membershipRole);
+      const matchesPortfolio =
+        portfolioFilter === 'ALL' ||
+        (portfolioFilter === 'LEADERSHIP' && leadsProject) ||
+        (portfolioFilter === 'COLLABORATION' && !leadsProject);
 
-    return this.projects().filter((project) =>
-      this.normalizeSearch(`${project.name} ${project.description ?? ''}`).includes(search),
-    );
+      return matchesSearch && matchesPortfolio;
+    });
   });
 
   readonly portfolioSummary = computed(() => {
@@ -145,6 +158,15 @@ export class ProjectsComponent implements OnInit {
 
   clearSearch(): void {
     this.searchControl.setValue('');
+  }
+
+  setPortfolioFilter(filter: PortfolioFilter): void {
+    this.portfolioFilter.set(filter);
+  }
+
+  clearCatalogFilters(): void {
+    this.searchControl.setValue('');
+    this.portfolioFilter.set('ALL');
   }
 
   openCreateForm(): void {
