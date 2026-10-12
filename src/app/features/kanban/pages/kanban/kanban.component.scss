@@ -337,6 +337,26 @@
   line-height: 1.55;
 }
 
+.column-create-task {
+  min-height: 2.8rem;
+  border: 1px dashed color-mix(in srgb, var(--lane-color) 28%, transparent);
+  background: color-mix(in srgb, var(--lane-color) 3%, transparent);
+  color: var(--lane-color);
+  font-size: 0.62rem;
+  font-weight: 800;
+  transition: 180ms ease;
+
+  &:hover {
+    border-style: solid;
+    background: color-mix(in srgb, var(--lane-color) 9%, transparent);
+  }
+
+  span {
+    margin-right: 0.35rem;
+    font-family: var(--dt-font-mono);
+  }
+}
+
 .task-card {
   position: relative;
   padding: 0.9rem;

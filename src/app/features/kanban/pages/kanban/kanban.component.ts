@@ -682,15 +682,16 @@ export class KanbanComponent implements OnInit, OnDestroy {
         },
       });
   }
-  openCreateTaskForm(): void {
+  openCreateTaskForm(columnId?: number): void {
     if (!this.canWriteTasks()) {
       return;
     }
 
     const board = this.kanban();
-    const firstColumn = board?.columns[0];
+    const targetColumn =
+      board?.columns.find((column) => column.id === columnId) ?? board?.columns[0];
 
-    if (!firstColumn) {
+    if (!targetColumn) {
       return;
     }
 
@@ -701,7 +702,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.moveTaskError.set(null);
 
     this.createTaskForm.reset({
-      columnId: firstColumn.id,
+      columnId: targetColumn.id,
       title: '',
       description: '',
       priority: 'MEDIUM',

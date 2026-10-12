@@ -2304,6 +2304,18 @@
                         </article>
                       }
                     }
+
+                    @if (canWriteTasks() && !hasActiveKanbanFilters()) {
+                      <button
+                        class="column-create-task"
+                        type="button"
+                        [attr.aria-label]="'Criar tarefa diretamente em ' + column.name"
+                        (click)="openCreateTaskForm(column.id)"
+                      >
+                        <span aria-hidden="true">+</span>
+                        Adicionar em {{ column.name }}
+                      </button>
+                    }
                   </div>
                 </section>
               }

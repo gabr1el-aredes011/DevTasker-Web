@@ -146,6 +146,26 @@ describe('KanbanComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  it('should start task creation in the selected workflow column', () => {
+    const fixture = TestBed.createComponent(KanbanComponent);
+    const component = fixture.componentInstance;
+    component.selectedProject.set(project);
+    component.kanban.set({
+      id: 12,
+      projectId: 7,
+      name: 'Entrega',
+      columns: [
+        { id: 31, name: 'Backlog', category: 'BACKLOG', position: 0, tasks: [] },
+        { id: 32, name: 'Em desenvolvimento', category: 'DOING', position: 1, tasks: [] },
+      ],
+    });
+
+    component.openCreateTaskForm(32);
+
+    expect(component.taskFormOpen()).toBe(true);
+    expect(component.createTaskForm.controls.columnId.value).toBe(32);
+  });
+
   it('should open the filter experience and close it with Escape', () => {
     const fixture = TestBed.createComponent(KanbanComponent);
     const component = fixture.componentInstance;
