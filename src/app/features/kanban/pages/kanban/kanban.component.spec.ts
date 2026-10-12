@@ -180,7 +180,7 @@ describe('KanbanComponent', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
-  it('should automatically open the project default board', () => {
+  it('should present the project board selector before opening a board', () => {
     queryParams.set('projectId', '7');
     projectService.findAll.mockReturnValue(of([project]));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
@@ -190,21 +190,15 @@ describe('KanbanComponent', () => {
     const component = fixture.componentInstance;
 
     expect(projectService.findBoardsByProjectId).toHaveBeenCalledWith(7);
-    expect(component.selectedBoard()).toEqual(boards[1]);
-    expect(kanbanService.findByBoardId).toHaveBeenCalledWith(12);
-    expect(boardRealtimeService.connect).toHaveBeenCalledWith(12, expect.any(Function));
-    expect(router.navigate).toHaveBeenCalledWith(
-      [],
-      expect.objectContaining({
-        queryParams: { projectId: 7, boardId: 12, taskId: null },
-        queryParamsHandling: 'merge',
-        replaceUrl: true,
-      }),
-    );
+    expect(component.selectedBoard()).toBeNull();
+    expect(component.boards()).toEqual(boards);
+    expect(kanbanService.findByBoardId).not.toHaveBeenCalled();
+    expect(boardRealtimeService.connect).not.toHaveBeenCalled();
   });
 
   it('should silently refresh the selected board after a realtime event', () => {
     queryParams.set('projectId', '7');
+    queryParams.set('boardId', '12');
     projectService.findAll.mockReturnValue(of([project]));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
 
@@ -245,6 +239,7 @@ describe('KanbanComponent', () => {
 
   it('should present a viewer board as read-only', () => {
     queryParams.set('projectId', '7');
+    queryParams.set('boardId', '12');
     projectService.findAll.mockReturnValue(of([viewerProject]));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
     kanbanService.findByBoardId.mockReturnValue(
@@ -473,6 +468,7 @@ describe('KanbanComponent', () => {
 
   it('should load operational members and send the selected assignee when creating a task', () => {
     queryParams.set('projectId', '7');
+    queryParams.set('boardId', '12');
     projectService.findAll.mockReturnValue(of([project]));
     projectService.findBoardsByProjectId.mockReturnValue(of(boards));
     projectService.findMembersByProjectId.mockReturnValue(
