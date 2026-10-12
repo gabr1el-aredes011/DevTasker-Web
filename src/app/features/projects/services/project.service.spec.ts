@@ -220,13 +220,19 @@ describe('ProjectService', () => {
   });
 
   it('should create a board inside a project', () => {
-    service.createBoard(7, { name: 'Desenvolvimento' }).subscribe((result) => {
-      expect(result).toEqual(board);
-    });
+    service
+      .createBoard(7, { name: 'Desenvolvimento', template: 'DEVTASKER', columns: [] })
+      .subscribe((result) => {
+        expect(result).toEqual(board);
+      });
 
     const request = http.expectOne(`${environment.apiUrl}/projects/7/boards`);
     expect(request.request.method).toBe('POST');
-    expect(request.request.body).toEqual({ name: 'Desenvolvimento' });
+    expect(request.request.body).toEqual({
+      name: 'Desenvolvimento',
+      template: 'DEVTASKER',
+      columns: [],
+    });
     request.flush(board);
   });
 

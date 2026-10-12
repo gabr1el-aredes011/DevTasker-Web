@@ -3,6 +3,7 @@
   [title]="title()"
   [description]="description()"
   [tone]="isArchive ? 'danger' : 'default'"
+  [size]="data.mode === 'create' ? 'wide' : 'default'"
   (dismiss)="close()"
 >
   @if (isArchive && data.mode === 'archive') {
@@ -32,6 +33,132 @@
         [attr.aria-invalid]="fieldError() ? 'true' : null"
       />
     </dt-field>
+
+    @if (data.mode === 'create') {
+      <section class="workflow-builder" aria-labelledby="workflow-builder-title">
+        <header>
+          <div>
+            <span>ESTRUTURA INICIAL</span>
+            <h3 id="workflow-builder-title">Como este quadro deve funcionar?</h3>
+          </div>
+          <small>{{
+            template.value === 'DEVTASKER' ? '5 etapas' : customColumns().length + ' etapas'
+          }}</small>
+        </header>
+
+        <div class="template-options" role="group" aria-label="Modelo do quadro">
+          <button
+            type="button"
+            [attr.aria-pressed]="template.value === 'DEVTASKER'"
+            (click)="selectTemplate('DEVTASKER')"
+          >
+            <span class="template-options__mark" aria-hidden="true">DT</span>
+            <span>
+              <strong>Modelo DevTasker</strong>
+              <small>Backlog, planejamento, execução, revisão e conclusão.</small>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            [attr.aria-pressed]="template.value === 'CUSTOM'"
+            (click)="selectTemplate('CUSTOM')"
+          >
+            <span class="template-options__mark" aria-hidden="true">⌘</span>
+            <span>
+              <strong>Fluxo personalizado</strong>
+              <small>Você define nomes, etapas e a ordem das colunas.</small>
+            </span>
+          </button>
+        </div>
+
+        @if (template.value === 'DEVTASKER') {
+          <ol class="workflow-preview" aria-label="Etapas do modelo DevTasker">
+            <li>Backlog</li>
+            <li>A fazer</li>
+            <li>Em desenvolvimento</li>
+            <li>Em revisão</li>
+            <li>Concluído</li>
+          </ol>
+        } @else {
+          <div class="custom-columns" aria-label="Colunas personalizadas">
+            @for (column of customColumns(); track column.id; let index = $index) {
+              <div class="custom-column">
+                <span class="custom-column__position" aria-hidden="true">
+                  {{ (index + 1).toString().padStart(2, '0') }}
+                </span>
+
+                <div class="custom-column__fields">
+                  <label>
+                    <span>Nome</span>
+                    <input
+                      type="text"
+                      maxlength="100"
+                      autocomplete="off"
+                      [formControl]="column.name"
+                      [attr.aria-invalid]="columnFieldError(column) ? 'true' : null"
+                    />
+                    @if (columnFieldError(column)) {
+                      <small>{{ columnFieldError(column) }}</small>
+                    }
+                  </label>
+
+                  <label>
+                    <span>Função no fluxo</span>
+                    <select [formControl]="column.category">
+                      @for (option of categoryOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </label>
+                </div>
+
+                <div class="custom-column__actions">
+                  <button
+                    type="button"
+                    [disabled]="index === 0"
+                    [attr.aria-label]="'Mover ' + column.name.value + ' para a esquerda'"
+                    (click)="moveCustomColumn(index, -1)"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    [disabled]="index === customColumns().length - 1"
+                    [attr.aria-label]="'Mover ' + column.name.value + ' para a direita'"
+                    (click)="moveCustomColumn(index, 1)"
+                  >
+                    →
+                  </button>
+                  <button
+                    type="button"
+                    class="custom-column__remove"
+                    [attr.aria-label]="'Remover a coluna ' + column.name.value"
+                    (click)="removeCustomColumn(index)"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            }
+
+            <button
+              class="add-column"
+              type="button"
+              [disabled]="customColumns().length >= 10"
+              (click)="addCustomColumn()"
+            >
+              <span aria-hidden="true">+</span>
+              Adicionar coluna
+            </button>
+          </div>
+        }
+
+        @if (workflowError()) {
+          <p class="workflow-error" role="alert">{{ workflowError() }}</p>
+        }
+      </section>
+    }
   }
 
   @if (submitError()) {

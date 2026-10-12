@@ -37,8 +37,37 @@ describe('BoardManagementDialogComponent', () => {
     component.name.setValue('  Roadmap  ');
     component.submit();
 
-    expect(projectService.createBoard).toHaveBeenCalledWith(7, { name: 'Roadmap' });
+    expect(projectService.createBoard).toHaveBeenCalledWith(7, {
+      name: 'Roadmap',
+      template: 'DEVTASKER',
+      columns: [],
+    });
     expect(dialogRef.close).toHaveBeenCalledWith({ action: 'created', board });
+  });
+
+  it('should create a board with an ordered custom workflow', async () => {
+    await configure({ mode: 'create', projectId: 7 });
+    projectService.createBoard.mockReturnValue(of(board));
+    const component = TestBed.createComponent(BoardManagementDialogComponent).componentInstance;
+
+    component.name.setValue('Produto');
+    component.selectTemplate('CUSTOM');
+    component.customColumns()[0].name.setValue('Descoberta');
+    component.customColumns()[1].name.setValue('Planejado');
+    component.customColumns()[2].name.setValue('Construção');
+    component.customColumns()[3].name.setValue('Publicado');
+    component.submit();
+
+    expect(projectService.createBoard).toHaveBeenCalledWith(7, {
+      name: 'Produto',
+      template: 'CUSTOM',
+      columns: [
+        { name: 'Descoberta', category: 'BACKLOG' },
+        { name: 'Planejado', category: 'TODO' },
+        { name: 'Construção', category: 'DOING' },
+        { name: 'Publicado', category: 'DONE' },
+      ],
+    });
   });
 
   it('should surface the API message when a board name is already in use', async () => {

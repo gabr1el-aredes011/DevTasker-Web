@@ -92,3 +92,17 @@ export interface ProjectInvitationAcceptance {
 export interface SaveBoardRequest {
   readonly name: string;
 }
+
+export type BoardTemplate = 'DEVTASKER' | 'CUSTOM';
+
+export type BoardWorkflowCategory = 'BACKLOG' | 'TODO' | 'DOING' | 'REVIEW' | 'DONE';
+
+export interface CreateBoardColumnRequest {
+  readonly name: string;
+  readonly category: BoardWorkflowCategory;
+}
+
+export interface CreateBoardRequest extends SaveBoardRequest {
+  readonly template: BoardTemplate;
+  readonly columns: readonly CreateBoardColumnRequest[];
+}

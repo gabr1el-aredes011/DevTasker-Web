@@ -16,6 +16,10 @@
   max-width: calc(100vw - 1rem) !important;
 }
 
+.dt-dialog-panel.dt-dialog-panel--wide {
+  width: min(58rem, calc(100vw - 2rem)) !important;
+}
+
 /* Garante o centro visual mesmo quando o CDK não injeta a posição global a tempo. */
 .cdk-global-overlay-wrapper {
   align-items: center;

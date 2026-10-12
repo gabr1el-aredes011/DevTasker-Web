@@ -3,6 +3,10 @@
   width: min(34rem, calc(100vw - 2rem));
 }
 
+:host(.dt-dialog-frame--wide) {
+  width: min(58rem, calc(100vw - 2rem));
+}
+
 .dt-dialog {
   position: relative;
   overflow: hidden;

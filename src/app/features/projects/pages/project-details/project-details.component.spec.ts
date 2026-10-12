@@ -233,7 +233,7 @@ describe('ProjectDetailsComponent', () => {
       expect.any(Function),
       expect.objectContaining({
         data: { mode: 'create', projectId: 42 },
-        panelClass: 'dt-dialog-panel',
+        panelClass: ['dt-dialog-panel', 'dt-dialog-panel--wide'],
         backdropClass: 'dt-dialog-backdrop',
       }),
     );

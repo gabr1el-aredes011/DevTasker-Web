@@ -360,7 +360,8 @@ export class ProjectDetailsComponent implements OnInit {
       .open<BoardManagementDialogResult>(BoardManagementDialogComponent, {
         data,
         ariaLabel: this.boardDialogLabel(data),
-        panelClass: 'dt-dialog-panel',
+        panelClass:
+          data.mode === 'create' ? ['dt-dialog-panel', 'dt-dialog-panel--wide'] : 'dt-dialog-panel',
         backdropClass: 'dt-dialog-backdrop',
       })
       .closed.pipe(takeUntilDestroyed(this.destroyRef))

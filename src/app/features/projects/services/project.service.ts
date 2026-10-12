@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import {
   BoardSummary,
   AssignableProjectRole,
+  CreateBoardRequest,
   CreateProjectRequest,
   InviteProjectMemberRequest,
   ProjectDetails,
@@ -141,7 +142,7 @@ export class ProjectService {
     );
   }
 
-  createBoard(projectId: number, request: SaveBoardRequest): Observable<BoardSummary> {
+  createBoard(projectId: number, request: CreateBoardRequest): Observable<BoardSummary> {
     return this.http.post<BoardSummary>(
       `${environment.apiUrl}/projects/${projectId}/boards`,
       request,
