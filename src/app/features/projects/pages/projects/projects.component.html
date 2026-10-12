@@ -179,6 +179,43 @@
                   }
                 </div>
 
+                @if (mode === 'create') {
+                  <div class="form-field">
+                    <label for="initial-board-name">Nome do primeiro quadro</label>
+                    <input
+                      id="initial-board-name"
+                      type="text"
+                      formControlName="initialBoardName"
+                      autocomplete="off"
+                      maxlength="120"
+                      placeholder="Ex.: Produto, Sprint ou Roadmap"
+                      [attr.aria-invalid]="
+                        projectForm.controls.initialBoardName.touched &&
+                        projectForm.controls.initialBoardName.invalid
+                      "
+                      [attr.aria-describedby]="
+                        projectForm.controls.initialBoardName.touched &&
+                        projectForm.controls.initialBoardName.invalid
+                          ? 'initial-board-name-error'
+                          : null
+                      "
+                    />
+
+                    @if (
+                      projectForm.controls.initialBoardName.touched &&
+                      projectForm.controls.initialBoardName.invalid
+                    ) {
+                      <small id="initial-board-name-error">
+                        @if (projectForm.controls.initialBoardName.hasError('required')) {
+                          Defina o nome do primeiro quadro.
+                        } @else {
+                          O nome deve possuir no máximo 120 caracteres.
+                        }
+                      </small>
+                    }
+                  </div>
+                }
+
                 <div class="form-field form-field--description">
                   <div class="form-field__label">
                     <label for="project-description">Descrição</label>
@@ -254,8 +291,10 @@
                     <li>
                       <span aria-hidden="true">01</span>
                       <div>
-                        <strong>Quadro principal</strong>
-                        <p>Um quadro será preparado para iniciar o trabalho.</p>
+                        <strong>
+                          {{ projectForm.controls.initialBoardName.value || 'Seu primeiro quadro' }}
+                        </strong>
+                        <p>O quadro nasce com o nome e o contexto definidos por você.</p>
                       </div>
                     </li>
                     <li>

@@ -185,11 +185,17 @@ describe('ProjectService', () => {
   });
 
   it('should create a project with a nullable description', () => {
-    service.create({ name: 'Novo projeto', description: null }).subscribe();
+    service
+      .create({ name: 'Novo projeto', description: null, initialBoardName: 'Roadmap' })
+      .subscribe();
 
     const request = http.expectOne(`${environment.apiUrl}/projects`);
     expect(request.request.method).toBe('POST');
-    expect(request.request.body).toEqual({ name: 'Novo projeto', description: null });
+    expect(request.request.body).toEqual({
+      name: 'Novo projeto',
+      description: null,
+      initialBoardName: 'Roadmap',
+    });
     request.flush(details);
   });
 

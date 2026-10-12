@@ -219,6 +219,7 @@ describe('ProjectsComponent', () => {
     component.openCreateForm();
     component.projectForm.setValue({
       name: ' Novo Produto ',
+      initialBoardName: ' Roadmap do Produto ',
       description: '   ',
     });
     component.submitProject();
@@ -226,6 +227,7 @@ describe('ProjectsComponent', () => {
     expect(projectService.create).toHaveBeenCalledWith({
       name: 'Novo Produto',
       description: null,
+      initialBoardName: 'Roadmap do Produto',
     });
     expect(component.projects()[0].id).toBe(3);
     expect(component.formMode()).toBeNull();
@@ -249,6 +251,7 @@ describe('ProjectsComponent', () => {
 
     component.projectForm.setValue({
       name: ' Plataforma Renovada ',
+      initialBoardName: '',
       description: ' Contexto atualizado ',
     });
     component.submitProject();
@@ -284,6 +287,7 @@ describe('ProjectsComponent', () => {
     component.editProject(ownerProject);
     component.projectForm.setValue({
       name: 'Plataforma renovada',
+      initialBoardName: '',
       description: ownerDetails.description ?? '',
     });
     component.submitProject();

@@ -41,6 +41,7 @@ export interface ProjectOperationalSummary {
 export interface CreateProjectRequest {
   readonly name: string;
   readonly description: string | null;
+  readonly initialBoardName: string;
 }
 
 export interface UpdateProjectRequest {

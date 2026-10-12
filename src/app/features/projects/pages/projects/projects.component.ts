@@ -81,6 +81,7 @@ export class ProjectsComponent implements OnInit {
 
   readonly projectForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
+    initialBoardName: ['', [Validators.required, Validators.maxLength(120)]],
     description: ['', [Validators.maxLength(1000)]],
   });
 
@@ -179,7 +180,8 @@ export class ProjectsComponent implements OnInit {
     this.detailsError.set(null);
     this.editingProject.set(null);
     this.editingProjectId.set(null);
-    this.projectForm.reset({ name: '', description: '' });
+    this.projectForm.controls.initialBoardName.enable({ emitEvent: false });
+    this.projectForm.reset({ name: '', initialBoardName: '', description: '' });
     this.formMode.set('create');
     this.focusProjectName();
   }
@@ -213,8 +215,10 @@ export class ProjectsComponent implements OnInit {
           }
 
           this.editingProject.set(details);
+          this.projectForm.controls.initialBoardName.disable({ emitEvent: false });
           this.projectForm.reset({
             name: details.name,
+            initialBoardName: '',
             description: details.description ?? '',
           });
           this.focusProjectName();
@@ -423,7 +427,15 @@ export class ProjectsComponent implements OnInit {
       return;
     }
 
-    const request: CreateProjectRequest = { name, description };
+    const initialBoardName = formValue.initialBoardName.trim();
+
+    if (!initialBoardName) {
+      this.projectForm.controls.initialBoardName.setErrors({ required: true });
+      this.submitting.set(false);
+      return;
+    }
+
+    const request: CreateProjectRequest = { name, description, initialBoardName };
 
     this.projectService
       .create(request)
@@ -479,7 +491,7 @@ export class ProjectsComponent implements OnInit {
     this.editingProjectId.set(null);
     this.detailsError.set(null);
     this.formError.set(null);
-    this.projectForm.reset({ name: '', description: '' });
+    this.projectForm.reset({ name: '', initialBoardName: '', description: '' });
   }
 
   private closeArchiveDialog(restoreFocus: boolean): void {
