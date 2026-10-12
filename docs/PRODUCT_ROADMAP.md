@@ -1,6 +1,6 @@
 # DevTasker — Roadmap de produto e engenharia
 
-Última atualização: 9 de outubro de 2026.
+Última atualização: 12 de outubro de 2026.
 
 Este documento é a referência compartilhada para a evolução do DevTasker. Ele
 cobre os repositórios [DevTasker Web](https://github.com/gabr1el-aredes011/DevTasker-Web)
@@ -193,7 +193,7 @@ por exemplo, não será uma cópia visual do Kanban.
 - ✅ Página de detalhes com visão geral e quadros reais
 - ✅ Abas acessíveis e deep link do estado da página
 - ✅ Diretório de membros com funções e identificação da conta atual
-- 🚧 Filtros
+- ✅ Filtros combináveis por busca e participação em liderança ou colaboração
 - ✅ Convites seguros por e-mail e gestão de membros
 
 ### Boards
@@ -251,7 +251,8 @@ servirem apenas como porta de entrada para o Kanban.
 - ✅ Ordenar projetos pela atualização mais recente
 - ✅ Exibir cards profissionais, estados vazios, carregamento e erros
 - ✅ Navegar de Projeto → Kanban preservando o deep link
-- 🧭 Adicionar filtros por função e outros critérios
+- ✅ Adicionar filtros por participação em liderança ou colaboração, combináveis
+  com a pesquisa por nome e descrição
 - ✅ Criar a base da página avançada de detalhes do projeto
 - ✅ Exibir visão geral e boards sem inventar contratos ainda inexistentes
 - ✅ Preservar deep links para o Kanban em cada board
