@@ -19,6 +19,11 @@ describe('DashboardComponent', () => {
       completed: 3,
       overdue: 1,
     },
+    workload: {
+      mine: 2,
+      team: 2,
+      unassigned: 1,
+    },
     recentProjects: [
       {
         id: 7,
@@ -126,6 +131,21 @@ describe('DashboardComponent', () => {
     expect(fixture.componentInstance.workflowItems().map((item) => item.percentage)).toEqual([
       13, 25, 25, 0, 38,
     ]);
+  });
+
+  it('should distinguish personal, team and unassigned active work', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    const workload = fixture.nativeElement.querySelector('.task-statistics') as HTMLElement;
+
+    expect(workload.textContent).toContain('Meu foco');
+    expect(workload.textContent).toContain('Equipe');
+    expect(workload.textContent).toContain('Sem responsável');
+    expect(workload.querySelector('[data-workload="mine"] strong')?.textContent?.trim()).toBe('2');
+    expect(workload.querySelector('[data-workload="team"] strong')?.textContent?.trim()).toBe('2');
+    expect(
+      workload.querySelector('[data-workload="unassigned"] strong')?.textContent?.trim(),
+    ).toBe('1');
   });
 
   it('should expose real recent activity with task deep links', () => {

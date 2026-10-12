@@ -8,6 +8,12 @@ export interface DashboardTaskMetrics {
   readonly overdue: number;
 }
 
+export interface DashboardWorkload {
+  readonly mine: number;
+  readonly team: number;
+  readonly unassigned: number;
+}
+
 export interface DashboardRecentProject {
   readonly id: number;
   readonly name: string;
@@ -81,6 +87,8 @@ export interface DashboardSummary {
   readonly boardCount: number;
 
   readonly taskMetrics: DashboardTaskMetrics;
+
+  readonly workload: DashboardWorkload;
 
   readonly recentProjects: readonly DashboardRecentProject[];
 

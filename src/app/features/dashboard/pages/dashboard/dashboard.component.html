@@ -270,7 +270,7 @@
           <div>
             <p class="dashboard-eyebrow">TAREFAS</p>
 
-            <h2>Status atual</h2>
+            <h2>Responsabilidade ativa</h2>
           </div>
         </header>
 
@@ -279,33 +279,36 @@
             <div>
               <strong> {{ completionRate() }}% </strong>
 
-              <span> concluído </span>
+              <span>
+                {{ data.taskMetrics.completed }} de
+                {{ data.taskMetrics.total }} concluídas
+              </span>
             </div>
           </div>
         </div>
 
-        <div class="task-statistics">
-          <div>
-            <span> Total </span>
+        <div class="task-statistics" aria-label="Distribuição exclusiva das tarefas ativas">
+          <div data-workload="mine" title="Tarefas ativas que incluem você como responsável">
+            <span> Meu foco </span>
 
             <strong>
-              {{ data.taskMetrics.total }}
+              {{ data.workload.mine }}
             </strong>
           </div>
 
-          <div>
-            <span> Em desenvolvimento </span>
+          <div data-workload="team" title="Tarefas ativas atribuídas somente a outros membros">
+            <span> Equipe </span>
 
             <strong>
-              {{ data.taskMetrics.doing }}
+              {{ data.workload.team }}
             </strong>
           </div>
 
-          <div>
-            <span> Concluídas </span>
+          <div data-workload="unassigned" title="Tarefas ativas que ainda não têm responsável">
+            <span> Sem responsável </span>
 
             <strong>
-              {{ data.taskMetrics.completed }}
+              {{ data.workload.unassigned }}
             </strong>
           </div>
         </div>
