@@ -12,6 +12,7 @@ import {
   ProjectInvitationAcceptance,
   ProjectInvitationSummary,
   ProjectMemberSummary,
+  ProjectOperationalSummary,
   ProjectLabel,
   SaveProjectLabelRequest,
   ProjectSummary,
@@ -34,6 +35,12 @@ export class ProjectService {
 
   findById(projectId: number): Observable<ProjectDetails> {
     return this.http.get<ProjectDetails>(`${environment.apiUrl}/projects/${projectId}`);
+  }
+
+  findOperationalSummary(projectId: number): Observable<ProjectOperationalSummary> {
+    return this.http.get<ProjectOperationalSummary>(
+      `${environment.apiUrl}/projects/${projectId}/operational-summary`,
+    );
   }
 
   create(request: CreateProjectRequest): Observable<ProjectDetails> {
@@ -66,10 +73,7 @@ export class ProjectService {
     );
   }
 
-  createLabel(
-    projectId: number,
-    request: SaveProjectLabelRequest,
-  ): Observable<ProjectLabel> {
+  createLabel(projectId: number, request: SaveProjectLabelRequest): Observable<ProjectLabel> {
     return this.http.post<ProjectLabel>(
       `${environment.apiUrl}/projects/${projectId}/labels`,
       request,

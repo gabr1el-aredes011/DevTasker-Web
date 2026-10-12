@@ -29,6 +29,15 @@ export interface ProjectDetails extends ProjectSummary {
   readonly ownerName: string;
 }
 
+export interface ProjectOperationalSummary {
+  readonly total: number;
+  readonly active: number;
+  readonly doing: number;
+  readonly completed: number;
+  readonly overdue: number;
+  readonly urgent: number;
+}
+
 export interface CreateProjectRequest {
   readonly name: string;
   readonly description: string | null;

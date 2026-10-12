@@ -54,6 +54,7 @@ import {
   ProjectInvitationSummary,
   ProjectLabel,
   ProjectMemberSummary,
+  ProjectOperationalSummary,
 } from '../../models/project.models';
 import { projectRoleLabel, projectRoleTone } from '../../presentation/project-role.presentation';
 import { ProjectService } from '../../services/project.service';
@@ -88,6 +89,8 @@ export class ProjectDetailsComponent implements OnInit {
   readonly labelQuery = signal('');
   readonly invitations = signal<readonly ProjectInvitationSummary[]>([]);
   readonly invitationsLoadError = signal<string | null>(null);
+  readonly operationalSummary = signal<ProjectOperationalSummary | null>(null);
+  readonly operationalSummaryLoadError = signal<string | null>(null);
   readonly settingDefaultBoardId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
@@ -112,6 +115,15 @@ export class ProjectDetailsComponent implements OnInit {
       ? this.labels().filter((label) => label.name.toLocaleLowerCase().includes(query))
       : this.labels();
   });
+  readonly operationalSignal = computed(() => {
+    const summary = this.operationalSummary();
+
+    if (!summary) return 'Sinal indisponível';
+    if (summary.overdue > 0) return 'Atenção de prazo';
+    if (summary.urgent > 0) return 'Prioridade crítica';
+    if (summary.total > 0 && summary.active === 0) return 'Fluxo concluído';
+    return 'Fluxo saudável';
+  });
 
   readonly tabs: readonly { readonly id: ProjectDetailsTab; readonly label: string }[] = [
     { id: 'overview', label: 'Visão geral' },
@@ -135,12 +147,13 @@ export class ProjectDetailsComponent implements OnInit {
         switchMap((projectId) => this.loadProject(projectId)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ project, boards, labels, members, invitations }) => {
+      .subscribe(({ project, boards, labels, members, invitations, operationalSummary }) => {
         this.project.set(project);
         this.boards.set(boards);
         this.labels.set(labels);
         this.members.set(members);
         this.invitations.set(invitations);
+        this.operationalSummary.set(operationalSummary);
       });
   }
 
@@ -460,7 +473,9 @@ export class ProjectDetailsComponent implements OnInit {
             : labels.map((label) => (label.id === result.label.id ? result.label : label)),
         );
         this.toast.success(
-          result.action === 'created' ? 'Label criada com sucesso.' : 'Label atualizada com sucesso.',
+          result.action === 'created'
+            ? 'Label criada com sucesso.'
+            : 'Label atualizada com sucesso.',
         );
       });
   }
@@ -510,6 +525,8 @@ export class ProjectDetailsComponent implements OnInit {
     this.labelsLoadError.set(null);
     this.invitations.set([]);
     this.invitationsLoadError.set(null);
+    this.operationalSummary.set(null);
+    this.operationalSummaryLoadError.set(null);
     this.loadError.set(null);
 
     if (projectId === null) {
@@ -548,6 +565,17 @@ export class ProjectDetailsComponent implements OnInit {
               return of([] as readonly ProjectLabel[]);
             }),
           ),
+          operationalSummary: this.projectService.findOperationalSummary(projectId).pipe(
+            catchError((error: unknown) => {
+              this.operationalSummaryLoadError.set(
+                this.extractErrorMessage(
+                  error,
+                  'Não foi possível carregar os indicadores do projeto.',
+                ),
+              );
+              return of(null);
+            }),
+          ),
           invitations:
             project.membershipRole === 'OWNER' || project.membershipRole === 'ADMIN'
               ? this.projectService.findPendingInvitations(projectId).pipe(
@@ -584,9 +612,7 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   private parseTab(rawTab: string | null): ProjectDetailsTab {
-    return rawTab === 'boards' || rawTab === 'labels' || rawTab === 'members'
-      ? rawTab
-      : 'overview';
+    return rawTab === 'boards' || rawTab === 'labels' || rawTab === 'members' ? rawTab : 'overview';
   }
 
   private writeTabToUrl(tab: ProjectDetailsTab, replaceUrl = false): Promise<boolean> {

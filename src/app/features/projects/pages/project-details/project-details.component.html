@@ -58,25 +58,29 @@
       <aside class="project-manifest" aria-label="Resumo operacional do projeto">
         <header>
           <p class="details-eyebrow">SINAL DO PROJETO</p>
-          <span>Contexto ativo</span>
+          <span>{{ operationalSignal() }}</span>
         </header>
 
         <dl>
           <div>
-            <dt>Quadros</dt>
-            <dd>{{ boardsLoadError() ? '—' : boards().length }}</dd>
+            <dt>Tarefas</dt>
+            <dd>{{ operationalSummaryLoadError() ? '—' : (operationalSummary()?.total ?? 0) }}</dd>
           </div>
           <div>
-            <dt>Pessoas</dt>
-            <dd>{{ membersLoadError() ? '—' : members().length }}</dd>
+            <dt>Ativas</dt>
+            <dd>{{ operationalSummaryLoadError() ? '—' : (operationalSummary()?.active ?? 0) }}</dd>
           </div>
           <div>
-            <dt>Labels</dt>
-            <dd>{{ labelsLoadError() ? '—' : labels().length }}</dd>
+            <dt>Concluídas</dt>
+            <dd>
+              {{ operationalSummaryLoadError() ? '—' : (operationalSummary()?.completed ?? 0) }}
+            </dd>
           </div>
           <div>
-            <dt>Acesso</dt>
-            <dd>{{ projectRoleLabel(project.membershipRole) }}</dd>
+            <dt>Atrasadas</dt>
+            <dd>
+              {{ operationalSummaryLoadError() ? '—' : (operationalSummary()?.overdue ?? 0) }}
+            </dd>
           </div>
         </dl>
 

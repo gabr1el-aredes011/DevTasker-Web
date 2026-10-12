@@ -78,12 +78,22 @@ describe('ProjectDetailsComponent', () => {
     },
   ];
 
+  const operationalSummary = {
+    total: 12,
+    active: 8,
+    doing: 3,
+    completed: 4,
+    overdue: 2,
+    urgent: 1,
+  } as const;
+
   const projectService = {
     findById: vi.fn(),
     findBoardsByProjectId: vi.fn(),
     findMembersByProjectId: vi.fn(),
     findLabelsByProjectId: vi.fn(),
     findPendingInvitations: vi.fn(),
+    findOperationalSummary: vi.fn(),
     createBoard: vi.fn(),
     updateBoard: vi.fn(),
     archiveBoard: vi.fn(),
@@ -108,6 +118,7 @@ describe('ProjectDetailsComponent', () => {
     projectService.findMembersByProjectId.mockReturnValue(of(members));
     projectService.findLabelsByProjectId.mockReturnValue(of(labels));
     projectService.findPendingInvitations.mockReturnValue(of(invitations));
+    projectService.findOperationalSummary.mockReturnValue(of(operationalSummary));
     dialog.open.mockReturnValue({ closed: of(undefined) });
 
     await TestBed.configureTestingModule({
@@ -134,14 +145,17 @@ describe('ProjectDetailsComponent', () => {
     expect(projectService.findMembersByProjectId).toHaveBeenCalledWith(42);
     expect(projectService.findLabelsByProjectId).toHaveBeenCalledWith(42);
     expect(projectService.findPendingInvitations).toHaveBeenCalledWith(42);
+    expect(projectService.findOperationalSummary).toHaveBeenCalledWith(42);
     expect(component.project()).toEqual(project);
     expect(component.boards()).toEqual(boards);
     expect(element.querySelector('h1')?.textContent).toContain('DevTasker Web');
     expect(element.querySelector('dt-badge')?.textContent).toContain('Administrador');
     expect(element.querySelector('dt-badge')?.getAttribute('data-tone')).toBe('info');
     expect(element.querySelector('.owner-profile')?.textContent).toContain('Gabriel Silva');
-    expect(element.querySelector('.project-manifest')?.textContent).toContain('2');
-    expect(element.querySelector('.project-manifest')?.textContent).toContain('Administrador');
+    expect(element.querySelector('.project-manifest')?.textContent).toContain('Atenção de prazo');
+    expect(element.querySelector('.project-manifest')?.textContent).toContain('12');
+    expect(element.querySelector('.project-manifest')?.textContent).toContain('8');
+    expect(element.querySelector('.project-manifest')?.textContent).toContain('4');
     expect(element.querySelector('.details-hero')?.textContent).not.toContain('PROJECT CONTEXT');
   });
 
